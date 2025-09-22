@@ -1,8 +1,8 @@
- </script>
 // Inicializa bibliotecas
 AOS.init();
 feather.replace();
 Chart.register(ChartDataLabels);
+
 
 // --- INÍCIO DO SCRIPT ADAPTADO ---
 
@@ -29,7 +29,6 @@ let rastreioData = [];
 let pontosInteresse = []; // Pontos fixos no mapa
 let homeMapInstance = null;
 let homeMapTimer = null;
-
 // Função de requisição ao Supabase (do sistema original, adaptada)
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true) {
     let url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
@@ -159,7 +158,6 @@ async function loadFiliais() {
         document.getElementById('filiaisGrid').innerHTML = `<p class="text-red-500">Erro ao carregar filiais.</p>`;
     }
 }
-
 // Selecionar filial (ADAPTADO)
 async function selectFilial(filial) {
     // Busca a filial completa para garantir que temos as coordenadas
@@ -195,7 +193,6 @@ setTimeout(() => {
 }, 2000);
     showNotification(`Bem-vindo à filial: ${selectedFilial.nome}!`, 'success');
 }
-
 // Trocar filial (ADAPTADO)
 function trocarFilial() {
     selectedFilial = null;
@@ -442,10 +439,10 @@ async function loadAllTabData() {
 <tbody id="historicoFaturamentoBody">
     <tr><td colspan="10" class="loading"><div class="spinner"></div>Carregando histórico...</td></tr>
 </tbody>
-        <tbody id="historicoFaturamentoBody">
-            <tr><td colspan="9" class="loading"><div class="spinner"></div>Carregando histórico...</td></tr>
-        </tbody>
-    </table>
+            <tbody id="historicoFaturamentoBody">
+                <tr><td colspan="9" class="loading"><div class="spinner"></div>Carregando histórico...</td></tr>
+            </tbody>
+        </table>
     </div>
 </div>
 `;
@@ -604,27 +601,27 @@ async function loadAllTabData() {
 </div>
 
 <div id="frota" class="sub-tab-content">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Análise de Ociosidade da Frota</h2>
-            <div class="filters-section">
-                <div class="filters-grid">
-                    <div class="form-group"><label for="frotaFiltroDataInicio">Data Início:</label><input type="date" id="frotaFiltroDataInicio" onchange="loadFrotaData()"></div>
-                    <div class="form-group"><label for="frotaFiltroDataFim">Data Fim:</label><input type="date" id="frotaFiltroDataFim" onchange="loadFrotaData()"></div>
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Análise de Ociosidade da Frota</h2>
+                <div class="filters-section">
+                    <div class="filters-grid">
+                        <div class="form-group"><label for="frotaFiltroDataInicio">Data Início:</label><input type="date" id="frotaFiltroDataInicio" onchange="loadFrotaData()"></div>
+                        <div class="form-group"><label for="frotaFiltroDataFim">Data Fim:</label><input type="date" id="frotaFiltroDataFim" onchange="loadFrotaData()"></div>
+                    </div>
+                </div>
+                <div class="time-stats-grid">
+                    <div class="time-stat-card"><div class="stat-number" id="totalOciosidade">-</div><div class="stat-label">Ociosidade Média</div></div>
+                    <div class="time-stat-card"><div class="stat-number" id="frotaAtiva">0</div><div class="stat-label">Veículos Ativos Hoje</div></div>
+                    <div class="time-stat-card"><div class="stat-number" id="frotaOciosa">0</div><div class="stat-label">Veículos Ociosos Agora</div></div>
+                </div>
+                 <div class="table-container bg-white rounded-lg shadow-md mt-6">
+                    <table class="w-full">
+                        <thead><tr><th>Veículo</th><th>Status</th><th>Início Ociosidade</th><th>Tempo Ocioso</th><th>Última Ação</th></tr></thead>
+                        <tbody id="ociosidadeBody"></tbody>
+                    </table>
                 </div>
             </div>
-            <div class="time-stats-grid">
-                <div class="time-stat-card"><div class="stat-number" id="totalOciosidade">-</div><div class="stat-label">Ociosidade Média</div></div>
-                <div class="time-stat-card"><div class="stat-number" id="frotaAtiva">0</div><div class="stat-label">Veículos Ativos Hoje</div></div>
-                <div class="time-stat-card"><div class="stat-number" id="frotaOciosa">0</div><div class="stat-label">Veículos Ociosos Agora</div></div>
-            </div>
-             <div class="table-container bg-white rounded-lg shadow-md mt-6">
-                <table class="w-full">
-                    <thead><tr><th>Veículo</th><th>Status</th><th>Início Ociosidade</th><th>Tempo Ocioso</th><th>Última Ação</th></tr></thead>
-                    <tbody id="ociosidadeBody"></tbody>
-                </table>
-            </div>
-        </div>
-    `;
-    
+`;
+
     document.getElementById('historico').innerHTML = `
         <h1 class="text-3xl font-bold text-gray-800 mb-6">Histórico de Entregas</h1>
         <div class="sub-tabs">
@@ -687,7 +684,7 @@ async function loadAllTabData() {
             </div>
         </div>
     `;
-    
+
     document.getElementById('configuracoes').innerHTML = `
 <h1 class="text-3xl font-bold text-gray-800 mb-6">Configurações</h1>
 <div id="passwordFormContainer" class="transport-card max-w-md mx-auto">
@@ -719,7 +716,6 @@ async function loadAllTabData() {
         <button class="sub-tab" onclick="showSubTab('configuracoes', 'sistema', this)">Sistema</button>
     </div>
 
-    <!-- FILIAIS -->
     <div id="filiais" class="sub-tab-content active">
         <div class="transport-card">
             <div class="flex justify-between items-center mb-4">
@@ -745,7 +741,6 @@ async function loadAllTabData() {
         </div>
     </div>
 
-    <!-- LOJAS -->
     <div id="lojas" class="sub-tab-content">
         <div class="transport-card">
             <div class="flex justify-between items-center mb-4">
@@ -775,7 +770,6 @@ async function loadAllTabData() {
         </div>
     </div>
 
-    <!-- DOCAS -->
     <div id="docas" class="sub-tab-content">
         <div class="transport-card">
             <div class="flex justify-between items-center mb-4">
@@ -801,7 +795,6 @@ async function loadAllTabData() {
         </div>
     </div>
 
-    <!-- VEÍCULOS -->
     <div id="veiculos" class="sub-tab-content">
         <div class="transport-card">
             <div class="flex justify-between items-center mb-4">
@@ -828,7 +821,6 @@ async function loadAllTabData() {
         </div>
     </div>
 
-    <!-- MOTORISTAS -->
     <div id="motoristasConfig" class="sub-tab-content">
         <div class="transport-card">
             <div class="flex justify-between items-center mb-4">
@@ -853,7 +845,6 @@ async function loadAllTabData() {
         </div>
     </div>
 
-    <!-- LÍDERES -->
     <div id="lideres" class="sub-tab-content">
         <div class="transport-card">
             <div class="flex justify-between items-center mb-4">
@@ -878,7 +869,6 @@ async function loadAllTabData() {
         </div>
     </div>
 
-    <!-- PONTOS DE INTERESSE -->
     <div id="pontosInteresse" class="sub-tab-content">
         <div class="transport-card">
             <div class="flex justify-between items-center mb-4">
@@ -908,7 +898,6 @@ async function loadAllTabData() {
         </div>
     </div>
 
-    <!-- ACESSOS -->
     <div id="acessos" class="sub-tab-content">
         <div class="transport-card">
             <div class="flex justify-between items-center mb-4">
@@ -932,7 +921,6 @@ async function loadAllTabData() {
         </div>
     </div>
 
-    <!-- SISTEMA -->
     <div id="sistema" class="sub-tab-content">
         <div class="transport-card">
             <h3 class="text-xl font-semibold mb-4">Status do Sistema</h3>
@@ -940,8 +928,8 @@ async function loadAllTabData() {
         </div>
     </div>
 </div>
-</div>
 `;
+
 
 // Adicionar event listeners aos formulários
 document.getElementById('expeditionForm').addEventListener('submit', (e) => { e.preventDefault(); lancarCarga(); });
@@ -950,8 +938,8 @@ document.getElementById('passwordForm').addEventListener('submit', (e) => { e.pr
 document.getElementById('addForm').addEventListener('submit', (e) => { e.preventDefault(); handleSave(); });
 // Event listener para o formulário de autenticação de edição
 document.getElementById('authEditForm').addEventListener('submit', (e) => { 
-    e.preventDefault(); 
-    checkAuthForEdit(); 
+e.preventDefault(); 
+checkAuthForEdit(); 
 });
 
     // Carregar dados para os selects
@@ -979,7 +967,6 @@ try {
     console.error("Erro ao carregar dados dos selects:", error);
 }
 }
-
 function populateSelects() {
 // Ordena lojas por código localmente (garantia extra)
 const lojasOrdenadas = [...lojas].sort((a, b) => {
@@ -1139,6 +1126,7 @@ async function loadHomeData() {
             initHomeMap(); // Inicializar mapa mesmo sem dados
         }
 
+
         const totalViagens = filteredExpeditions.length;
         const totalEntregas = items.length;
 
@@ -1240,6 +1228,7 @@ await initHomeMap();
         document.getElementById('temposMediosLojaTbody').innerHTML = `<tr><td colspan="5" class="alert alert-error">Erro ao carregar dados: ${error.message}</td></tr>`;
     }
 }
+
 
 function renderFleetUtilizationChart(perlogCount, jjsCount) {
     const total = perlogCount + jjsCount;
@@ -1454,1998 +1443,224 @@ function renderTemposMediosTable(lojasData) {
 
 // --- FUNÇÕES DO MAPA DA HOME ---
 async function initHomeMap() {
-// Destruir mapa existente se houver
-if (homeMapInstance) {
-    homeMapInstance.remove();
-    homeMapInstance = null;
-}
-
-// Aguardar o elemento estar disponível
-const mapElement = document.getElementById('homeMap');
-if (!mapElement) {
-    console.warn('Elemento do mapa da home não encontrado');
-    return;
-}
-
-try {
-    // Coordenadas do CD da filial selecionada
-    const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
-    
-    // Criar mapa da home
-    homeMapInstance = L.map('homeMap').setView(cdCoords, 11);
-    
-    // Adicionar camada do mapa
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(homeMapInstance);
-    
-    // Carregar dados do rastreio para o mapa
-    await loadHomeMapData();
-    
-    // Configurar auto-refresh se estiver ativado
-    if (document.getElementById('homeAutoRefresh')?.checked) {
-        toggleHomeAutoRefresh();
+    // Destruir mapa existente se houver
+    if (homeMapInstance) {
+        homeMapInstance.remove();
+        homeMapInstance = null;
     }
     
-} catch (error) {
-    console.error('Erro ao inicializar mapa da home:', error);
-    mapElement.innerHTML = `<div class="flex items-center justify-center h-full text-gray-500">
-        <div class="text-center">
-            <p class="mb-2">Erro ao carregar mapa</p>
-            <button class="btn btn-primary btn-small" onclick="initHomeMap()">Tentar Novamente</button>
-        </div>
-    </div>`;
-}
+    // Aguardar o elemento estar disponível
+    const mapElement = document.getElementById('homeMap');
+    if (!mapElement) {
+        console.warn('Elemento do mapa da home não encontrado');
+        return;
+    }
+    
+    try {
+        // Coordenadas do CD da filial selecionada
+        const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
+        
+        // Criar mapa da home
+        homeMapInstance = L.map('homeMap').setView(cdCoords, 11);
+        
+        // Adicionar camada do mapa
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(homeMapInstance);
+        
+        // Carregar dados do rastreio para o mapa
+        await loadHomeMapData();
+        
+        // Configurar auto-refresh se estiver ativado
+        if (document.getElementById('homeAutoRefresh')?.checked) {
+            toggleHomeAutoRefresh();
+        }
+        
+    } catch (error) {
+        console.error('Erro ao inicializar mapa da home:', error);
+        mapElement.innerHTML = `<div class="flex items-center justify-center h-full text-gray-500">
+            <div class="text-center">
+                <p class="mb-2">Erro ao carregar mapa</p>
+                <button class="btn btn-primary btn-small" onclick="initHomeMap()">Tentar Novamente</button>
+            </div>
+        </div>`;
+    }
 }
 
 async function loadHomeMapData() {
-if (!homeMapInstance) return;
-
-try {
-    // Limpar marcadores existentes
-    homeMapInstance.eachLayer(layer => {
-        if (layer instanceof L.Marker || layer instanceof L.Circle) {
-            homeMapInstance.removeLayer(layer);
-        }
-    });
+    if (!homeMapInstance) return;
     
-    // Coordenadas do CD
-    const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
-    
-    // Adicionar marcador do CD
-    const cdIcon = L.divIcon({
-        className: 'custom-marker',
-        html: '<div style="background: #0077B6; color: white; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">🏭 CD</div>',
-        iconSize: [80, 30],
-        iconAnchor: [40, 15]
-    });
-    
-    L.marker(cdCoords, { icon: cdIcon })
-        .addTo(homeMapInstance)
-        .bindPopup(`<h3><strong>Centro de Distribuição</strong></h3><p>Filial ${selectedFilial.nome}</p>`);
-    
-    // Carregar dados de rastreio atuais
-    const expeditionsEmRota = await supabaseRequest('expeditions?status=eq.saiu_para_entrega&order=data_saida_entrega.desc');
-    const motoristasRetornando = await supabaseRequest('motoristas?status=in.(retornando_cd,retornando_com_imobilizado)');
-    
-    // Buscar localizações GPS
-    let locations = [];
-    if (expeditionsEmRota.length > 0) {
-        const expeditionIds = expeditionsEmRota.map(exp => exp.id);
-        const query = `gps_tracking?expedition_id=in.(${expeditionIds.join(',')})&order=data_gps.desc`;
-        locations = await supabaseRequest(query, 'GET', null, false);
-    }
-    
-    let returningLocations = [];
-    if (motoristasRetornando.length > 0) {
-        const motoristaIds = motoristasRetornando.map(m => m.id);
-        const query = `gps_tracking?motorista_id=in.(${motoristaIds.join(',')})&order=data_gps.desc`;
-        returningLocations = await supabaseRequest(query, 'GET', null, false);
-    }
-    
-    const bounds = L.latLngBounds();
-    bounds.extend(cdCoords);
-    
-    // Adicionar veículos em rota
-    expeditionsEmRota.forEach(exp => {
-        const location = locations.find(loc => loc.expedition_id === exp.id);
-        if (location && location.latitude && location.longitude) {
-            const lat = parseFloat(location.latitude);
-            const lng = parseFloat(location.longitude);
-            
-            const motorista = motoristas.find(m => m.id === exp.motorista_id);
-            const veiculo = veiculos.find(v => v.id === exp.veiculo_id);
-            
-            // Determinar status do veículo para cor
-            let color = '#F59E0B'; // laranja para em trânsito
-            let statusText = 'Em Trânsito';
-            
-            // Verificar se está descarregando (lógica simplificada)
-            // Na implementação real, você pode verificar o status atual das entregas
-            
-            const vehicleIcon = L.divIcon({
-                className: 'custom-marker',
-                html: `<div style="background: ${color}; color: white; padding: 3px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${veiculo?.placa || 'N/A'}</div>`,
-                iconSize: [60, 20],
-                iconAnchor: [30, 10]
-            });
-            
-            L.marker([lat, lng], { icon: vehicleIcon })
-                .addTo(homeMapInstance)
-                .bindPopup(`
-                    <div style="text-align: center;">
-                        <h4><strong>${veiculo?.placa || 'N/A'}</strong></h4>
-                        <p><strong>Motorista:</strong> ${motorista?.nome || 'N/A'}</p>
-                        <p><strong>Status:</strong> <span style="color: ${color};">${statusText}</span></p>
-                        <p><strong>Última atualização:</strong><br>${new Date(location.data_gps).toLocaleString('pt-BR')}</p>
-                    </div>
-                `);
-            
-            bounds.extend([lat, lng]);
-        }
-    });
-    
-    // Adicionar veículos retornando
-    motoristasRetornando.forEach(motorista => {
-        const location = returningLocations.find(loc => loc.motorista_id === motorista.id);
-        if (location && location.latitude && location.longitude) {
-            const lat = parseFloat(location.latitude);
-            const lng = parseFloat(location.longitude);
-            
-            const veiculo = veiculos.find(v => v.id === motorista.veiculo_id);
-            const color = '#10B981'; // verde para retornando
-            
-            const vehicleIcon = L.divIcon({
-                className: 'custom-marker',
-                html: `<div style="background: ${color}; color: white; padding: 3px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${veiculo?.placa || 'N/A'}</div>`,
-                iconSize: [60, 20],
-                iconAnchor: [30, 10]
-            });
-            
-            L.marker([lat, lng], { icon: vehicleIcon })
-                .addTo(homeMapInstance)
-                .bindPopup(`
-                    <div style="text-align: center;">
-                        <h4><strong>${veiculo?.placa || 'N/A'}</strong></h4>
-                        <p><strong>Motorista:</strong> ${motorista.nome}</p>
-                        <p><strong>Status:</strong> <span style="color: ${color};">Retornando</span></p>
-                        <p><strong>Última atualização:</strong><br>${new Date(location.data_gps).toLocaleString('pt-BR')}</p>
-                    </div>
-                `);
-            
-            bounds.extend([lat, lng]);
-        }
-    });
-    
-    // Adicionar lojas
-    lojas.forEach(loja => {
-        if (loja.latitude && loja.longitude && loja.ativo) {
-            const lat = parseFloat(loja.latitude);
-            const lng = parseFloat(loja.longitude);
-            
-            let cor = '#10B981'; // verde padrão
-            if (loja.nome.toLowerCase().includes('fort')) cor = '#EF4444'; // vermelho
-            else if (loja.nome.toLowerCase().includes('comper')) cor = '#0077B6'; // azul
-            
-            const lojaIcon = L.divIcon({
-                className: 'custom-marker',
-                html: `<div style="background: ${cor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">🏪 ${loja.codigo}</div>`,
-                iconSize: [50, 18],
-                iconAnchor: [25, 9]
-            });
-            
-            L.marker([lat, lng], { icon: lojaIcon })
-                .addTo(homeMapInstance)
-                .bindPopup(`<strong>${loja.nome}</strong><br>Código: ${loja.codigo}`);
-            
-            bounds.extend([lat, lng]);
-        }
-    });
-
-    // Adicionar pontos de interesse se existirem
-    if (pontosInteresse && pontosInteresse.length > 0) {
-        pontosInteresse.forEach(ponto => {
-            if (ponto.ativo) {
-                const pontoIcon = L.divIcon({
-                    className: 'custom-marker',
-                    html: `<div style="background: ${ponto.cor}; color: white; padding: 1px 4px; border-radius: 3px; font-size: 8px; font-weight: bold; border: 1px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">${ponto.tipo}</div>`,
-                    iconSize: [30, 15],
-                    iconAnchor: [15, 7]
-                });
-                
-                L.marker([ponto.latitude, ponto.longitude], { icon: pontoIcon })
-                    .addTo(homeMapInstance)
-                    .bindPopup(`<strong>${ponto.nome}</strong><br><small>${ponto.tipo}</small>`);
-            }
-        });
-    }
-    
-    // Ajustar zoom para mostrar todos os pontos
-    if (bounds.isValid()) {
-        homeMapInstance.fitBounds(bounds, { padding: [20, 20] });
-    }
-    
-    // Atualizar timestamp
-    updateHomeLastRefreshTime();
-    
-} catch (error) {
-    console.error('Erro ao carregar dados do mapa da home:', error);
-    showNotification('Erro ao atualizar mapa: ' + error.message, 'error');
-}
-}
-
-function toggleHomeAutoRefresh() {
-const autoRefresh = document.getElementById('homeAutoRefresh')?.checked;
-
-// Limpar timer existente
-if (homeMapTimer) {
-    clearInterval(homeMapTimer);
-    homeMapTimer = null;
-}
-
-if (autoRefresh) {
-    // Atualizar a cada 30 segundos
-    homeMapTimer = setInterval(() => {
-        loadHomeMapData();
-    }, 30000);
-    showNotification('Auto-refresh do mapa ativado (30s)', 'success', 2000);
-} else {
-    showNotification('Auto-refresh do mapa desativado', 'info', 2000);
-}
-}
-
-function updateHomeLastRefreshTime() {
-const now = new Date();
-const element = document.getElementById('homeLastUpdate');
-if (element) {
-    element.textContent = `Última atualização: ${now.toLocaleTimeString('pt-BR')}`;
-}
-}
-
-function showHomeMapFullscreen() {
-document.getElementById('mapModalTitle').textContent = 'Visão Geral em Tempo Real - Tela Cheia';
-document.getElementById('mapModal').style.display = 'flex';
-
-setTimeout(async () => {
-    if (mapInstance) {
-        mapInstance.remove();
-    }
-    
-    const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
-    mapInstance = L.map('map').setView(cdCoords, 11);
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(mapInstance);
-    
-    // Reutilizar a mesma lógica do mapa da home
-    await loadHomeMapDataForFullscreen();
-}, 100);
-}
-
-async function loadHomeMapDataForFullscreen() {
-try {
-    // Coordenadas do CD
-    const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
-    
-    // Adicionar marcador do CD
-    const cdIcon = L.divIcon({
-        className: 'custom-marker',
-        html: '<div style="background: #0077B6; color: white; padding: 8px 16px; border-radius: 10px; font-size: 16px; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">🏭 CD</div>',
-        iconSize: [100, 40],
-        iconAnchor: [50, 20]
-    });
-    
-    L.marker(cdCoords, { icon: cdIcon })
-        .addTo(mapInstance)
-        .bindPopup(`<h3><strong>Centro de Distribuição</strong></h3><p>Filial ${selectedFilial.nome}</p>`);
-    
-    const bounds = L.latLngBounds();
-    bounds.extend(cdCoords);
-    
-    // Carregar dados de rastreio atuais (similar ao loadHomeMapData)
-    const expeditionsEmRota = await supabaseRequest('expeditions?status=eq.saiu_para_entrega&order=data_saida_entrega.desc');
-    const motoristasRetornando = await supabaseRequest('motoristas?status=in.(retornando_cd,retornando_com_imobilizado)');
-    
-    // Buscar localizações GPS
-    let locations = [];
-    if (expeditionsEmRota.length > 0) {
-        const expeditionIds = expeditionsEmRota.map(exp => exp.id);
-        const query = `gps_tracking?expedition_id=in.(${expeditionIds.join(',')})&order=data_gps.desc`;
-        locations = await supabaseRequest(query, 'GET', null, false);
-    }
-    
-    let returningLocations = [];
-    if (motoristasRetornando.length > 0) {
-        const motoristaIds = motoristasRetornando.map(m => m.id);
-        const query = `gps_tracking?motorista_id=in.(${motoristaIds.join(',')})&order=data_gps.desc`;
-        returningLocations = await supabaseRequest(query, 'GET', null, false);
-    }
-
-    const promessasRoteamento = expeditionsEmRota.map(async exp => {
-        const expItems = items.filter(item => item.expedition_id === exp.id);
-        const motorista = motoristas.find(m => m.id === exp.motorista_id);
-        const veiculo = veiculos.find(v => v.id === exp.veiculo_id);
-        const currentLocation = locations.find(loc => loc.expedition_id === exp.id);
-        
-        if (!currentLocation || !currentLocation.latitude || !currentLocation.longitude) {
-            return;
-        }
-
-        const itemsOrdenados = expItems.sort((a, b) => {
-            const aInicio = a.data_inicio_descarga ? new Date(a.data_inicio_descarga) : new Date('2099-01-01');
-            const bInicio = b.data_inicio_descarga ? new Date(b.data_inicio_descarga) : new Date('2099-01-01');
-            return aInicio - bInicio;
-        });
-
-        let statusAtual = 'em_transito';
-        let proximaLoja = null;
-        let lojaAtual = null;
-        let progresso = 0;
-        let entregasConcluidas = 0;
-
-        for (let i = 0; i < itemsOrdenados.length; i++) {
-            const item = itemsOrdenados[i];
-            if (item.status_descarga === 'em_descarga') {
-                statusAtual = 'em_descarga';
-                lojaAtual = lojas.find(l => l.id === item.loja_id);
-                progresso = ((i + 0.5) / itemsOrdenados.length) * 100;
-                break;
-            } else if (item.status_descarga === 'descarregado') {
-                entregasConcluidas++;
-                progresso = (entregasConcluidas / itemsOrdenados.length) * 100;
-                continue;
-            } else {
-                proximaLoja = lojas.find(l => l.id === item.loja_id);
-                progresso = (entregasConcluidas / itemsOrdenados.length) * 100;
-                break;
-            }
-        }
-
-        if (itemsOrdenados.every(item => item.status_descarga === 'descarregado')) {
-            statusAtual = 'retornando';
-            progresso = 100;
-        }
-
-        const tempoSaida = new Date(exp.data_saida_entrega);
-        const tempoDecorrido = (new Date() - tempoSaida) / 60000;
-        
-        let distanciaTotalKm = 0;
-        let tempoTotalRota = 0;
-        let eta = new Date();
-        
-        // Re-calcula a rota completa do CD até a última loja para obter a distância total
-        const waypoints = [
-            { lat: selectedFilial.latitude_cd, lng: selectedFilial.longitude_cd },
-            ...itemsOrdenados.map(item => {
-                const loja = lojas.find(l => l.id === item.loja_id);
-                return { lat: loja.latitude, lng: loja.longitude };
-            })
-        ];
-
-        if (waypoints.length > 1) {
-            const rotaCompleta = await getRouteFromAPI(waypoints);
-            if (rotaCompleta) {
-                distanciaTotalKm = rotaCompleta.distance / 1000;
-                tempoTotalRota = rotaCompleta.duration / 60;
-            }
-        }
-
-        // Calcula a ETA para a próxima parada, se houver
-        if (proximaLoja && proximaLoja.latitude && proximaLoja.longitude) {
-            const rotaProximaLoja = await getRouteFromAPI([{ lat: currentLocation.latitude, lng: currentLocation.longitude }, { lat: proximaLoja.latitude, lng: proximaLoja.longitude }]);
-            if(rotaProximaLoja) {
-                const tempoEstimadoMinutos = rotaProximaLoja.duration / 60;
-                eta = new Date(new Date().getTime() + tempoEstimadoMinutos * 60000);
-            }
-        }
-        
-        return {
-            ...exp,
-            items: expItems,
-            motorista_nome: motorista?.nome || 'N/A',
-            veiculo_placa: veiculo?.placa || 'N/A',
-            status_rastreio: statusAtual,
-            loja_atual: lojaAtual,
-            proxima_loja: proximaLoja,
-            progresso_rota: Math.round(progresso),
-            tempo_em_rota: Math.round(tempoDecorrido),
-            distancia_total_km: distanciaTotalKm,
-            tempo_total_rota: tempoTotalRota,
-            coordenadas: {
-                lat: parseFloat(currentLocation.latitude),
-                lng: parseFloat(currentLocation.longitude)
-            },
-            eta: eta,
-            velocidade_media: currentLocation.velocidade || 0,
-            entregas_concluidas: entregasConcluidas,
-            total_entregas: itemsOrdenados.length,
-            last_update: new Date(currentLocation.data_gps),
-            accuracy: currentLocation.precisao || 0,
-            pontos_proximos: checkProximityToPontosInteresse(currentLocation.latitude, currentLocation.longitude)
-        };
-    });
-
-    const results = await Promise.all(promessasRoteamento);
-    rastreioData = results.filter(Boolean);
-
-    const motoristasRetornando = await supabaseRequest('motoristas?status=in.(retornando_cd,retornando_com_imobilizado)');
-    const returningMotoristIds = motoristasRetornando.map(m => m.id);
-
-    let returningLocations = [];
-    if (returningMotoristIds.length > 0) {
-        const query = `gps_tracking?motorista_id=in.(${returningMotoristIds.join(',')})&order=data_gps.desc`;
-        returningLocations = await supabaseRequest(query, 'GET', null, false);
-    }
-
-    const promessasRetorno = motoristasRetornando.map(async m => {
-        const currentLocation = returningLocations.find(loc => loc.motorista_id === m.id);
-        if (currentLocation && currentLocation.latitude && currentLocation.longitude) {
-            const cdCoords = { lat: selectedFilial.latitude_cd, lng: selectedFilial.longitude_cd };
-            const rota = await getRouteFromAPI([{ lat: currentLocation.latitude, lng: currentLocation.longitude }, { lat: cdCoords.lat, lng: cdCoords.lng }]);
-            const distanciaTotalKm = rota ? rota.distance / 1000 : 0;
-            const tempoEstimadoMinutos = rota ? rota.duration / 60 : 0;
-            const eta = new Date(new Date().getTime() + tempoEstimadoMinutos * 60000);
-            
-            return {
-                id: `return-${m.id}`,
-                motorista_id: m.id,
-                motorista_nome: m.nome,
-                veiculo_placa: veiculos.find(v => v.id === m.veiculo_id)?.placa || 'N/A',
-                status_rastreio: 'retornando',
-                distancia_total_km: distanciaTotalKm,
-                coordenadas: {
-                    lat: parseFloat(currentLocation.latitude),
-                    lng: parseFloat(currentLocation.longitude)
-                },
-                eta: eta,
-                last_update: new Date(currentLocation.data_gps),
-                pontos_proximos: checkProximityToPontosInteresse(currentLocation.latitude, currentLocation.longitude)
-            };
-        }
-        return null;
-    });
-
-    const returningResults = await Promise.all(promessasRetorno);
-    rastreioData.push(...returningResults.filter(Boolean));
-
-    updateRastreioStats();
-    applyRastreioFilters();
-    updateLastRefreshTime();
-
-} catch (error) {
-    console.error('Erro ao carregar dados de rastreio:', error);
-    document.getElementById('rastreioList').innerHTML = `<div class="alert alert-error">Erro ao carregar dados de rastreio: ${error.message}</div>`;
-}
-}
-function updateRastreioStats() {
-const veiculosEmRota = rastreioData.length;
-const entregasAndamento = rastreioData.filter(r => r.status_rastreio === 'em_descarga').length;
-const proximasEntregas = rastreioData.reduce((sum, r) => sum + (r.total_entregas - r.entregas_concluidas), 0);
-const tempoMedioRota = rastreioData.length > 0 ? 
-    rastreioData.reduce((sum, r) => sum + r.tempo_em_rota, 0) / rastreioData.length : 0;
-
-document.getElementById('veiculosEmRota').textContent = veiculosEmRota;
-document.getElementById('entregasAndamento').textContent = entregasAndamento;
-document.getElementById('proximasEntregas').textContent = proximasEntregas;
-document.getElementById('tempoMedioRota').textContent = minutesToHHMM(tempoMedioRota);
-}
-
-function applyRastreioFilters() {
-const motoristaFilter = document.getElementById('rastreioFiltroMotorista')?.value;
-const statusFilter = document.getElementById('rastreioFiltroStatus')?.value;
-
-let filteredData = rastreioData;
-
-if (motoristaFilter) {
-    filteredData = filteredData.filter(r => r.motorista_id === motoristaFilter);
-}
-
-if (statusFilter) {
-    if (statusFilter === 'saiu_para_entrega') {
-        filteredData = filteredData.filter(r => r.status_rastreio === 'em_transito');
-    } else if (statusFilter === 'em_descarga') {
-        filteredData = filteredData.filter(r => r.status_rastreio === 'em_descarga');
-    } else if (statusFilter === 'retornando') {
-        filteredData = filteredData.filter(r => r.status_rastreio === 'retornando');
-    }
-}
-
-console.log('Dados filtrados para exibição:', filteredData.length); // DEBUG
-renderRastreioList(filteredData);
-}
-
-function renderRastreioList(data) {
-const container = document.getElementById('rastreioList');
-
-if (data.length === 0) {
-    container.innerHTML = '<div class="alert alert-info">Nenhum veículo em rota no momento.</div>';
-    return;
-}
-
-container.innerHTML = data.map(rastreio => {
-    let statusInfo = '';
-    let locationInfo = '';
-    let nextActionInfo = '';
-    
-    if (rastreio.status_rastreio === 'em_transito') {
-        statusInfo = `<div class="flex items-center gap-2 text-blue-600"><div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div><span class="font-semibold">Em Trânsito</span></div>`;
-        locationInfo = `<div class="text-sm text-gray-600">Próxima parada: <strong>${rastreio.proxima_loja?.nome || 'N/A'}</strong></div>`;
-        nextActionInfo = `<div class="text-xs text-gray-500">ETA: ${rastreio.eta.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}</div>`;
-    } else if (rastreio.status_rastreio === 'em_descarga') {
-        statusInfo = `<div class="flex items-center gap-2 text-orange-600"><div class="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div><span class="font-semibold">Descarregando</span></div>`;
-        locationInfo = `<div class="text-sm text-gray-600">Local atual: <strong>${rastreio.loja_atual?.nome || 'N/A'}</strong></div>`;
-        
-        const item = rastreio.items.find(i => i.status_descarga === 'em_descarga');
-        if (item && item.data_inicio_descarga) {
-            const tempoDescarga = Math.round((new Date() - new Date(item.data_inicio_descarga)) / 60000);
-            nextActionInfo = `<div class="text-xs text-gray-500">Tempo de descarga: ${minutesToHHMM(tempoDescarga)}</div>`;
-        }
-    } else if (rastreio.status_rastreio === 'retornando') {
-        statusInfo = `<div class="flex items-center gap-2 text-green-600"><div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div><span class="font-semibold">Retornando ao CD</span></div>`;
-        locationInfo = `<div class="text-sm text-gray-600">Todas as entregas concluídas</div>`;
-        nextActionInfo = `<div class="text-xs text-gray-500">ETA CD: ${rastreio.eta.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}</div>`;
-    }
-    
-    // Calcular tempo desde a última atualização
-const tempoUltimaAtualizacao = rastreio.last_update ? 
-Math.round((new Date() - rastreio.last_update) / 60000) : null;
-
-// Informações de proximidade
-let proximityInfo = '';
-if (rastreio.pontos_proximos && rastreio.pontos_proximos.length > 0) {
-proximityInfo = `
-    <div class="proximity-alert">
-        <div class="text-sm font-medium">
-            <span class="proximity-icon">📍</span>Pontos Próximos:
-        </div>
-        ${rastreio.pontos_proximos.map(p => {
-            let icon = '';
-            if (p.ponto.tipo === 'CD') icon = '🏭';
-            else if (p.ponto.tipo === 'LOJA') icon = '🏪';
-            else if (p.ponto.tipo === 'POSTO') icon = '⛽';
-            else if (p.ponto.tipo === 'CASA') icon = '🏠';
-            else icon = '📍';
-            
-            return `<div class="text-xs mt-1">${icon} ${p.ponto.nome} - ${p.distancia}m</div>`;
-        }).join('')}
-    </div>
-`;
-}
-
-return `
-        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 ${rastreio.status_rastreio === 'em_transito' ? 'border-blue-500' : rastreio.status_rastreio === 'em_descarga' ? 'border-orange-500' : 'border-green-500'}">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-800">${rastreio.veiculo_placa} - ${rastreio.motorista_nome}</h3>
-                    <p class="text-sm text-gray-500">Saiu às ${new Date(rastreio.data_saida_entrega).toLocaleTimeString('pt-BR')}</p>
-                    ${tempoUltimaAtualizacao !== null ? `<p class="text-xs text-gray-400">Última localização: ${tempoUltimaAtualizacao < 1 ? 'agora' : tempoUltimaAtualizacao + 'min atrás'}</p>` : ''}
-                </div>
-                <div class="text-right">
-                    ${statusInfo}
-                    <div class="text-xs text-gray-500 mt-1">Velocidade: ${rastreio.velocidade_media} km/h</div>
-                    ${rastreio.accuracy > 0 ? `<div class="text-xs text-gray-400">Precisão: ${rastreio.accuracy}m</div>` : ''}
-                </div>
-            </div>
-
-${proximityInfo}
-
-<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-<div class="text-center">
-    <div class="text-2xl font-bold text-blue-600">${rastreio.entregas_concluidas}</div>
-    <div class="text-xs text-gray-500">Entregas Feitas</div>
-</div>
-<div class="text-center">
-    <div class="text-2xl font-bold text-orange-600">${rastreio.total_entregas - rastreio.entregas_concluidas}</div>
-    <div class="text-xs text-gray-500">Restantes</div>
-</div>
-<div class="text-center">
-    <div class="text-2xl font-bold text-green-600">${(rastreio.distancia_total_km || 0).toFixed(1)}</div>
-    <div class="text-xs text-gray-500">KM da Rota</div>
-</div>
-<div class="text-center">
-    <div class="text-2xl font-bold text-purple-600">${minutesToHHMM(rastreio.tempo_total_rota || 0)}</div>
-    <div class="text-xs text-gray-500">Tempo Total Rota</div>
-</div>
-</div>
-            
-            <div class="mb-4">
-                <div class="flex justify-between text-sm text-gray-600 mb-1">
-                    <span>Progresso da Rota</span>
-                    <span>${rastreio.progresso_rota}%</span>
-                </div>
-                <div class="progress-container">
-                    <div class="progress-bar ${rastreio.progresso_rota === 100 ? 'progress-green' : rastreio.progresso_rota > 50 ? 'progress-orange' : 'progress-red'}" 
-                         style="width: ${rastreio.progresso_rota}%;">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    ${locationInfo}
-                    ${nextActionInfo}
-                </div>
-                <div class="text-right">
-                    <div class="text-xs text-gray-500">Posição GPS</div>
-                    <div class="text-sm font-mono text-gray-600">${rastreio.coordenadas.lat.toFixed(6)}, ${rastreio.coordenadas.lng.toFixed(6)}</div>
-                    <div class="flex gap-2 mt-2">
-<button class="btn btn-primary btn-small" onclick="showLocationMap('${rastreio.id}', ${rastreio.coordenadas.lat}, ${rastreio.coordenadas.lng}, '${rastreio.veiculo_placa}')">
-    Ver no Mapa
-</button>
-<button class="btn btn-success btn-small" onclick="showAllVehiclesMap()">
-    Mapa Geral
-</button>
-<button class="btn btn-warning btn-small" onclick="showTrajectoryMap('${rastreio.id}', '${rastreio.veiculo_placa}')">
-    Ver Trajeto
-</button>
-</div>
-                </div>
-            </div>
-            
-            <div class="mt-4 pt-4 border-t border-gray-200">
-                <h4 class="font-semibold text-gray-700 mb-2">Roteiro de Entregas</h4>
-                <div class="space-y-1">
-                    ${rastreio.items.map((item, index) => {
-                        const loja = lojas.find(l => l.id === item.loja_id);
-                        let iconStatus = '';
-                        if (item.status_descarga === 'descarregado') iconStatus = '✅';
-                        else if (item.status_descarga === 'em_descarga') iconStatus = '🚚';
-                        else iconStatus = '⏳';
-                        
-                        // ...
-return `<div class="flex items-center text-sm ...">
-<span class="mr-2">${iconStatus}</span>
-<span>${index + 1}. ${loja?.codigo || 'N/A'} - ${loja?.nome || 'N/A'}</span>
-${item.data_fim_descarga ? `<span class="ml-auto text-xs">${new Date(item.data_fim_descarga).toLocaleTimeString('pt-BR')}</span>` : ''}
-</div>`;
-// ...
-                    }).join('')}
-                </div>
-            </div>
-        </div>
-    `;
-}).join('');
-}
-
-function showLocationMap(expeditionId, lat, lng) {
-// Em uma implementação real, isso abriria um mapa (Google Maps, OpenStreetMap, etc.)
-const mapUrl = `https://www.google.com/maps?q=${lat},${lng}&z=15`;
-window.open(mapUrl, '_blank');
-}
-
-function toggleAutoRefresh() {
-const autoRefresh = document.getElementById('autoRefreshRastreio').checked;
-
-if (autoRefresh) {
-    // Atualizar a cada 15 segundos para dados em tempo real
-    rastreioTimer = setInterval(() => {
-        loadRastreioData();
-    }, 15000);
-    showNotification('Auto-refresh ativado (15s)', 'success');
-} else {
-    if (rastreioTimer) {
-        clearInterval(rastreioTimer);
-        rastreioTimer = null;
-    }
-    showNotification('Auto-refresh desativado', 'info');
-}
-}
-
-function updateLastRefreshTime() {
-const now = new Date();
-document.getElementById('lastUpdateRastreio').textContent = 
-    `Última atualização: ${now.toLocaleTimeString('pt-BR')}`;
-}
-    // --- FUNCIONALIDADES DA ABA HISTÓRICO ---
-    async function loadHistorico() {
-        showSubTab('historico', 'listaEntregas', document.querySelector('#historico .sub-tab'));
-        const container = document.getElementById('historicoList');
-        container.innerHTML = `<div class="loading"><div class="spinner"></div>Carregando histórico...</div>`;
-        try {
-            const expeditions = await supabaseRequest('expeditions?status=eq.entregue&order=data_hora.desc');
-            const items = await supabaseRequest('expedition_items');
-            
-            allHistorico = expeditions.map(exp => {
-                const expItems = items.filter(item => item.expedition_id === exp.id);
-                const veiculo = exp.veiculo_id ? veiculos.find(v => v.id === exp.veiculo_id) : null;
-                const totalPallets = expItems.reduce((s, i) => s + (i.pallets || 0), 0);
-                const totalRolls = expItems.reduce((s, i) => s + (i.rolltrainers || 0), 0);
-                const totalCarga = totalPallets + (totalRolls / 2);
-                const ocupacao = veiculo && veiculo.capacidade_pallets > 0 ? (totalCarga / veiculo.capacidade_pallets) * 100 : 0;
-                
-                return {
-                    ...exp,
-                    items: expItems,
-                    lojas_count: expItems.length,
-                    lojas_info: expItems.map(item => {
-                        const loja = lojas.find(l => l.id === item.loja_id);
-                        return loja ? `${loja.codigo} - ${loja.nome}` : 'N/A';
-                    }).join(', '),
-                    veiculo_placa: veiculo?.placa,
-                    motorista_nome: motoristas.find(m => m.id === exp.motorista_id)?.nome,
-                    total_pallets: totalPallets,
-                    ocupacao: ocupacao.toFixed(1)
-                };
-            });
-
-            applyHistoricoFilters();
-        } catch(error) {
-            container.innerHTML = `<div class="alert alert-error">Erro ao carregar histórico: ${error.message}</div>`;
-        }
-    }
-
-    function applyHistoricoFilters() {
-        const dataInicio = document.getElementById('historicoFiltroDataInicio').value || document.getElementById('indicadoresFiltroDataInicio').value;
-        const dataFim = document.getElementById('historicoFiltroDataFim').value || document.getElementById('indicadoresFiltroDataFim').value;
-        const searchTerm = document.getElementById('historicoSearchInput').value.toLowerCase();
-
-        filteredHistorico = allHistorico.filter(exp => {
-            const expDate = new Date(exp.data_hora).toISOString().split('T')[0];
-            if (dataInicio && expDate < dataInicio) return false;
-            if (dataFim && expDate > dataFim) return false;
-            if (searchTerm) {
-                const searchable = [exp.lojas_info, exp.veiculo_placa, exp.motorista_nome].join(' ').toLowerCase();
-                if (!searchable.includes(searchTerm)) return false;
-            }
-            return true;
-        });
-
-        renderHistorico(filteredHistorico);
-        generateHistoricoIndicators(filteredHistorico);
-    }
-
-    function clearHistoricoFilters() {
-        document.getElementById('historicoFiltroDataInicio').value = '';
-        document.getElementById('historicoFiltroDataFim').value = '';
-        document.getElementById('historicoSearchInput').value = '';
-        document.getElementById('indicadoresFiltroDataInicio').value = '';
-        document.getElementById('indicadoresFiltroDataFim').value = '';
-        applyHistoricoFilters();
-    }
-
-    function renderHistorico(data) {
-        const container = document.getElementById('historicoList');
-        if (data.length === 0) {
-            container.innerHTML = '<div class="alert alert-success">Nenhum registro encontrado para os filtros.</div>';
-            return;
-        }
-
-        container.innerHTML = data.map(exp => {
-             const tempos = {
-                patio: (exp.data_saida_veiculo && exp.data_hora) ? minutesToHHMM((new Date(exp.data_saida_veiculo) - new Date(exp.data_hora)) / 60000) : '-',
-                carregamento: (exp.data_chegada_veiculo && exp.data_saida_veiculo) ? minutesToHHMM((new Date(exp.data_saida_veiculo) - new Date(exp.data_chegada_veiculo)) / 60000) : '-',
-            };
-
-            let roteiroHtml = '<div class="mt-4 space-y-2">';
-            if (exp.items && exp.items.length > 0) {
-                 exp.items.sort((a,b) => new Date(a.data_inicio_descarga) - new Date(b.data_inicio_descarga)).forEach((item, index) => {
-                    const loja = lojas.find(l => l.id === item.loja_id);
-                    const t_chegada = item.data_inicio_descarga ? new Date(item.data_inicio_descarga) : null;
-                    const t_saida = item.data_fim_descarga ? new Date(item.data_fim_descarga) : null;
-                    const tempoEmLoja = t_saida && t_chegada ? (t_saida - t_chegada) / 60000 : null;
-
-                    roteiroHtml += `
-                        <div class="loja-descarga-card" style="padding: 10px; margin-bottom: 8px;">
-                            <strong class="text-sm">${index + 1}. ${loja.codigo} - ${loja.nome}</strong>
-                            ${tempoEmLoja !== null ? `<div class="time-display good text-xs p-1"><strong>Em Loja:</strong> ${minutesToHHMM(tempoEmLoja)}</div>` : ''}
-                        </div>`;
-                 });
-            }
-            roteiroHtml += '</div>';
-
-            return `
-                <div class="historico-card">
-                    <div class="flex justify-between items-start">
-                       <div>
-                            <h3 class="text-lg font-bold">${new Date(exp.data_hora).toLocaleDateString('pt-BR')} - ${exp.veiculo_placa}</h3>
-                            <p class="text-sm text-gray-500">Motorista: ${exp.motorista_nome}</p>
-                            ${exp.numeros_carga && exp.numeros_carga.length > 0 ? `<p class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded mt-1 inline-block">📦 ${exp.numeros_carga.join(', ')}</p>` : ''}
-                        </div>
-                        <div class="flex flex-col items-end gap-2">
-<span class="status-badge status-entregue">Entregue</span>
-<div class="flex gap-2">
-    <button class="btn btn-success btn-small" onclick="showTrajectoryMap('${exp.id}', '${exp.veiculo_placa}')">Ver Trajeto</button>
-    <button class="btn btn-danger btn-small" onclick="deleteHistoricoExpedition('${exp.id}')">Excluir</button>
-</div>
-</div>
-                    </div>
-                    <div class="mt-2 grid grid-cols-2 gap-4 text-sm">
-                        <div><strong>Ocupação:</strong> <span class="font-bold">${exp.ocupacao}%</span></div>
-                        <div><strong>Pallets:</strong> <span class="font-bold">${exp.total_pallets}</span></div>
-                    </div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4 text-xs">
-                        <div class="time-display"><strong>T. Pátio:</strong> ${tempos.patio}</div>
-                        <div class="time-display"><strong>T. Carga:</strong> ${tempos.carregamento}</div>
-                    </div>
-                    ${roteiroHtml}
-                </div>
-            `;
-        }).join('');
-    }
-    
-    async function deleteHistoricoExpedition(expeditionId) {
-        const confirmed = await showYesNoModal('Deseja excluir permanentemente esta expedição do histórico?');
-        if (confirmed) {
-            try {
-                await supabaseRequest(`expedition_items?expedition_id=eq.${expeditionId}`, 'DELETE', null, false);
-                await supabaseRequest(`expeditions?id=eq.${expeditionId}`, 'DELETE', null, false);
-                showNotification('Registro do histórico excluído!', 'success');
-                loadHistorico();
-            } catch (error) {
-                showNotification(`Erro ao excluir: ${error.message}`, 'error');
-            }
-        }
-    }
-
-    function generateHistoricoIndicators(data) {
-        const summaryContainer = document.getElementById('indicadoresSummary');
-        if (data.length === 0) {
-            summaryContainer.innerHTML = '<div class="alert alert-info">Sem dados para exibir indicadores.</div>';
-            destroyChart('lojasRankingChart');
-            destroyChart('entregasChart');
-            return;
-        }
-        
-        const calcularMedia = (arr) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
-        
-        let temposAlocar = [], temposChegada = [], temposCarregamento = [], temposTotalViagem = [], temposEmTransito = [], temposEmLoja = [];
-        let lojasData = {};
-        let entregasFort = 0, entregasComper = 0;
-
-        data.forEach(exp => {
-            if (exp.data_alocacao_veiculo) temposAlocar.push((new Date(exp.data_alocacao_veiculo) - new Date(exp.data_hora)) / 60000);
-            if (exp.data_chegada_veiculo) temposChegada.push((new Date(exp.data_chegada_veiculo) - new Date(exp.data_hora)) / 60000);
-            if (exp.data_chegada_veiculo && exp.data_saida_veiculo) temposCarregamento.push((new Date(exp.data_saida_veiculo) - new Date(exp.data_chegada_veiculo)) / 60000);
-            
-            let ultimaData = exp.data_saida_entrega ? new Date(exp.data_saida_entrega) : null;
-            let totalTransitoViagem = 0;
-            let totalLojaViagem = 0;
-            let ultimaDescarga = null;
-
-            exp.items.forEach(item => {
-                const t_chegada = item.data_inicio_descarga ? new Date(item.data_inicio_descarga) : null;
-                const t_saida = item.data_fim_descarga ? new Date(item.data_fim_descarga) : null;
-                const tempoEmLoja = t_saida && t_chegada ? (t_saida - t_chegada) / 60000 : 0;
-                const tempoTransito = ultimaData && t_chegada ? (t_chegada - ultimaData) / 60000 : 0;
-                
-                if (tempoEmLoja > 0) {
-                    totalLojaViagem += tempoEmLoja;
-                    const loja = lojas.find(l => l.id === item.loja_id);
-                    if(loja) {
-                        if (!lojasData[loja.id]) lojasData[loja.id] = { nome: `${loja.codigo} - ${loja.nome}`, tempos: [], entregas: 0 };
-                        lojasData[loja.id].tempos.push(tempoEmLoja);
-                        lojasData[loja.id].entregas++;
-                        if (loja.nome.toLowerCase().includes('fort')) entregasFort++;
-                        else if (loja.nome.toLowerCase().includes('comper')) entregasComper++;
-                    }
-                }
-                if (tempoTransito > 0) totalTransitoViagem += tempoTransito;
-                if (t_saida) ultimaData = t_saida;
-                if (t_saida && (!ultimaDescarga || t_saida > ultimaDescarga)) ultimaDescarga = t_saida;
-            });
-            if (totalLojaViagem > 0) temposEmLoja.push(totalLojaViagem);
-            if (totalTransitoViagem > 0) temposEmTransito.push(totalTransitoViagem);
-            if(ultimaDescarga) temposTotalViagem.push((ultimaDescarga - new Date(exp.data_hora)) / 60000);
-        });
-        
-        summaryContainer.innerHTML = `
-            <div class="time-stat-card"><div class="stat-number">${data.length}</div><div class="stat-label">Viagens</div></div>
-            <div class="time-stat-card"><div class="stat-number">${data.reduce((s,e)=> s + e.lojas_count, 0)}</div><div class="stat-label">Entregas</div></div>
-            <div class="time-stat-card"><div class="stat-number">${minutesToHHMM(calcularMedia(temposAlocar))}</div><div class="stat-label">T.M. Alocar</div></div>
-            <div class="time-stat-card"><div class="stat-number">${minutesToHHMM(calcularMedia(temposCarregamento))}</div><div class="stat-label">T.M. Carga</div></div>
-            <div class="time-stat-card"><div class="stat-number">${minutesToHHMM(calcularMedia(temposTotalViagem))}</div><div class="stat-label">T.M. Viagem</div></div>
-            <div class="time-stat-card"><div class="stat-number">${minutesToHHMM(calcularMedia(temposEmTransito))}</div><div class="stat-label">T.M. Trânsito</div></div>
-            <div class="time-stat-card"><div class="stat-number">${minutesToHHMM(calcularMedia(temposEmLoja))}</div><div class="stat-label">T.M. em Loja</div></div>
-        `;
-
-       renderLojasRankingChart(lojasData);
-renderEntregasChart(entregasFort, entregasComper);
-    }
-    
-    function renderLojasRankingChart(lojasData) {
-        const ranking = Object.values(lojasData)
-            .map(loja => ({ ...loja, tempoMedio: loja.tempos.reduce((a, b) => a + b, 0) / loja.tempos.length }))
-            .sort((a, b) => b.tempoMedio - a.tempoMedio)
-            .slice(0, 10);
-        
-        const backgroundColors = ranking.map(l => l.nome.toLowerCase().includes('fort') ? 'rgba(214, 40, 40, 0.7)' : 'rgba(0, 119, 182, 0.7)');
-
-        renderChart('lojasRankingChart', 'bar', {
-            labels: ranking.map(l => l.nome),
-            datasets: [{ label: 'Tempo Médio (min)', data: ranking.map(l => l.tempoMedio), backgroundColor: backgroundColors }]
-        }, { 
-            indexAxis: 'y',
-            plugins: {
-                datalabels: {
-                    anchor: 'end',
-                    align: 'end',
-                    formatter: (value) => minutesToHHMM(value),
-                    color: '#333'
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `Tempo Médio: ${minutesToHHMM(context.raw)}`;
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    function renderEntregasChart(fort, comper) {
-        renderChart('entregasChart', 'pie', {
-            labels: ['Lojas Fort', 'Lojas Comper'],
-            datasets: [{ 
-                label: 'Nº de Entregas', 
-                data: [fort, comper],
-                backgroundColor: ['rgba(214, 40, 40, 0.7)', 'rgba(0, 119, 182, 0.7)']
-            }]
-        }, {
-            plugins: {
-                datalabels: {
-                    color: 'white',
-                    font: { weight: 'bold', size: 14 },
-                    formatter: (value, ctx) => {
-                        let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                        if (sum === 0) return '0 (0%)';
-                        let percentage = (value * 100 / sum).toFixed(1) + '%';
-                        return `${value}\n(${percentage})`;
-                    }
-                }
-            }
-        });
-    }
-
-    function renderChart(canvasId, type, data, options = {}, plugins = []) {
-        if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
-        const ctx = document.getElementById(canvasId)?.getContext('2d');
-        if (ctx) {
-            chartInstances[canvasId] = new Chart(ctx, { type, data, options, plugins });
-        }
-    }
-
-    function destroyChart(canvasId) {
-        if (chartInstances[canvasId]) {
-            chartInstances[canvasId].destroy();
-            delete chartInstances[canvasId];
-        }
-    }
-
-// Função para mostrar modal de autenticação para edição - MODIFICADA
-function showAuthEditModal(expeditionId) {
-// Armazena o ID no próprio formulário como um campo hidden
-document.getElementById('authEditModal').style.display = 'flex';
-document.getElementById('authEditUser').value = '';
-document.getElementById('authEditPassword').value = '';
-document.getElementById('authEditAlert').innerHTML = '';
-
-// ADICIONA UM CAMPO HIDDEN COM O ID DA EXPEDIÇÃO
-let hiddenIdField = document.getElementById('authEditExpeditionId');
-if (!hiddenIdField) {
-    hiddenIdField = document.createElement('input');
-    hiddenIdField.type = 'hidden';
-    hiddenIdField.id = 'authEditExpeditionId';
-    document.getElementById('authEditForm').appendChild(hiddenIdField);
-}
-hiddenIdField.value = expeditionId;
-
-document.getElementById('authEditUser').focus();
-}
-
-// Função para fechar modal de autenticação
-function closeAuthEditModal() {
-document.getElementById('authEditModal').style.display = 'none';
-}
-
-// Função para verificar autenticação para edição - SIMPLIFICADA
-async function checkAuthForEdit() {
-const nome = document.getElementById('authEditUser').value.trim();
-const senha = document.getElementById('authEditPassword').value;
-const expeditionId = document.getElementById('authEditExpeditionId').value;
-
-if (!nome || !senha) {
-    showAlert('authEditAlert', 'Usuário e senha são obrigatórios.', 'error');
-    return;
-}
-
-if (!expeditionId) {
-    showAlert('authEditAlert', 'Erro: ID da expedição não encontrado.', 'error');
-    return;
-}
-
-try {
-    const endpoint = `acessos?select=nome,tipo_acesso&nome=eq.${nome}&senha=eq.${senha}`;
-    const result = await supabaseRequest(endpoint, 'GET', null, false);
-
-    if (!result || result.length === 0) {
-        showAlert('authEditAlert', 'Usuário ou senha incorretos.', 'error');
-        document.getElementById('authEditPassword').value = '';
-        return;
-    }
-
-    const user = result[0];
-    
-    // Verifica se o usuário tem permissão (ALL ou filial específica)
-    if (user.tipo_acesso !== 'ALL' && user.tipo_acesso !== selectedFilial.nome) {
-        showAlert('authEditAlert', 'Você não tem permissão para editar nesta filial.', 'error');
-        return;
-    }
-
-    // Autenticação bem-sucedida
-    closeAuthEditModal();
-    showNotification(`Acesso autorizado para ${user.nome}!`, 'success');
-    
-    // Abre o modal de edição diretamente
-    openEditModalDirectly(expeditionId);
-
-} catch (error) {
-    showAlert('authEditAlert', 'Erro ao verificar credenciais. Tente novamente.', 'error');
-    console.error('Erro na autenticação:', error);
-}
-}
-
-  // Função principal que verifica autenticação antes de permitir edição
-async function openEditModal(expeditionId) {
-// Verifica se já está autenticado (reutiliza autenticação das configurações)
-if (currentUser && (currentUser.tipo_acesso === 'ALL' || currentUser.tipo_acesso === selectedFilial.nome)) {
-    // Já autenticado, abre diretamente
-    openEditModalDirectly(expeditionId);
-} else {
-    // Não autenticado, pede credenciais - PASSA O ID DIRETAMENTE
-    showAuthEditModal(expeditionId);
-}
-}
-// Função que abre o modal de edição sem verificação
-async function openEditModalDirectly(expeditionId) {
-// Primeiro, garante que temos os dados carregados
-if (!allExpeditions || allExpeditions.length === 0) {
-    showNotification('Carregando dados...', 'info');
-    await loadAcompanhamento();
-}
-
-let expedition = allExpeditions ? allExpeditions.find(e => e.id === expeditionId) : null;
-
-if (!expedition) {
-    // Tenta buscar diretamente do banco
     try {
-        const expeditions = await supabaseRequest(`expeditions?id=eq.${expeditionId}`);
-        const items = await supabaseRequest(`expedition_items?expedition_id=eq.${expeditionId}`);
-        
-        if (expeditions && expeditions.length > 0) {
-            expedition = expeditions[0];
-            expedition.items = items || [];
-        }
-    } catch (error) {
-        console.error('Erro ao buscar expedição:', error);
-    }
-}
-
-if (!expedition) {
-    showNotification('Expedição não encontrada', 'error');
-    return;
-}
-
-// Verificar se a expedição pode ser editada
-if (expedition.status === 'saiu_para_entrega' || expedition.status === 'entregue') {
-    showNotification('Esta expedição não pode mais ser editada pois já saiu para entrega.', 'error');
-    return;
-}
-
-document.getElementById('editExpeditionId').value = expeditionId;
-
-// Preencher selects com opções
-populateEditSelects();
-
-// Preencher campos editáveis (removendo status)
-document.getElementById('editMotorista').value = expedition.motorista_id || '';
-document.getElementById('editVeiculo').value = expedition.veiculo_id || '';
-document.getElementById('editDoca').value = expedition.doca_id || '';
-document.getElementById('editLider').value = expedition.lider_id || '';
-document.getElementById('editObservacoes').value = expedition.observacoes || '';
-
-const lojasContainer = document.getElementById('editLojasContainer');
-lojasContainer.innerHTML = '<h4 class="font-semibold text-gray-700">Lojas e Quantidades</h4>';
-editLojaLineCounter = 0;
-
-if (expedition.items && expedition.items.length > 0) {
-    expedition.items.forEach(item => addEditLojaLine(item));
-}
-
-document.getElementById('editExpeditionModal').style.display = 'flex';
-}
-// Nova função para popular os selects do modal de edição
-function populateEditSelects() {
-// Veículos
-const veiculoSelect = document.getElementById('editVeiculo');
-veiculoSelect.innerHTML = '<option value="">Selecione o veículo</option>';
-veiculos.forEach(v => {
-    veiculoSelect.innerHTML += `<option value="${v.id}">${v.placa} - ${v.modelo} (Cap: ${v.capacidade_pallets}P)</option>`;
-});
-
-// Motoristas
-const motoristaSelect = document.getElementById('editMotorista');
-motoristaSelect.innerHTML = '<option value="">Selecione o motorista</option>';
-motoristas.forEach(m => {
-    motoristaSelect.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
-});
-
-// Docas
-const docaSelect = document.getElementById('editDoca');
-docaSelect.innerHTML = '<option value="">Selecione a doca</option>';
-docas.forEach(d => {
-    docaSelect.innerHTML += `<option value="${d.id}">${d.nome}</option>`;
-});
-
-// Líderes
-const liderSelect = document.getElementById('editLider');
-liderSelect.innerHTML = '<option value="">Selecione o líder</option>';
-lideres.forEach(l => {
-    liderSelect.innerHTML += `<option value="${l.id}">${l.nome}</option>`;
-});
-}
-
-    function closeEditModal() {
-        document.getElementById('editExpeditionModal').style.display = 'none';
-    }
-
-    function addEditLojaLine(item = null) {
-        editLojaLineCounter++;
-        const container = document.getElementById('editLojasContainer');
-        const newLine = document.createElement('div');
-        newLine.className = 'grid grid-cols-1 md:grid-cols-4 gap-4 items-end';
-        newLine.dataset.editIndex = editLojaLineCounter;
-        
-        newLine.innerHTML = `
-            <div class="form-group md:col-span-2"><label>Loja:</label><select class="edit-loja-select w-full">${lojas.map(l => `<option value="${l.id}">${l.codigo} - ${l.nome}</option>`).join('')}</select></div>
-            <div class="form-group"><label>Pallets:</label><input type="number" class="edit-pallets-input w-full" min="0"></div>
-            <div><button type="button" class="btn btn-danger btn-small w-full" onclick="removeEditLojaLine(${editLojaLineCounter})">Remover</button></div>
-        `;
-        container.appendChild(newLine);
-        
-        if(item) {
-            newLine.querySelector('.edit-loja-select').value = item.loja_id;
-            newLine.querySelector('.edit-pallets-input').value = item.pallets;
-        }
-    }
-    
-    function removeEditLojaLine(index) {
-        document.querySelector(`[data-edit-index="${index}"]`)?.remove();
-    }
-
-    async function saveEditedExpedition() {
-const expeditionId = document.getElementById('editExpeditionId').value;
-const newVeiculo = document.getElementById('editVeiculo').value;
-const newMotorista = document.getElementById('editMotorista').value;
-const newDoca = document.getElementById('editDoca').value;
-const newLider = document.getElementById('editLider').value;
-const newObservacoes = document.getElementById('editObservacoes').value;
-
-// 1. Coletar os novos dados dos itens da expedição (lojas)
-const newItemsData = Array.from(document.querySelectorAll('#editLojasContainer .grid')).map(row => ({
-loja_id: row.querySelector('.edit-loja-select').value,
-pallets: parseInt(row.querySelector('.edit-pallets-input').value) || 0,
-rolltrainers: 0 // Assumindo que rolltrainers não são editáveis nesta tela
-}));
-
-try {
-// Encontra a expedição original
-const originalExpedition = allExpeditions.find(e => e.id === expeditionId);
-if (!originalExpedition) {
-  throw new Error('Expedição original não encontrada.');
-}
-
-// Verificar se pode editar
-if (originalExpedition.status === 'saiu_para_entrega' || originalExpedition.status === 'entregue') {
-  throw new Error('Esta expedição não pode mais ser editada pois já saiu para entrega.');
-}
-
-const updatePromises = [];
-
-// 2. Liberar recursos antigos se houve mudança
-if (originalExpedition.motorista_id && originalExpedition.motorista_id !== newMotorista) {
-  updatePromises.push(
-    supabaseRequest(`motoristas?id=eq.${originalExpedition.motorista_id}`, 'PATCH', { status: 'disponivel' }, false)
-  );
-}
-
-if (originalExpedition.veiculo_id && originalExpedition.veiculo_id !== newVeiculo) {
-  updatePromises.push(
-    supabaseRequest(`veiculos?id=eq.${originalExpedition.veiculo_id}`, 'PATCH', { status: 'disponivel' }, false)
-  );
-}
-
-if (originalExpedition.doca_id && originalExpedition.doca_id !== newDoca) {
-  updatePromises.push(
-    supabaseRequest(`docas?id=eq.${originalExpedition.doca_id}`, 'PATCH', { status: 'disponivel' }, false)
-  );
-}
-
-// 3. Alocar novos recursos se foram selecionados
-if (newMotorista && newMotorista !== originalExpedition.motorista_id) {
-  updatePromises.push(
-    supabaseRequest(`motoristas?id=eq.${newMotorista}`, 'PATCH', { status: 'em_viagem' }, false)
-  );
-}
-
-if (newVeiculo && newVeiculo !== originalExpedition.veiculo_id) {
-  updatePromises.push(
-    supabaseRequest(`veiculos?id=eq.${newVeiculo}`, 'PATCH', { status: 'em_uso' }, false)
-  );
-}
-
-if (newDoca && newDoca !== originalExpedition.doca_id) {
-  updatePromises.push(
-    supabaseRequest(`docas?id=eq.${newDoca}`, 'PATCH', { status: 'em_uso' }, false)
-  );
-}
-
-// 4. Atualizar os dados da expedição principal
-const expeditionUpdatePayload = {
-  veiculo_id: newVeiculo || null,
-  motorista_id: newMotorista || null,
-  doca_id: newDoca || null,
-  lider_id: newLider || null,
-  observacoes: newObservacoes || null
-};
-
-updatePromises.push(
-  supabaseRequest(`expeditions?id=eq.${expeditionId}`, 'PATCH', expeditionUpdatePayload, false)
-);
-
-// 5. Gerenciar os itens (lojas) da expedição
-const originalItems = originalExpedition.items;
-
-// Itens a serem removidos (se existiam antes e não estão mais na nova lista)
-const itemsToRemove = originalItems.filter(originalItem =>
-  !newItemsData.some(newItem => newItem.loja_id === originalItem.loja_id)
-);
-for (const item of itemsToRemove) {
-  updatePromises.push(
-    supabaseRequest(`expedition_items?id=eq.${item.id}`, 'DELETE', null, false)
-  );
-}
-
-// Itens a serem adicionados ou atualizados
-for (const newItem of newItemsData) {
-  const existingItem = originalItems.find(originalItem => originalItem.loja_id === newItem.loja_id);
-  if (existingItem) {
-    // Se já existe, atualiza
-    if (existingItem.pallets !== newItem.pallets) {
-      updatePromises.push(
-        supabaseRequest(`expedition_items?id=eq.${existingItem.id}`, 'PATCH', {
-          pallets: newItem.pallets
-        }, false)
-      );
-    }
-  } else {
-    // Se não existe, adiciona
-    const payload = {
-      expedition_id: expeditionId,
-      loja_id: newItem.loja_id,
-      pallets: newItem.pallets,
-      rolltrainers: newItem.rolltrainers,
-      status_descarga: 'pendente'
-    };
-    updatePromises.push(
-      supabaseRequest('expedition_items', 'POST', payload, false)
-    );
-  }
-}
-
-// Executar todas as atualizações
-await Promise.all(updatePromises);
-
-showNotification('Expedição atualizada com sucesso!', 'success');
-closeEditModal();
-
-// Recarrega os dados para refletir as mudanças
-await loadSelectData();
-loadAcompanhamento();
-} catch (error) {
-console.error('Erro ao salvar edição:', error);
-showAlert('editFormAlert', `Erro ao salvar edição: ${error.message}`, 'error');
-}
-}
-    
-   // CÓDIGO CORRIGIDO
-
-async function deleteExpedition(expeditionId) {
-// Verifica autenticação antes de permitir exclusão
-if (!currentUser || (currentUser.tipo_acesso !== 'ALL' && currentUser.tipo_acesso !== selectedFilial.nome)) {
-    showNotification('É necessário autenticação para excluir expedições. Faça login nas configurações primeiro.', 'error');
-    return;
-}
-const expeditionToDel = allExpeditions.find(e => e.id === expeditionId);
-if (!expeditionToDel) {
-showNotification('Erro: Expedição não encontrada para exclusão.', 'error');
-return;
-}
-
-// Verificar se a expedição pode ser excluída
-if (expeditionToDel.status === 'saiu_para_entrega' || expeditionToDel.status === 'entregue') {
-showNotification('Esta expedição não pode ser excluída pois já saiu para entrega.', 'error');
-return;
-}
-const confirmed = await showYesNoModal('Deseja realmente excluir esta expedição? Esta ação não pode ser desfeita e liberará os recursos alocados.');
-if (confirmed) {
-    try {
-        // ... resto da função permanece igual
-       
-
-        const updatePromises = [];
-
-        if (expeditionToDel.doca_id) {
-            updatePromises.push(
-                supabaseRequest(`docas?id=eq.${expeditionToDel.doca_id}`, 'PATCH', { status: 'disponivel' })
-            );
-        }
-
-        if (expeditionToDel.veiculo_id) {
-            updatePromises.push(
-                supabaseRequest(`veiculos?id=eq.${expeditionToDel.veiculo_id}`, 'PATCH', { status: 'disponivel' }, false)
-            );
-        }
-
-        if (expeditionToDel.motorista_id) {
-            updatePromises.push(
-                supabaseRequest(`motoristas?id=eq.${expeditionToDel.motorista_id}`, 'PATCH', { status: 'disponivel' }, false)
-            );
-        }
-        
-        await Promise.all(updatePromises);
-        await supabaseRequest(`expedition_items?expedition_id=eq.${expeditionId}`, 'DELETE', null, false);
-        await supabaseRequest(`expeditions?id=eq.${expeditionId}`, 'DELETE', null, false);
-        
-        showNotification('Expedição excluída e recursos liberados com sucesso!', 'success');
-        
-        await loadSelectData();
-        loadAcompanhamento();
-
-    } catch (error) {
-        showNotification(`Erro ao excluir: ${error.message}`, 'error');
-    }
-}
-}
-    
-    // --- FUNCIONALIDADES DA ABA CONFIGURAÇÕES ---
-
-    function loadConfiguracoes() {
-        if (currentUser) {
-            document.getElementById('passwordFormContainer').style.display = 'none';
-            document.getElementById('configuracoesContent').style.display = 'block';
-            showSubTab('configuracoes', 'filiais', document.querySelector('#configuracoes .sub-tab'));
-            updateSystemStatus();
-        } else {
-            document.getElementById('passwordFormContainer').style.display = 'block';
-            document.getElementById('configuracoesContent').style.display = 'none';
-            document.getElementById('passwordInput').value = '';
-            document.getElementById('userInput').value = '';
-        }
-    }
-
-    async function checkPassword() {
-        const nome = document.getElementById('userInput').value.trim();
-        const senha = document.getElementById('passwordInput').value;
-
-        if (!nome || !senha) {
-            showAlert('passwordAlert', 'Nome e senha são obrigatórios.', 'error');
-            return;
-        }
-
-        try {
-            const endpoint = `acessos?select=nome,tipo_acesso&nome=eq.${nome}&senha=eq.${senha}`;
-            const result = await supabaseRequest(endpoint, 'GET', null, false);
-
-            if (!result || result.length === 0) {
-                showAlert('passwordAlert', 'Nome de usuário ou senha incorretos.', 'error');
-                document.getElementById('passwordInput').value = '';
-                return;
+        // Limpar marcadores existentes
+        homeMapInstance.eachLayer(layer => {
+            if (layer instanceof L.Marker || layer instanceof L.Circle) {
+                homeMapInstance.removeLayer(layer);
             }
-
-            const user = result[0];
-            currentUser = {
-                nome: user.nome,
-                tipo_acesso: user.tipo_acesso
-            };
-
-            showNotification('Acesso concedido!', 'success');
-            document.getElementById('passwordFormContainer').style.display = 'none';
-            document.getElementById('configuracoesContent').style.display = 'block';
-            showSubTab('configuracoes', 'filiais', document.querySelector('#configuracoes .sub-tab'));
-            updateSystemStatus();
-
-        } catch (err) {
-            showAlert('passwordAlert', 'Erro ao verificar credenciais. Verifique a conexão.', 'error');
-            console.error(err);
-        }
-    }
-
-    function showAlert(containerId, message, type) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-    }
-    
-    function showAddForm(type) {
-const modal = document.getElementById('addFormModal');
-const title = document.getElementById('addFormTitle');
-const fieldsContainer = document.getElementById('addFormFields');
-fieldsContainer.innerHTML = ''; // Limpa campos anteriores
-
-let formHtml = '';
-if (type === 'filial') {
-    title.textContent = `Adicionar Nova Filial`;
-    formHtml = `
-        <div class="form-group"><label>Nome da Filial (Ex: 464):</label><input type="text" id="add_nome" required></div>
-        <div class="form-group"><label>Descrição (Ex: MT):</label><input type="text" id="add_descricao" required></div>
-        <div class="form-group md:col-span-2"><label>Endereço do CD (Ponto de Partida):</label><input type="text" id="add_endereco_cd" placeholder="Rua, Número, Cidade" required></div>
-        <div class="form-group"><label>Latitude do CD:</label><input type="number" id="add_latitude_cd" step="0.000001" placeholder="-15.601400"></div>
-        <div class="form-group"><label>Longitude do CD:</label><input type="number" id="add_longitude_cd" step="0.000001" placeholder="-56.097900"></div>
-        <div class="text-center mt-4 md:col-span-2">
-            <button type="button" class="btn btn-secondary mr-2" onclick="getCurrentLocationFilial()">📍 Usar Localização Atual</button>
-            <button type="button" class="btn btn-primary" onclick="geocodeAddressFilial()">🌍 Buscar por Endereço</button>
-        </div>
-    `;
-} else if (type === 'loja') {
-    title.textContent = `Adicionar Nova Loja`;
-    formHtml = `
-        <div class="form-group"><label>Nome da Loja:</label><input type="text" id="add_nome" required></div>
-        <div class="form-group"><label>Código da Loja:</label><input type="text" id="add_codigo" required></div>
-        <div class="form-group"><label>Cidade:</label><input type="text" id="add_cidade" required></div>
-        <div class="form-group"><label>Código QR:</label><input type="text" id="add_codlojaqr" required></div>
-        <div class="form-group md:col-span-2"><label>Endereço Completo:</label><input type="text" id="add_endereco_completo" placeholder="Rua, Número, Bairro, CEP" required></div>
-        <div class="form-group"><label>Latitude:</label><input type="number" id="add_latitude" step="0.000001" placeholder="-15.601400"></div>
-        <div class="form-group"><label>Longitude:</label><input type="number" id="add_longitude" step="0.000001" placeholder="-56.097900"></div>
-        <div class="form-group"><label>Status:</label><select id="add_ativo"><option value="true">Ativa</option><option value="false">Inativa</option></select></div>
-        <div class="text-center mt-4 md:col-span-2">
-            <button type="button" class="btn btn-secondary mr-2" onclick="getCurrentLocation()">📍 Usar Localização Atual</button>
-            <button type="button" class="btn btn-primary" onclick="geocodeAddress()">🌍 Buscar por Endereço</button>
-        </div>
-    `;
-} else if (type === 'doca') {
-    title.textContent = `Adicionar Nova Doca`;
-    formHtml = `
-        <div class="form-group"><label>Nome da Doca:</label><input type="text" id="add_nome" required></div>
-        <div class="form-group"><label>Capacidade (Pallets):</label><input type="number" id="add_capacidade_pallets" min="0" required></div>
-        <div class="form-group"><label>Código QR:</label><input type="text" id="add_coddoca" required></div>
-    `;
-} else if (type === 'lider') {
-    title.textContent = `Adicionar Novo Líder`;
-    formHtml = `
-        <div class="form-group"><label>Nome do Líder:</label><input type="text" id="add_nome" required></div>
-        <div class="form-group"><label>Matrícula:</label><input type="text" id="add_codigo_funcionario" required></div>
-    `;
-} else if (type === 'veiculo') {
-    title.textContent = `Adicionar Novo Veículo`;
-    formHtml = `
-        <div class="form-group"><label>Placa:</label><input type="text" id="add_placa" required></div>
-        <div class="form-group"><label>Modelo:</label><input type="text" id="add_modelo" required></div>
-        <div class="form-group"><label>Capacidade (Pallets):</label><input type="number" id="add_capacidade_pallets" min="1" required></div>
-        <div class="form-group"><label>Tipo:</label><select id="add_tipo" required><option value="JJS">JJS</option><option value="PERLOG">PERLOG</option></select></div>
-        <div class="form-group"><label>Status:</label><select id="add_status" required><option value="disponivel">Disponível</option><option value="em_uso">Em Uso</option><option value="manutencao">Manutenção</option></select></div>
-    `;
-} else if (type === 'motorista') {
-    title.textContent = `Adicionar Novo Motorista`;
-    formHtml = `
-        <div class="form-group"><label>Nome:</label><input type="text" id="add_nome" required></div>
-        <div class="form-group"><label>Produtivo (Matrícula):</label><input type="text" id="add_produtivo" required></div>
-        <div class="form-group"><label>Status:</label><select id="add_status" required><option value="disponivel">Disponível</option><option value="em_viagem">Em Viagem</option><option value="folga">Folga</option></select></div>
-    `;
-} else if (type === 'acesso') {
-    title.textContent = `Adicionar Novo Acesso`;
-    formHtml = `
-        <div class="form-group"><label>Nome de Usuário:</label><input type="text" id="add_nome" required></div>
-        <div class="form-group"><label>Senha:</label><input type="password" id="add_senha" required></div>
-        <div class="form-group"><label>Tipo de Acesso:</label><select id="add_tipo_acesso" required><option value="ALL">ALL (Master)</option><option value="${selectedFilial.nome}">${selectedFilial.nome}</option></select></div>
-    `;
-} else if (type === 'pontoInteresse') {
-    title.textContent = 'Adicionar Ponto de Interesse';
-    formHtml = `
-        <div class="form-group md:col-span-2">
-            <label>Selecionar Loja (opcional):</label>
-            <select id="add_loja_id" class="w-full">
-                <option value="">-- Ou insira um ponto manualmente --</option>
-                ${lojas.map(loja => `<option value="${loja.id}">${loja.codigo} - ${loja.nome}</option>`).join('')}
-            </select>
-        </div>
-        <div class="form-group"><label>Nome do Ponto:</label><input type="text" id="add_nome" placeholder="Ex: CD Principal, Loja 123, etc." required></div>
-        <div class="form-group"><label>Tipo:</label><select id="add_tipo" required>
-            <option value="CD">Centro de Distribuição</option>
-            <option value="LOJA">Loja</option>
-            <option value="POSTO">Posto de Combustível</option>
-            <option value="CASA">Casa/Residência</option>
-            <option value="OUTRO">Outro</option>
-        </select></div>
-        <div class="form-group"><label>Latitude:</label><input type="number" id="add_latitude" step="0.000001" placeholder="-15.601400" required></div>
-        <div class="form-group"><label>Longitude:</label><input type="number" id="add_longitude" step="0.000001" value="" placeholder="-56.097900" required></div>
-        <div class="form-group"><label>Raio de Detecção (metros):</label><input type="number" id="add_raio_deteccao" min="50" max="2000" value="200" required></div>
-        <div class="form-group"><label>Cor no Mapa:</label><select id="add_cor">
-            <option value="#0077B6">Azul</option>
-            <option value="#EF4444">Vermelho</option>
-            <option value="#10B981">Verde</option>
-            <option value="#F59E0B">Laranja</option>
-            <option value="#8B5CF6">Roxo</option>
-            <option value="#EC4899">Rosa</option>
-        </select></div>
-        <div class="form-group" style="display:none;"><label>Status:</label><select id="add_ativo"><option value="true">Ativo</option><option value="false">Inativo</option></select></div>
-    `;
-}
-fieldsContainer.innerHTML = formHtml;
-modal.style.display = 'flex';
-}
-
-    function hideAddForm() {
-        document.getElementById('addFormModal').style.display = 'none';
-        document.getElementById('addFormAlert').innerHTML = '';
-    }
-
-    async function handleSave() {
-        const title = document.getElementById('addFormTitle').textContent;
-        let success = false;
-        try {
-            if (title.includes('Filial')) success = await saveFilial();
-            else if (title.includes('Loja')) success = await saveLoja();
-            else if (title.includes('Doca')) success = await saveDoca();
-            else if (title.includes('Líder')) success = await saveLider();
-            else if (title.includes('Veículo')) success = await saveVeiculo();
-            else if (title.includes('Motorista')) success = await saveMotorista();
-            else if (title.includes('Acesso')) success = await saveAcesso();
-else if (title.includes('Ponto de Interesse')) success = await savePontoInteresse();
-            
-            if (success) {
-                 showNotification('Cadastro realizado com sucesso!', 'success');
-                 hideAddForm();
-                 await loadSelectData(); 
-                 if (title.includes('Filial')) await loadFiliais();
-                 
-                 if (document.getElementById('configuracoes').classList.contains('active')) {
-                     const activeSubTabEl = document.querySelector('#configuracoes .sub-tab.active');
-                     if(activeSubTabEl) {
-                        const activeSubTab = activeSubTabEl.getAttribute('onclick').match(/'([^']*)','([^']*)'/)[2];
-                        showSubTab('configuracoes', activeSubTab);
-                     }
-                 }
-            }
-        } catch (error) {
-             showAlert('addFormAlert', `Erro ao salvar: ${error.message}`, 'error');
-        }
-    }
-
-   async function saveFilial() {
-const isEdit = !!document.getElementById('edit_filial_nome');
-const nomeOriginal = isEdit ? document.getElementById('edit_filial_nome').value : null;
-
-const data = { 
-    nome: document.getElementById('add_nome').value, 
-    descricao: document.getElementById('add_descricao').value,
-    endereco_cd: document.getElementById('add_endereco_cd').value,
-    latitude_cd: document.getElementById('add_latitude_cd').value ? parseFloat(document.getElementById('add_latitude_cd').value) : null,
-    longitude_cd: document.getElementById('add_longitude_cd').value ? parseFloat(document.getElementById('add_longitude_cd').value) : null,
-    ativo: document.getElementById('add_ativo') ? document.getElementById('add_ativo').value === 'true' : true 
-};
-
-if (isEdit) {
-    await supabaseRequest(`filiais?nome=eq.${nomeOriginal}`, 'PATCH', data, false);
-    showNotification('Filial atualizada com sucesso!', 'success');
-    renderFiliaisConfig();
-} else {
-    await supabaseRequest('filiais', 'POST', data, false);
-    showNotification('Filial cadastrada com sucesso!', 'success');
-    renderFiliaisConfig();
-}
-return true;
-}
-    async function saveLoja() {
-const isEdit = !!document.getElementById('edit_loja_id');
-const lojaId = isEdit ? document.getElementById('edit_loja_id').value : null;
-
-const data = { 
-    nome: document.getElementById('add_nome').value, 
-    codigo: document.getElementById('add_codigo').value, 
-    cidade: document.getElementById('add_cidade').value, 
-    codlojaqr: document.getElementById('add_codlojaqr').value,
-    endereco_completo: document.getElementById('add_endereco_completo').value,
-    latitude: document.getElementById('add_latitude') ? parseFloat(document.getElementById('add_latitude').value) : null,
-    longitude: document.getElementById('add_longitude') ? parseFloat(document.getElementById('add_longitude').value) : null,
-    ativo: document.getElementById('add_ativo') ? document.getElementById('add_ativo').value === 'true' : true 
-};
-
-if (isEdit) {
-    await supabaseRequest(`lojas?id=eq.${lojaId}`, 'PATCH', data);
-    showNotification('Loja atualizada com sucesso!', 'success');
-} else {
-    await supabaseRequest('lojas', 'POST', data);
-    showNotification('Loja cadastrada com sucesso!', 'success');
-}
-return true;
-}
-    
-    async function saveDoca() {
-const isEdit = !!document.getElementById('edit_doca_id');
-const docaId = isEdit ? document.getElementById('edit_doca_id').value : null;
-
-const data = { 
-    nome: document.getElementById('add_nome').value, 
-    capacidade_pallets: parseInt(document.getElementById('add_capacidade_pallets').value), 
-    coddoca: document.getElementById('add_coddoca').value, 
-    ativo: document.getElementById('add_ativo') ? document.getElementById('add_ativo').value === 'true' : true 
-};
-
-if (isEdit) {
-    await supabaseRequest(`docas?id=eq.${docaId}`, 'PATCH', data);
-    showNotification('Doca atualizada com sucesso!', 'success');
-} else {
-    await supabaseRequest('docas', 'POST', data);
-    showNotification('Doca cadastrada com sucesso!', 'success');
-}
-await loadSelectData();
-renderDocasConfig();
-return true;
-}
-    async function saveLider() {
-const isEdit = !!document.getElementById('edit_lider_id');
-const liderId = isEdit ? document.getElementById('edit_lider_id').value : null;
-
-const data = { 
-    nome: document.getElementById('add_nome').value, 
-    codigo_funcionario: document.getElementById('add_codigo_funcionario').value, 
-    ativo: document.getElementById('add_ativo') ? document.getElementById('add_ativo').value === 'true' : true 
-};
-
-if (isEdit) {
-    await supabaseRequest(`lideres?id=eq.${liderId}`, 'PATCH', data);
-    showNotification('Líder atualizado com sucesso!', 'success');
-} else {
-    await supabaseRequest('lideres', 'POST', data);
-    showNotification('Líder cadastrado com sucesso!', 'success');
-}
-await loadSelectData();
-renderLideresConfig();
-return true;
-}
-    async function saveVeiculo() {
-const isEdit = !!document.getElementById('edit_veiculo_id');
-const veiculoId = isEdit ? document.getElementById('edit_veiculo_id').value : null;
-
-const data = { 
-    placa: document.getElementById('add_placa').value, 
-    modelo: document.getElementById('add_modelo').value, 
-    capacidade_pallets: parseInt(document.getElementById('add_capacidade_pallets').value), 
-    tipo: document.getElementById('add_tipo').value, 
-    status: document.getElementById('add_status').value 
-};
-
-if (isEdit) {
-    await supabaseRequest(`veiculos?id=eq.${veiculoId}`, 'PATCH', data, false);
-    showNotification('Veículo atualizado com sucesso!', 'success');
-} else {
-    await supabaseRequest('veiculos', 'POST', data);
-    showNotification('Veículo cadastrado com sucesso!', 'success');
-}
-await loadSelectData();
-renderVeiculosConfig();
-return true;
-}
-    async function saveMotorista() {
-const isEdit = !!document.getElementById('edit_motorista_id');
-const motoristaId = isEdit ? document.getElementById('edit_motorista_id').value : null;
-
-const data = { 
-    nome: document.getElementById('add_nome').value, 
-    PRODUTIVO: document.getElementById('add_produtivo').value, 
-    status: document.getElementById('add_status').value 
-};
-
-if (isEdit) {
-    await supabaseRequest(`motoristas?id=eq.${motoristaId}`, 'PATCH', data, false);
-    showNotification('Motorista atualizado com sucesso!', 'success');
-} else {
-    await supabaseRequest('motoristas', 'POST', data);
-    showNotification('Motorista cadastrado com sucesso!', 'success');
-}
-await loadSelectData();
-renderMotoristasConfig();
-return true;
-}
-   async function saveAcesso() {
-const isEdit = !!document.getElementById('edit_acesso_nome');
-const nomeOriginal = isEdit ? document.getElementById('edit_acesso_nome').value : null;
-
-const data = { 
-    nome: document.getElementById('add_nome').value, 
-    tipo_acesso: document.getElementById('add_tipo_acesso').value 
-};
-
-const senha = document.getElementById('add_senha').value;
-if (!isEdit || senha.trim()) {
-    data.senha = senha || document.getElementById('add_nome').value; // usar nome como senha padrão se vazio
-}
-
-if (isEdit) {
-    await supabaseRequest(`acessos?nome=eq.${nomeOriginal}`, 'PATCH', data, false);
-    showNotification('Acesso atualizado com sucesso!', 'success');
-} else {
-    await supabaseRequest('acessos', 'POST', data, false);
-    showNotification('Acesso cadastrado com sucesso!', 'success');
-}
-renderAcessosConfig();
-return true;
-}
-    async function renderVeiculosConfig() {
-const tbody = document.getElementById('veiculosConfigBody');
-if (!tbody) return;
-
-tbody.innerHTML = `<tr><td colspan="6" class="loading"><div class="spinner"></div>Carregando veículos...</td></tr>`;
-
-try {
-    const veiculosData = await supabaseRequest('veiculos?order=placa');
-    if (!veiculosData || veiculosData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-500">Nenhum veículo cadastrado nesta filial.</td></tr>`;
-        return;
-    }
-
-    tbody.innerHTML = veiculosData.map(veiculo => `
-        <tr>
-            <td class="font-medium">${veiculo.placa}</td>
-            <td>${veiculo.modelo}</td>
-            <td>${veiculo.tipo}</td>
-            <td class="text-center">${veiculo.capacidade_pallets}</td>
-            <td><span class="status-badge status-${veiculo.status}">${getStatusLabel(veiculo.status)}</span></td>
-            <td>
-                <div class="flex gap-1">
-                    <button class="btn btn-warning btn-small" onclick="editVeiculo('${veiculo.id}')">Editar</button>
-                    <button class="btn btn-danger btn-small" onclick="deleteVeiculo('${veiculo.id}')">Excluir</button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
-} catch (error) {
-    tbody.innerHTML = `<tr><td colspan="6" class="alert alert-error">Erro ao carregar veículos: ${error.message}</td></tr>`;
-}
-}
-async function editVeiculo(veiculoId) {
-const veiculo = veiculos.find(v => v.id === veiculoId);
-if (!veiculo) {
-    showNotification('Veículo não encontrado', 'error');
-    return;
-}
-
-const modal = document.getElementById('addFormModal');
-const title = document.getElementById('addFormTitle');
-const fieldsContainer = document.getElementById('addFormFields');
-
-title.textContent = 'Editar Veículo';
-fieldsContainer.innerHTML = `
-    <input type="hidden" id="edit_veiculo_id" value="${veiculo.id}">
-    <div class="form-group"><label>Placa:</label><input type="text" id="add_placa" value="${veiculo.placa}" required></div>
-    <div class="form-group"><label>Modelo:</label><input type="text" id="add_modelo" value="${veiculo.modelo}" required></div>
-    <div class="form-group"><label>Capacidade (Pallets):</label><input type="number" id="add_capacidade_pallets" min="1" value="${veiculo.capacidade_pallets}" required></div>
-    <div class="form-group"><label>Tipo:</label><select id="add_tipo" required>
-        <option value="JJS" ${veiculo.tipo === 'JJS' ? 'selected' : ''}>JJS</option>
-        <option value="PERLOG" ${veiculo.tipo === 'PERLOG' ? 'selected' : ''}>PERLOG</option>
-    </select></div>
-    <div class="form-group"><label>Status:</label><select id="add_status" required>
-        <option value="disponivel" ${veiculo.status === 'disponivel' ? 'selected' : ''}>Disponível</option>
-        <option value="em_uso" ${veiculo.status === 'em_uso' ? 'selected' : ''}>Em Uso</option>
-        <option value="manutencao" ${veiculo.status === 'manutencao' ? 'selected' : ''}>Manutenção</option>
-    </select></div>
-`;
-
-modal.style.display = 'flex';
-}
-
-async function deleteVeiculo(veiculoId) {
-const confirmed = await showYesNoModal('Deseja excluir este veículo? Esta ação não pode ser desfeita.');
-if (confirmed) {
-    try {
-        await supabaseRequest(`veiculos?id=eq.${veiculoId}`, 'DELETE', null, false);
-        showNotification('Veículo excluído com sucesso!', 'success');
-        await loadSelectData();
-        renderVeiculosConfig();
-    } catch (error) {
-        showNotification(`Erro ao excluir veículo: ${error.message}`, 'error');
-    }
-}
-}
-
-async function editMotorista(motoristaId) {
-const motorista = motoristas.find(m => m.id === motoristaId);
-if (!motorista) {
-    showNotification('Motorista não encontrado', 'error');
-    return;
-}
-
-const modal = document.getElementById('addFormModal');
-const title = document.getElementById('addFormTitle');
-const fieldsContainer = document.getElementById('addFormFields');
-
-title.textContent = 'Editar Motorista';
-fieldsContainer.innerHTML = `
-    <input type="hidden" id="edit_motorista_id" value="${motorista.id}">
-    <div class="form-group"><label>Nome:</label><input type="text" id="add_nome" value="${motorista.nome}" required></div>
-    <div class="form-group"><label>Produtivo (Matrícula):</label><input type="text" id="add_produtivo" value="${motorista.PRODUTIVO || ''}" required></div>
-    <div class="form-group"><label>Status:</label><select id="add_status" required>
-        <option value="disponivel" ${motorista.status === 'disponivel' ? 'selected' : ''}>Disponível</option>
-        <option value="em_viagem" ${motorista.status === 'em_viagem' ? 'selected' : ''}>Em Viagem</option>
-        <option value="folga" ${motorista.status === 'folga' ? 'selected' : ''}>Folga</option>
-    </select></div>
-`;
-
-modal.style.display = 'flex';
-}
-
-async function deleteMotorista(motoristaId) {
-const confirmed = await showYesNoModal('Deseja excluir este motorista? Esta ação não pode ser desfeita.');
-if (confirmed) {
-    try {
-        await supabaseRequest(`motoristas?id=eq.${motoristaId}`, 'DELETE', null, false);
-        showNotification('Motorista excluído com sucesso!', 'success');
-        await loadSelectData();
-        renderMotoristasConfig();
-    } catch (error) {
-        showNotification(`Erro ao excluir motorista: ${error.message}`, 'error');
-    }
-}
-}
-    
-    async function renderMotoristasConfig() {
-const tbody = document.getElementById('motoristasConfigBody');
-if (!tbody) return;
-
-tbody.innerHTML = `<tr><td colspan="4" class="loading"><div class="spinner"></div>Carregando motoristas...</td></tr>`;
-
-try {
-    const motoristasData = await supabaseRequest('motoristas?order=nome');
-    tbody.innerHTML = motoristasData.map(motorista => `
-        <tr>
-            <td class="font-medium">${motorista.nome}</td>
-            <td>${motorista.PRODUTIVO || 'N/A'}</td>
-            <td><span class="status-badge ${motorista.status === 'disponivel' ? 'status-disponivel' : motorista.status === 'em_viagem' ? 'status-em_uso' : 'status-cancelado'}">${getStatusLabel(motorista.status)}</span></td>
-            <td>
-                <div class="flex gap-1">
-                    <button class="btn btn-warning btn-small" onclick="editMotorista('${motorista.id}')">Editar</button>
-                    <button class="btn btn-danger btn-small" onclick="deleteMotorista('${motorista.id}')">Excluir</button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
-} catch (error) {
-    tbody.innerHTML = `<tr><td colspan="4" class="alert alert-error">Erro ao carregar motoristas: ${error.message}</td></tr>`;
-}
-}
-    
-    function updateSystemStatus() {
-        const statusEl = document.getElementById('systemStatus');
-        if(statusEl) {
-            statusEl.textContent = `
-    Filial Ativa: ${selectedFilial.nome}
-    Usuário Logado: ${currentUser.nome}
-    Tipo de Acesso: ${currentUser.tipo_acesso}
-    Cache: ${lojas.length} lojas, ${docas.length} docas, ${lideres.length} líderes
-            `;
-        }
-    }
-// Variável global para o mapa
-    let mapInstance = null;
-    let markersLayer = null;
-
-    function showLocationMap(expeditionId, lat, lng, vehiclePlaca) {
-console.log(`Abrindo mapa para ${vehiclePlaca} em:`, lat, lng); // DEBUG
-
-document.getElementById('mapModalTitle').textContent = `Localização de ${vehiclePlaca}`;
-document.getElementById('mapModal').style.display = 'flex';
-
-// Aguardar o modal aparecer antes de inicializar o mapa
-setTimeout(() => {
-    initMap(lat, lng, vehiclePlaca);
-}, 100);
-}
-    function showAllVehiclesMap() {
-document.getElementById('mapModalTitle').textContent = 'Localização de Todos os Veículos e Lojas';
-document.getElementById('mapModal').style.display = 'flex';
-
-setTimeout(() => {
-    initAllVehiclesAndLojasMap();
-}, 100);
-}
-
-function initAllVehiclesAndLojasMap() {
-    if (mapInstance) {
-        mapInstance.remove();
-    }
-    
-    const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
-    mapInstance = L.map('map').setView(cdCoords, 11);
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(mapInstance);
-    
-    const bounds = L.latLngBounds();
-    bounds.extend(cdCoords);
-
-    rastreioData.forEach(rastreio => {
-        const { lat, lng } = rastreio.coordenadas;
+        });
         
-        let color = '#0077B6';
-        if (rastreio.status_rastreio === 'em_descarga') color = '#F59E0B';
-        else if (rastreio.status_rastreio === 'retornando') color = '#10B981';
+        // Coordenadas do CD
+        const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
         
-        const vehicleIcon = L.divIcon({
+        // Adicionar marcador do CD
+        const cdIcon = L.divIcon({
             className: 'custom-marker',
-            html: `<div style="background: ${color}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${rastreio.veiculo_placa}</div>`,
-            iconSize: [70, 25],
-            iconAnchor: [35, 12]
+            html: '<div style="background: #0077B6; color: white; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">🏭 CD</div>',
+            iconSize: [80, 30],
+            iconAnchor: [40, 15]
         });
         
-        L.marker([lat, lng], { icon: vehicleIcon })
-            .addTo(mapInstance)
-            .bindPopup(`
-                <div style="text-align: center;">
-                    <b>${rastreio.veiculo_placa}</b><br>
-                    <small>${rastreio.motorista_nome}</small><br>
-                    <span style="color: ${color}; font-weight: bold;">${getStatusLabel(rastreio.status_rastreio)}</span>
-                </div>
-            `);
+        L.marker(cdCoords, { icon: cdIcon })
+            .addTo(homeMapInstance)
+            .bindPopup(`<h3><strong>Centro de Distribuição</strong></h3><p>Filial ${selectedFilial.nome}</p>`);
         
-        bounds.extend([lat, lng]);
-    });
-    
-    lojas.forEach(loja => {
-        if (loja.latitude && loja.longitude && loja.ativo) {
-            const lat = parseFloat(loja.latitude);
-            const lng = parseFloat(loja.longitude);
-            
-            let cor = '#10B981';
-            if (loja.nome.toLowerCase().includes('fort')) cor = '#EF4444';
-            else if (loja.nome.toLowerCase().includes('comper')) cor = '#0077B6';
-            
-            const lojaIcon = L.divIcon({
-                className: 'custom-marker',
-                html: `<div style="background: ${cor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">🏪 ${loja.codigo}</div>`,
-                iconSize: [50, 18],
-                iconAnchor: [25, 9]
-            });
-            
-            L.marker([lat, lng], { icon: lojaIcon })
-                .addTo(mapInstance)
-                .bindPopup(`<strong>${loja.nome}</strong><br>Código: ${loja.codigo}`);
-            
-            bounds.extend([lat, lng]);
+        // Carregar dados de rastreio atuais
+        const expeditionsEmRota = await supabaseRequest('expeditions?status=eq.saiu_para_entrega&order=data_saida_entrega.desc');
+        const motoristasRetornando = await supabaseRequest('motoristas?status=in.(retornando_cd,retornando_com_imobilizado)');
+        
+        // Buscar localizações GPS
+        let locations = [];
+        if (expeditionsEmRota.length > 0) {
+            const expeditionIds = expeditionsEmRota.map(exp => exp.id);
+            const query = `gps_tracking?expedition_id=in.(${expeditionIds.join(',')})&order=data_gps.desc`;
+            locations = await supabaseRequest(query, 'GET', null, false);
         }
-    });
-
-    // Adicionar pontos de interesse se existirem
-    if (pontosInteresse && pontosInteresse.length > 0) {
-        pontosInteresse.forEach(ponto => {
-            if (ponto.ativo) {
-                const pontoIcon = L.divIcon({
+        
+        let returningLocations = [];
+        if (motoristasRetornando.length > 0) {
+            const motoristaIds = motoristasRetornando.map(m => m.id);
+            const query = `gps_tracking?motorista_id=in.(${motoristaIds.join(',')})&order=data_gps.desc`;
+            returningLocations = await supabaseRequest(query, 'GET', null, false);
+        }
+        
+        const bounds = L.latLngBounds();
+        bounds.extend(cdCoords);
+        
+        // Adicionar veículos em rota
+        expeditionsEmRota.forEach(exp => {
+            const location = locations.find(loc => loc.expedition_id === exp.id);
+            if (location && location.latitude && location.longitude) {
+                const lat = parseFloat(location.latitude);
+                const lng = parseFloat(location.longitude);
+                
+                const motorista = motoristas.find(m => m.id === exp.motorista_id);
+                const veiculo = veiculos.find(v => v.id === exp.veiculo_id);
+                
+                // Determinar status do veículo para cor
+                let color = '#F59E0B'; // laranja para em trânsito
+                let statusText = 'Em Trânsito';
+                
+                // Verificar se está descarregando (lógica simplificada)
+                // Na implementação real, você pode verificar o status atual das entregas
+                
+                const vehicleIcon = L.divIcon({
                     className: 'custom-marker',
-                    html: `<div style="background: ${ponto.cor}; color: white; padding: 1px 4px; border-radius: 3px; font-size: 8px; font-weight: bold; border: 1px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">${ponto.tipo}</div>`,
-                    iconSize: [30, 15],
-                    iconAnchor: [15, 7]
+                    html: `<div style="background: ${color}; color: white; padding: 3px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${veiculo?.placa || 'N/A'}</div>`,
+                    iconSize: [60, 20],
+                    iconAnchor: [30, 10]
                 });
                 
-                L.marker([ponto.latitude, ponto.longitude], { icon: pontoIcon })
-                    .addTo(mapInstance)
-                    .bindPopup(`<strong>${ponto.nome}</strong><br><small>${ponto.tipo}</small>`);
+                L.marker([lat, lng], { icon: vehicleIcon })
+                    .addTo(homeMapInstance)
+                    .bindPopup(`
+                        <div style="text-align: center;">
+                            <h4><strong>${veiculo?.placa || 'N/A'}</strong></h4>
+                            <p><strong>Motorista:</strong> ${motorista?.nome || 'N/A'}</p>
+                            <p><strong>Status:</strong> <span style="color: ${color};">${statusText}</span></p>
+                            <p><strong>Última atualização:</strong><br>${new Date(location.data_gps).toLocaleString('pt-BR')}</p>
+                        </div>
+                    `);
+                
+                bounds.extend([lat, lng]);
             }
         });
+        
+        // Adicionar veículos retornando
+        motoristasRetornando.forEach(motorista => {
+            const location = returningLocations.find(loc => loc.motorista_id === motorista.id);
+            if (location && location.latitude && location.longitude) {
+                const lat = parseFloat(location.latitude);
+                const lng = parseFloat(location.longitude);
+                
+                const veiculo = veiculos.find(v => v.id === motorista.veiculo_id);
+                const color = '#10B981'; // verde para retornando
+                
+                const vehicleIcon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background: ${color}; color: white; padding: 3px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${veiculo?.placa || 'N/A'}</div>`,
+                    iconSize: [60, 20],
+                    iconAnchor: [30, 10]
+                });
+                
+                L.marker([lat, lng], { icon: vehicleIcon })
+                    .addTo(homeMapInstance)
+                    .bindPopup(`
+                        <div style="text-align: center;">
+                            <h4><strong>${veiculo?.placa || 'N/A'}</strong></h4>
+                            <p><strong>Motorista:</strong> ${motorista.nome}</p>
+                            <p><strong>Status:</strong> <span style="color: ${color};">Retornando</span></p>
+                            <p><strong>Última atualização:</strong><br>${new Date(location.data_gps).toLocaleString('pt-BR')}</p>
+                        </div>
+                    `);
+                
+                bounds.extend([lat, lng]);
+            }
+        });
+        
+        // Adicionar lojas
+        lojas.forEach(loja => {
+            if (loja.latitude && loja.longitude && loja.ativo) {
+                const lat = parseFloat(loja.latitude);
+                const lng = parseFloat(loja.longitude);
+                
+                let cor = '#10B981'; // verde padrão
+                if (loja.nome.toLowerCase().includes('fort')) cor = '#EF4444'; // vermelho
+                else if (loja.nome.toLowerCase().includes('comper')) cor = '#0077B6'; // azul
+                
+                const lojaIcon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background: ${cor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">🏪 ${loja.codigo}</div>`,
+                    iconSize: [50, 18],
+                    iconAnchor: [25, 9]
+                });
+                
+                L.marker([lat, lng], { icon: lojaIcon })
+                    .addTo(homeMapInstance)
+                    .bindPopup(`<strong>${loja.nome}</strong><br>Código: ${loja.codigo}`);
+                
+                bounds.extend([lat, lng]);
+            }
+        });
+
+        // Adicionar pontos de interesse se existirem
+        if (pontosInteresse && pontosInteresse.length > 0) {
+            pontosInteresse.forEach(ponto => {
+                if (ponto.ativo) {
+                    const pontoIcon = L.divIcon({
+                        className: 'custom-marker',
+                        html: `<div style="background: ${ponto.cor}; color: white; padding: 1px 4px; border-radius: 3px; font-size: 8px; font-weight: bold; border: 1px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">${ponto.tipo}</div>`,
+                        iconSize: [30, 15],
+                        iconAnchor: [15, 7]
+                    });
+                    
+                    L.marker([ponto.latitude, ponto.longitude], { icon: pontoIcon })
+                        .addTo(homeMapInstance)
+                        .bindPopup(`<strong>${ponto.nome}</strong><br><small>${ponto.tipo}</small>`);
+                }
+            });
+        }
+        
+        // Ajustar zoom para mostrar todos os pontos
+        if (bounds.isValid()) {
+            homeMapInstance.fitBounds(bounds, { padding: [20, 20] });
+        }
+        
+        // Atualizar timestamp
+        updateHomeLastRefreshTime();
+        
+    } catch (error) {
+        console.error('Erro ao carregar dados do mapa da home:', error);
+        showNotification('Erro ao atualizar mapa: ' + error.message, 'error');
     }
-    
-    // Ajustar zoom para mostrar todos os pontos
-    if (bounds.isValid()) {
-        mapInstance.fitBounds(bounds, { padding: [20, 20] });
-    }
-    
-    // Atualizar timestamp
-    updateHomeLastRefreshTime();
-    
-} catch (error) {
-    console.error('Erro ao carregar dados do mapa da home:', error);
-    showNotification('Erro ao atualizar mapa: ' + error.message, 'error');
-}
 }
 
 function toggleHomeAutoRefresh() {
@@ -3665,220 +1880,220 @@ async function loadHomeMapDataForFullscreen() {
     }
 }
 
-        // --- FUNCIONALIDADES DA ABA OPERAÇÃO ---
-        async function lancarCarga() {
-            const lojaId = document.getElementById('lancar_lojaSelect').value;
-            const docaId = document.getElementById('lancar_docaSelect').value;
-            const pallets = parseInt(document.getElementById('lancar_palletsInput').value);
-            const rolltrainers = parseInt(document.getElementById('lancar_rolltrainersInput').value);
-            const liderId = document.getElementById('lancar_liderSelect').value;
-            const numerosCargaInput = document.getElementById('lancar_numerosCarga').value.trim();
-            const observacoes = document.getElementById('lancar_observacoes').value;
+// --- FUNCIONALIDADES DA ABA OPERAÇÃO ---
+async function lancarCarga() {
+    const lojaId = document.getElementById('lancar_lojaSelect').value;
+    const docaId = document.getElementById('lancar_docaSelect').value;
+    const pallets = parseInt(document.getElementById('lancar_palletsInput').value);
+    const rolltrainers = parseInt(document.getElementById('lancar_rolltrainersInput').value);
+    const liderId = document.getElementById('lancar_liderSelect').value;
+    const numerosCargaInput = document.getElementById('lancar_numerosCarga').value.trim();
+    const observacoes = document.getElementById('lancar_observacoes').value;
 
-            if (!lojaId || !liderId || !docaId || (isNaN(pallets) && isNaN(rolltrainers))) {
-                showNotification('Preencha Loja, Doca, Líder e ao menos um tipo de carga!', 'error');
-                return;
-            }
-            if ((pallets < 0) || (rolltrainers < 0)) {
-                showNotification('As quantidades não podem ser negativas.', 'error');
-                return;
-            }
+    if (!lojaId || !liderId || !docaId || (isNaN(pallets) && isNaN(rolltrainers))) {
+        showNotification('Preencha Loja, Doca, Líder e ao menos um tipo de carga!', 'error');
+        return;
+    }
+    if ((pallets < 0) || (rolltrainers < 0)) {
+        showNotification('As quantidades não podem ser negativas.', 'error');
+        return;
+    }
 
-            try {
-                // Processar números de carga
-                let numerosCarga = [];
-                if (numerosCargaInput) {
-                    numerosCarga = numerosCargaInput.split(',').map(num => num.trim()).filter(num => num.length > 0);
-                }
-
-                const expeditionData = { 
-                    data_hora: new Date().toISOString(), 
-                    lider_id: liderId, 
-                    doca_id: docaId, 
-                    observacoes: observacoes || null, 
-                    status: 'aguardando_agrupamento',
-                    numeros_carga: numerosCarga.length > 0 ? numerosCarga : null
-                };
-                
-                const expeditionResponse = await supabaseRequest('expeditions', 'POST', expeditionData);
-                if (!expeditionResponse || expeditionResponse.length === 0) {
-                    throw new Error("A criação da expedição falhou e não retornou um ID.");
-                }
-                const newExpeditionId = expeditionResponse[0].id;
-
-                const itemData = { expedition_id: newExpeditionId, loja_id: lojaId, pallets: pallets || 0, rolltrainers: rolltrainers || 0, status_descarga: 'pendente' };
-                await supabaseRequest('expedition_items', 'POST', itemData);
-
-                const lojaNome = lojas.find(l => l.id === lojaId)?.nome || 'Loja';
-                const cargasInfo = numerosCarga.length > 0 ? ` (Cargas: ${numerosCarga.join(', ')})` : '';
-                showNotification(`Expedição para ${lojaNome}${cargasInfo} lançada com sucesso!`, 'success');
-
-                document.getElementById('expeditionForm').reset();
-                document.getElementById('lancar_lojaSelect').focus();
-                
-                if(document.getElementById('home').classList.contains('active')) {
-                    await loadHomeData();
-                }
-
-            } catch (error) {
-                console.error('Erro ao lançar carga:', error);
-                showNotification(`Erro ao lançar carga: ${error.message}`, 'error');
-            }
-        }
-        // --- FUNCIONALIDADES DA ABA TRANSPORTE ---
-        async function loadTransportList() {
-            try {
-                const expeditions = await supabaseRequest("expeditions?status=eq.aguardando_agrupamento&order=data_hora.asc");
-                if (!expeditions || expeditions.length === 0) {
-                    renderCargasDisponiveis([], veiculos, motoristas);
-                    atualizarResumoAgrupamento();
-                    return;
-                }
-                const expeditionIds = expeditions.map(exp => exp.id);
-                const items = await supabaseRequest(`expedition_items?expedition_id=in.(${expeditionIds.join(',')})`);
-                
-                document.getElementById('availableVehicles').textContent = veiculos.filter(v => v.status === 'disponivel').length;
-                document.getElementById('availableDrivers').textContent = motoristas.filter(m => m.status === 'disponivel').length;
-
-                const expeditionsWithItems = expeditions.map(exp => ({ ...exp, items: items.filter(item => item.expedition_id === exp.id) })).filter(exp => exp.items.length > 0);
-                
-                renderCargasDisponiveis(expeditionsWithItems, veiculos, motoristas);
-                atualizarResumoAgrupamento(); 
-            } catch (error) {
-                document.getElementById('cargasDisponiveisList').innerHTML = `<div class="alert alert-error">Erro ao carregar cargas: ${error.message}</div>`;
-            }
+    try {
+        // Processar números de carga
+        let numerosCarga = [];
+        if (numerosCargaInput) {
+            numerosCarga = numerosCargaInput.split(',').map(num => num.trim()).filter(num => num.length > 0);
         }
 
-        function renderCargasDisponiveis(cargas, veiculosList, motoristasList) {
-            const container = document.getElementById('cargasDisponiveisList');
-            cargasDisponiveis = cargas;
+        const expeditionData = { 
+            data_hora: new Date().toISOString(), 
+            lider_id: liderId, 
+            doca_id: docaId, 
+            observacoes: observacoes || null, 
+            status: 'aguardando_agrupamento',
+            numeros_carga: numerosCarga.length > 0 ? numerosCarga : null
+        };
+        
+        const expeditionResponse = await supabaseRequest('expeditions', 'POST', expeditionData);
+        if (!expeditionResponse || expeditionResponse.length === 0) {
+            throw new Error("A criação da expedição falhou e não retornou um ID.");
+        }
+        const newExpeditionId = expeditionResponse[0].id;
 
-            if (cargas.length === 0) {
-                container.innerHTML = '<div class="alert alert-success">Nenhuma carga aguardando agrupamento!</div>';
-                return;
-            }
+        const itemData = { expedition_id: newExpeditionId, loja_id: lojaId, pallets: pallets || 0, rolltrainers: rolltrainers || 0, status_descarga: 'pendente' };
+        await supabaseRequest('expedition_items', 'POST', itemData);
 
-            let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
-            cargas.forEach(carga => {
-                const loja = lojas.find(l => l.id === carga.items[0].loja_id);
-                const numerosCarga = carga.numeros_carga && carga.numeros_carga.length > 0 ? carga.numeros_carga.join(', ') : null;
-                html += `
-                    <div class="form-group rounded-lg p-3 border border-gray-200 hover:border-blue-400">
-                        <label for="carga_${carga.id}" class="flex items-center cursor-pointer">
-                            <input type="checkbox" id="carga_${carga.id}" value="${carga.id}" onchange="atualizarResumoAgrupamento()" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3">
-                            <div>
-                                <strong class="text-gray-800">${loja ? `${loja.codigo} - ${loja.nome}` : 'N/A'}</strong><br>
-                                ${numerosCarga ? `<span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded mb-1 inline-block">📦 ${numerosCarga}</span><br>` : ''}
-                                <span class="text-sm text-gray-500">${carga.items[0].pallets}P + ${carga.items[0].rolltrainers}R | ${new Date(carga.data_hora).toLocaleTimeString('pt-BR')}</span>
-                            </div>
-                        </label>
+        const lojaNome = lojas.find(l => l.id === lojaId)?.nome || 'Loja';
+        const cargasInfo = numerosCarga.length > 0 ? ` (Cargas: ${numerosCarga.join(', ')})` : '';
+        showNotification(`Expedição para ${lojaNome}${cargasInfo} lançada com sucesso!`, 'success');
+
+        document.getElementById('expeditionForm').reset();
+        document.getElementById('lancar_lojaSelect').focus();
+        
+        if(document.getElementById('home').classList.contains('active')) {
+            await loadHomeData();
+        }
+
+    } catch (error) {
+        console.error('Erro ao lançar carga:', error);
+        showNotification(`Erro ao lançar carga: ${error.message}`, 'error');
+    }
+}
+// --- FUNCIONALIDADES DA ABA TRANSPORTE ---
+async function loadTransportList() {
+    try {
+        const expeditions = await supabaseRequest("expeditions?status=eq.aguardando_agrupamento&order=data_hora.asc");
+        if (!expeditions || expeditions.length === 0) {
+            renderCargasDisponiveis([], veiculos, motoristas);
+            atualizarResumoAgrupamento();
+            return;
+        }
+        const expeditionIds = expeditions.map(exp => exp.id);
+        const items = await supabaseRequest(`expedition_items?expedition_id=in.(${expeditionIds.join(',')})`);
+        
+        document.getElementById('availableVehicles').textContent = veiculos.filter(v => v.status === 'disponivel').length;
+        document.getElementById('availableDrivers').textContent = motoristas.filter(m => m.status === 'disponivel').length;
+
+        const expeditionsWithItems = expeditions.map(exp => ({ ...exp, items: items.filter(item => item.expedition_id === exp.id) })).filter(exp => exp.items.length > 0);
+        
+        renderCargasDisponiveis(expeditionsWithItems, veiculos, motoristas);
+        atualizarResumoAgrupamento(); 
+    } catch (error) {
+        document.getElementById('cargasDisponiveisList').innerHTML = `<div class="alert alert-error">Erro ao carregar cargas: ${error.message}</div>`;
+    }
+}
+
+function renderCargasDisponiveis(cargas, veiculosList, motoristasList) {
+    const container = document.getElementById('cargasDisponiveisList');
+    cargasDisponiveis = cargas;
+
+    if (cargas.length === 0) {
+        container.innerHTML = '<div class="alert alert-success">Nenhuma carga aguardando agrupamento!</div>';
+        return;
+    }
+
+    let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
+    cargas.forEach(carga => {
+        const loja = lojas.find(l => l.id === carga.items[0].loja_id);
+        const numerosCarga = carga.numeros_carga && carga.numeros_carga.length > 0 ? carga.numeros_carga.join(', ') : null;
+        html += `
+            <div class="form-group rounded-lg p-3 border border-gray-200 hover:border-blue-400">
+                <label for="carga_${carga.id}" class="flex items-center cursor-pointer">
+                    <input type="checkbox" id="carga_${carga.id}" value="${carga.id}" onchange="atualizarResumoAgrupamento()" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3">
+                    <div>
+                        <strong class="text-gray-800">${loja ? `${loja.codigo} - ${loja.nome}` : 'N/A'}</strong><br>
+                        ${numerosCarga ? `<span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded mb-1 inline-block">📦 ${numerosCarga}</span><br>` : ''}
+                        <span class="text-sm text-gray-500">${carga.items[0].pallets}P + ${carga.items[0].rolltrainers}R | ${new Date(carga.data_hora).toLocaleTimeString('pt-BR')}</span>
                     </div>
-                `;
-            });
-            html += '</div>';
-            container.innerHTML = html;
+                </label>
+            </div>
+        `;
+    });
+    html += '</div>';
+    container.innerHTML = html;
 
-            const veiculoSelect = document.getElementById('alocar_veiculoSelect');
-            veiculoSelect.innerHTML = '<option value="">Selecione...</option>';
-            veiculosList.filter(v => v.status === 'disponivel').forEach(v => {
-                veiculoSelect.innerHTML += `<option value="${v.id}" class="veiculo-option">${v.placa} - ${v.modelo} (Cap: ${v.capacidade_pallets}P)</option>`;
-            });
+    const veiculoSelect = document.getElementById('alocar_veiculoSelect');
+    veiculoSelect.innerHTML = '<option value="">Selecione...</option>';
+    veiculosList.filter(v => v.status === 'disponivel').forEach(v => {
+        veiculoSelect.innerHTML += `<option value="${v.id}" class="veiculo-option">${v.placa} - ${v.modelo} (Cap: ${v.capacidade_pallets}P)</option>`;
+    });
 
-            const motoristaSelect = document.getElementById('alocar_motoristaSelect');
-            motoristaSelect.innerHTML = '<option value="">Selecione...</option>';
-            motoristasList.filter(m => m.status === 'disponivel').forEach(m => {
-                motoristaSelect.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
-            });
+    const motoristaSelect = document.getElementById('alocar_motoristaSelect');
+    motoristaSelect.innerHTML = '<option value="">Selecione...</option>';
+    motoristasList.filter(m => m.status === 'disponivel').forEach(m => {
+        motoristaSelect.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
+    });
+}
+
+function atualizarResumoAgrupamento() {
+    const checkboxes = document.querySelectorAll('#cargasDisponiveisList input[type="checkbox"]:checked');
+    let totalLojas = 0, totalPallets = 0, totalRolls = 0;
+
+    document.querySelectorAll('#cargasDisponiveisList .form-group').forEach(group => {
+        const checkbox = group.querySelector('input[type="checkbox"]');
+        group.classList.toggle('selected', checkbox && checkbox.checked);
+    });
+
+    checkboxes.forEach(cb => {
+        const carga = cargasDisponiveis.find(c => c.id == cb.value);
+        if (carga) {
+            totalLojas++;
+            totalPallets += carga.items[0].pallets;
+            totalRolls += carga.items[0].rolltrainers;
+        }
+    });
+
+    const cargaTotal = totalPallets + (totalRolls / 2);
+
+    document.getElementById('summaryLojas').textContent = totalLojas;
+    document.getElementById('summaryPallets').textContent = totalPallets;
+    document.getElementById('summaryRolls').textContent = totalRolls;
+    document.getElementById('summaryCargaTotal').textContent = cargaTotal.toFixed(1);
+
+    const veiculoSelect = document.getElementById('alocar_veiculoSelect');
+    for (const option of veiculoSelect.options) {
+        const veiculo = veiculos.find(v => v.id == option.value);
+        if (veiculo) {
+            option.classList.toggle('incapacitated', veiculo.capacidade_pallets < cargaTotal);
+        }
+    }
+}
+
+async function agruparEAlocar() {
+    const checkboxes = document.querySelectorAll('#cargasDisponiveisList input[type="checkbox"]:checked');
+    const veiculoId = document.getElementById('alocar_veiculoSelect').value;
+    const motoristaId = document.getElementById('alocar_motoristaSelect').value;
+    const observacoes = document.getElementById('alocar_observacoes').value;
+
+    if (checkboxes.length === 0 || !veiculoId || !motoristaId) {
+        showNotification('Selecione ao menos uma carga, um veículo e um motorista!', 'error');
+        return;
+    }
+
+    const idsDasCargas = Array.from(checkboxes).map(cb => cb.value);
+
+    try {
+        const cargasSelecionadas = cargasDisponiveis.filter(c => idsDasCargas.includes(String(c.id)));
+        const originalDocaIds = [...new Set(cargasSelecionadas.map(c => c.doca_id).filter(id => id))];
+
+        const dockPalletCounts = {};
+        cargasSelecionadas.forEach(carga => {
+            const docaId = carga.doca_id;
+            if (docaId) dockPalletCounts[docaId] = (dockPalletCounts[docaId] || 0) + (carga.items[0]?.pallets || 0);
+        });
+
+        const rankedDocks = Object.keys(dockPalletCounts).sort((a, b) => dockPalletCounts[b] - dockPalletCounts[a]);
+        const docaAlvoId = rankedDocks.find(docaId => docas.find(d => d.id == docaId)?.status === 'disponivel');
+
+        if (!docaAlvoId) {
+            showNotification(`Nenhuma das docas de destino está disponível. Aguarde e tente novamente.`, 'error');
+            return;
         }
 
-        function atualizarResumoAgrupamento() {
-            const checkboxes = document.querySelectorAll('#cargasDisponiveisList input[type="checkbox"]:checked');
-            let totalLojas = 0, totalPallets = 0, totalRolls = 0;
+        const newExpeditionData = { data_hora: new Date().toISOString(), status: 'aguardando_veiculo', doca_id: docaAlvoId, veiculo_id: veiculoId, motorista_id: motoristaId, lider_id: cargasSelecionadas[0].lider_id, data_alocacao_veiculo: new Date().toISOString(), observacoes: observacoes || null };
+        const newExpeditionResponse = await supabaseRequest('expeditions', 'POST', newExpeditionData);
+        const newExpeditionId = newExpeditionResponse[0].id;
 
-            document.querySelectorAll('#cargasDisponiveisList .form-group').forEach(group => {
-                const checkbox = group.querySelector('input[type="checkbox"]');
-                group.classList.toggle('selected', checkbox && checkbox.checked);
-            });
+        const itemsToUpdate = cargasSelecionadas.flatMap(c => c.items.map(i => i.id));
+        await supabaseRequest(`expedition_items?id=in.(${itemsToUpdate.join(',')})`, 'PATCH', { expedition_id: newExpeditionId });
+        await supabaseRequest(`expeditions?id=in.(${idsDasCargas.join(',')})`, 'DELETE');
+        
+        const updatePromises = [
+            supabaseRequest(`veiculos?id=eq.${veiculoId}`, 'PATCH', { status: 'em_uso' }, false),
+            supabaseRequest(`motoristas?id=eq.${motoristaId}`, 'PATCH', { status: 'em_viagem' }, false),
+            
+        ];
 
-            checkboxes.forEach(cb => {
-                const carga = cargasDisponiveis.find(c => c.id == cb.value);
-                if (carga) {
-                    totalLojas++;
-                    totalPallets += carga.items[0].pallets;
-                    totalRolls += carga.items[0].rolltrainers;
-                }
-            });
-
-            const cargaTotal = totalPallets + (totalRolls / 2);
-
-            document.getElementById('summaryLojas').textContent = totalLojas;
-            document.getElementById('summaryPallets').textContent = totalPallets;
-            document.getElementById('summaryRolls').textContent = totalRolls;
-            document.getElementById('summaryCargaTotal').textContent = cargaTotal.toFixed(1);
-
-            const veiculoSelect = document.getElementById('alocar_veiculoSelect');
-            for (const option of veiculoSelect.options) {
-                const veiculo = veiculos.find(v => v.id == option.value);
-                if (veiculo) {
-                    option.classList.toggle('incapacitated', veiculo.capacidade_pallets < cargaTotal);
-                }
+        originalDocaIds.forEach(docaId => {
+            if (docaId !== docaAlvoId) {
+                updatePromises.push(supabaseRequest(`docas?id=eq.${docaId}`, 'PATCH', { status: 'disponivel' }, false));
             }
-        }
+        });
 
-        async function agruparEAlocar() {
-            const checkboxes = document.querySelectorAll('#cargasDisponiveisList input[type="checkbox"]:checked');
-            const veiculoId = document.getElementById('alocar_veiculoSelect').value;
-            const motoristaId = document.getElementById('alocar_motoristaSelect').value;
-            const observacoes = document.getElementById('alocar_observacoes').value;
+        await Promise.all(updatePromises);
 
-            if (checkboxes.length === 0 || !veiculoId || !motoristaId) {
-                showNotification('Selecione ao menos uma carga, um veículo e um motorista!', 'error');
-                return;
-            }
-
-            const idsDasCargas = Array.from(checkboxes).map(cb => cb.value);
-
-            try {
-                const cargasSelecionadas = cargasDisponiveis.filter(c => idsDasCargas.includes(String(c.id)));
-                const originalDocaIds = [...new Set(cargasSelecionadas.map(c => c.doca_id).filter(id => id))];
-
-                const dockPalletCounts = {};
-                cargasSelecionadas.forEach(carga => {
-                    const docaId = carga.doca_id;
-                    if (docaId) dockPalletCounts[docaId] = (dockPalletCounts[docaId] || 0) + (carga.items[0]?.pallets || 0);
-                });
-
-                const rankedDocks = Object.keys(dockPalletCounts).sort((a, b) => dockPalletCounts[b] - dockPalletCounts[a]);
-                const docaAlvoId = rankedDocks.find(docaId => docas.find(d => d.id == docaId)?.status === 'disponivel');
-
-                if (!docaAlvoId) {
-                    showNotification(`Nenhuma das docas de destino está disponível. Aguarde e tente novamente.`, 'error');
-                    return;
-                }
-
-                const newExpeditionData = { data_hora: new Date().toISOString(), status: 'aguardando_veiculo', doca_id: docaAlvoId, veiculo_id: veiculoId, motorista_id: motoristaId, lider_id: cargasSelecionadas[0].lider_id, data_alocacao_veiculo: new Date().toISOString(), observacoes: observacoes || null };
-                const newExpeditionResponse = await supabaseRequest('expeditions', 'POST', newExpeditionData);
-                const newExpeditionId = newExpeditionResponse[0].id;
-
-                const itemsToUpdate = cargasSelecionadas.flatMap(c => c.items.map(i => i.id));
-                await supabaseRequest(`expedition_items?id=in.(${itemsToUpdate.join(',')})`, 'PATCH', { expedition_id: newExpeditionId });
-                await supabaseRequest(`expeditions?id=in.(${idsDasCargas.join(',')})`, 'DELETE');
-                
-                const updatePromises = [
-                    supabaseRequest(`veiculos?id=eq.${veiculoId}`, 'PATCH', { status: 'em_uso' }, false),
-                    supabaseRequest(`motoristas?id=eq.${motoristaId}`, 'PATCH', { status: 'em_viagem' }, false),
-                    
-                ];
-
-                originalDocaIds.forEach(docaId => {
-                    if (docaId !== docaAlvoId) {
-                        updatePromises.push(supabaseRequest(`docas?id=eq.${docaId}`, 'PATCH', { status: 'disponivel' }, false));
-                    }
-                });
-
-                await Promise.all(updatePromises);
-
-                showNotification('Expedição montada! Defina a ordem de carregamento.', 'info');
+        showNotification('Expedição montada! Defina a ordem de carregamento.', 'info');
 document.getElementById('alocar_veiculoSelect').value = '';
 document.getElementById('alocar_motoristaSelect').value = '';
 document.getElementById('alocar_observacoes').value = '';
@@ -3886,157 +2101,157 @@ document.getElementById('alocar_observacoes').value = '';
 // Chama o novo modal para definir a ordem
 await openOrdemCarregamentoModal(newExpeditionId);
 
-            } catch (error) {
-                showNotification(`Erro ao agrupar: ${error.message}`, 'error');
-            }
-        }
-
-        // --- FUNCIONALIDADES DA ABA FATURAMENTO ---
-       async function loadFaturamento() {
-    showSubTab('faturamento', 'faturamentoAtivo', document.querySelector('#faturamento .sub-tab'));
-    
-    try {
-        const expeditions = await supabaseRequest("expeditions?status=in.(aguardando_faturamento,faturamento_iniciado,faturado)&order=data_hora.desc");
-        const items = await supabaseRequest('expedition_items');
-
-        const expeditionsWithItems = expeditions.map(exp => {
-            const expItems = items.filter(item => item.expedition_id === exp.id);
-            const veiculo = exp.veiculo_id ? veiculos.find(v => v.id === exp.veiculo_id) : null;
-            return {
-                ...exp,
-                items: expItems,
-                total_pallets: expItems.reduce((sum, item) => sum + (item.pallets || 0), 0),
-                total_rolltrainers: expItems.reduce((sum, item) => sum + (item.rolltrainers || 0), 0),
-                lojas_count: expItems.length,
-                lojas_info: expItems.map(item => {
-                    const loja = lojas.find(l => l.id === item.loja_id);
-                    return loja ? `${loja.codigo} - ${loja.nome}` : 'N/A';
-                }).join(', '),
-                doca_nome: docas.find(d => d.id === exp.doca_id)?.nome || 'N/A',
-                lider_nome: lideres.find(l => l.id === exp.lider_id)?.nome || 'N/A',
-                veiculo_placa: veiculo?.placa || null,
-                veiculo_modelo: veiculo?.modelo || null,
-                motorista_nome: motoristas.find(m => m.id === exp.motorista_id)?.nome || null
-            };
-        });
-
-        updateFaturamentoStats(expeditionsWithItems);
-        renderFaturamentoList(expeditionsWithItems);
-        
-        // Definir datas padrão para o histórico (últimos 30 dias)
-        const hoje = new Date();
-        const ha30Dias = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
-        
-        const historicoDataInicio = document.getElementById('historicoFaturamentoDataInicio');
-        const historicoDataFim = document.getElementById('historicoFaturamentoDataFim');
-        
-        if (historicoDataInicio && !historicoDataInicio.value) {
-            historicoDataInicio.value = ha30Dias.toISOString().split('T')[0];
-        }
-        if (historicoDataFim && !historicoDataFim.value) {
-            historicoDataFim.value = hoje.toISOString().split('T')[0];
-        }
-        
     } catch (error) {
-        document.getElementById('faturamentoList').innerHTML = `<div class="alert alert-error">Erro: ${error.message}</div>`;
+        showNotification(`Erro ao agrupar: ${error.message}`, 'error');
     }
 }
 
-        function renderFaturamentoList(expeditionsList) {
-            const container = document.getElementById('faturamentoList');
+// --- FUNCIONALIDADES DA ABA FATURAMENTO ---
+async function loadFaturamento() {
+showSubTab('faturamento', 'faturamentoAtivo', document.querySelector('#faturamento .sub-tab'));
 
-            if (expeditionsList.length === 0) {
-                container.innerHTML = '<div class="alert alert-success">Nenhuma expedição pendente de faturamento!</div>';
-                return;
-            }
+try {
+    const expeditions = await supabaseRequest("expeditions?status=in.(aguardando_faturamento,faturamento_iniciado,faturado)&order=data_hora.desc");
+    const items = await supabaseRequest('expedition_items');
 
-            container.innerHTML = expeditionsList.map(exp => {
-                const carregadoEm = exp.data_saida_veiculo ? new Date(exp.data_saida_veiculo) : new Date(exp.data_hora);
-                const tempoEspera = Math.round((new Date() - carregadoEm) / 60000);
-                
-                let actionButtons = '', statusInfo = '';
-                if (exp.status === 'aguardando_faturamento') {
-                    statusInfo = `<div class="text-blue-600 font-semibold mb-2">📄 Pronto para iniciar faturamento</div>`;
-                    actionButtons = `<button class="btn btn-success" onclick="iniciarFaturamento('${exp.id}')">Iniciar Faturamento</button>`;
-                } else if (exp.status === 'faturamento_iniciado') {
-                    const iniciadoEm = exp.data_inicio_faturamento ? new Date(exp.data_inicio_faturamento) : null;
-                    const tempoFaturamento = iniciadoEm ? Math.round((new Date() - iniciadoEm) / 60000) : 0;
-                    statusInfo = `<div class="text-yellow-600 font-semibold mb-2">📄 Faturamento em andamento há ${minutesToHHMM(tempoFaturamento)}</div>`;
-                    actionButtons = `<button class="btn btn-primary" onclick="finalizarFaturamento('${exp.id}')">Finalizar Faturamento</button>`;
-                } else if (exp.status === 'faturado') {
-                    statusInfo = `<div class="text-green-600 font-semibold mb-2">✅ Faturado</div>`;
-                    actionButtons = `<button class="btn btn-warning" onclick="marcarSaiuEntrega('${exp.id}')">Marcar Saída</button>`;
-                }
+    const expeditionsWithItems = expeditions.map(exp => {
+        const expItems = items.filter(item => item.expedition_id === exp.id);
+        const veiculo = exp.veiculo_id ? veiculos.find(v => v.id === exp.veiculo_id) : null;
+        return {
+            ...exp,
+            items: expItems,
+            total_pallets: expItems.reduce((sum, item) => sum + (item.pallets || 0), 0),
+            total_rolltrainers: expItems.reduce((sum, item) => sum + (item.rolltrainers || 0), 0),
+            lojas_count: expItems.length,
+            lojas_info: expItems.map(item => {
+                const loja = lojas.find(l => l.id === item.loja_id);
+                return loja ? `${loja.codigo} - ${loja.nome}` : 'N/A';
+            }).join(', '),
+            doca_nome: docas.find(d => d.id === exp.doca_id)?.nome || 'N/A',
+            lider_nome: lideres.find(l => l.id === exp.lider_id)?.nome || 'N/A',
+            veiculo_placa: veiculo?.placa || null,
+            veiculo_modelo: veiculo?.modelo || null,
+            motorista_nome: motoristas.find(m => m.id === exp.motorista_id)?.nome || null
+        };
+    });
 
-                return `
-                    <div class="faturamento-card">
-                       <h3 class="text-lg font-bold text-gray-800">${exp.lojas_count} loja${exp.lojas_count > 1 ? 's' : ''} - ${exp.veiculo_placa || 'N/A'}</h3>
-                        <p class="text-sm text-gray-500 mb-2">${exp.lojas_info}</p>
-                        ${exp.numeros_carga && exp.numeros_carga.length > 0 ? `<p class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded mb-2 inline-block">📦 Cargas: ${exp.numeros_carga.join(', ')}</p>` : ''}
-                        ${statusInfo}
-                        <div class="time-display">
-                            <strong>Carregado há:</strong> ${minutesToHHMM(tempoEspera)}
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 my-4 text-sm">
-                            <p><strong>Pallets:</strong> ${exp.total_pallets}</p>
-                            <p><strong>RollTrainers:</strong> ${exp.total_rolltrainers}</p>
-                            <p><strong>Motorista:</strong> ${exp.motorista_nome || 'N/A'}</p>
-                            <p><strong>Líder:</strong> ${exp.lider_nome || 'N/A'}</p>
-                        </div>
-                        <div class="text-center mt-4">
-                            ${actionButtons}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+    updateFaturamentoStats(expeditionsWithItems);
+    renderFaturamentoList(expeditionsWithItems);
+    
+    // Definir datas padrão para o histórico (últimos 30 dias)
+    const hoje = new Date();
+    const ha30Dias = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
+    
+    const historicoDataInicio = document.getElementById('historicoFaturamentoDataInicio');
+    const historicoDataFim = document.getElementById('historicoFaturamentoDataFim');
+    
+    if (historicoDataInicio && !historicoDataInicio.value) {
+        historicoDataInicio.value = ha30Dias.toISOString().split('T')[0];
+    }
+    if (historicoDataFim && !historicoDataFim.value) {
+        historicoDataFim.value = hoje.toISOString().split('T')[0];
+    }
+    
+} catch (error) {
+    document.getElementById('faturamentoList').innerHTML = `<div class="alert alert-error">Erro: ${error.message}</div>`;
+}
+}
+
+function renderFaturamentoList(expeditionsList) {
+    const container = document.getElementById('faturamentoList');
+
+    if (expeditionsList.length === 0) {
+        container.innerHTML = '<div class="alert alert-success">Nenhuma expedição pendente de faturamento!</div>';
+        return;
+    }
+
+    container.innerHTML = expeditionsList.map(exp => {
+        const carregadoEm = exp.data_saida_veiculo ? new Date(exp.data_saida_veiculo) : new Date(exp.data_hora);
+        const tempoEspera = Math.round((new Date() - carregadoEm) / 60000);
+        
+        let actionButtons = '', statusInfo = '';
+        if (exp.status === 'aguardando_faturamento') {
+            statusInfo = `<div class="text-blue-600 font-semibold mb-2">📄 Pronto para iniciar faturamento</div>`;
+            actionButtons = `<button class="btn btn-success" onclick="iniciarFaturamento('${exp.id}')">Iniciar Faturamento</button>`;
+        } else if (exp.status === 'faturamento_iniciado') {
+            const iniciadoEm = exp.data_inicio_faturamento ? new Date(exp.data_inicio_faturamento) : null;
+            const tempoFaturamento = iniciadoEm ? Math.round((new Date() - iniciadoEm) / 60000) : 0;
+            statusInfo = `<div class="text-yellow-600 font-semibold mb-2">📄 Faturamento em andamento há ${minutesToHHMM(tempoFaturamento)}</div>`;
+            actionButtons = `<button class="btn btn-primary" onclick="finalizarFaturamento('${exp.id}')">Finalizar Faturamento</button>`;
+        } else if (exp.status === 'faturado') {
+            statusInfo = `<div class="text-green-600 font-semibold mb-2">✅ Faturado</div>`;
+            actionButtons = `<button class="btn btn-warning" onclick="marcarSaiuEntrega('${exp.id}')">Marcar Saída</button>`;
         }
 
-        function updateFaturamentoStats(expeditions) {
-            document.getElementById('totalCarregadas').textContent = expeditions.filter(e => e.status === 'aguardando_faturamento').length;
-            document.getElementById('emFaturamento').textContent = expeditions.filter(e => e.status === 'faturamento_iniciado').length;
-            document.getElementById('faturadas').textContent = expeditions.filter(e => e.status === 'faturado').length;
-            
-            const expedicoesComFaturamento = expeditions.filter(e => e.data_inicio_faturamento && e.data_fim_faturamento);
-            if (expedicoesComFaturamento.length > 0) {
-                const tempos = expedicoesComFaturamento.map(e => (new Date(e.data_fim_faturamento) - new Date(e.data_inicio_faturamento)) / 60000);
-                const tempoMedio = tempos.reduce((a, b) => a + b, 0) / tempos.length;
-                document.getElementById('tempoMedioFaturamento').textContent = minutesToHHMM(tempoMedio);
-            } else {
-                document.getElementById('tempoMedioFaturamento').textContent = '-';
-            }
-        }
+        return `
+            <div class="faturamento-card">
+               <h3 class="text-lg font-bold text-gray-800">${exp.lojas_count} loja${exp.lojas_count > 1 ? 's' : ''} - ${exp.veiculo_placa || 'N/A'}</h3>
+                <p class="text-sm text-gray-500 mb-2">${exp.lojas_info}</p>
+                ${exp.numeros_carga && exp.numeros_carga.length > 0 ? `<p class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded mb-2 inline-block">📦 Cargas: ${exp.numeros_carga.join(', ')}</p>` : ''}
+                ${statusInfo}
+                <div class="time-display">
+                    <strong>Carregado há:</strong> ${minutesToHHMM(tempoEspera)}
+                </div>
+                <div class="grid grid-cols-2 gap-4 my-4 text-sm">
+                    <p><strong>Pallets:</strong> ${exp.total_pallets}</p>
+                    <p><strong>RollTrainers:</strong> ${exp.total_rolltrainers}</p>
+                    <p><strong>Motorista:</strong> ${exp.motorista_nome || 'N/A'}</p>
+                    <p><strong>Líder:</strong> ${exp.lider_nome || 'N/A'}</p>
+                </div>
+                <div class="text-center mt-4">
+                    ${actionButtons}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
 
-        async function iniciarFaturamento(expeditionId) {
-            try {
-                const updateData = { status: 'faturamento_iniciado', data_inicio_faturamento: new Date().toISOString() };
-                await supabaseRequest(`expeditions?id=eq.${expeditionId}`, 'PATCH', updateData);
-                showNotification(`Faturamento iniciado!`, 'success');
-                loadFaturamento();
-            } catch (error) {
-                showNotification('Erro ao iniciar faturamento: ' + error.message, 'error');
-            }
-        }
+function updateFaturamentoStats(expeditions) {
+    document.getElementById('totalCarregadas').textContent = expeditions.filter(e => e.status === 'aguardando_faturamento').length;
+    document.getElementById('emFaturamento').textContent = expeditions.filter(e => e.status === 'faturamento_iniciado').length;
+    document.getElementById('faturadas').textContent = expeditions.filter(e => e.status === 'faturado').length;
+    
+    const expedicoesComFaturamento = expeditions.filter(e => e.data_inicio_faturamento && e.data_fim_faturamento);
+    if (expedicoesComFaturamento.length > 0) {
+        const tempos = expedicoesComFaturamento.map(e => (new Date(e.data_fim_faturamento) - new Date(e.data_inicio_faturamento)) / 60000);
+        const tempoMedio = tempos.reduce((a, b) => a + b, 0) / tempos.length;
+        document.getElementById('tempoMedioFaturamento').textContent = minutesToHHMM(tempoMedio);
+    } else {
+        document.getElementById('tempoMedioFaturamento').textContent = '-';
+    }
+}
 
-        async function finalizarFaturamento(expeditionId) {
-             try {
-                const updateData = { status: 'faturado', data_fim_faturamento: new Date().toISOString() };
-                await supabaseRequest(`expeditions?id=eq.${expeditionId}`, 'PATCH', updateData);
-                showNotification(`Faturamento finalizado!`, 'success');
-                loadFaturamento();
-            } catch (error) {
-                showNotification('Erro ao finalizar faturamento: ' + error.message, 'error');
-            }
-        }
+async function iniciarFaturamento(expeditionId) {
+    try {
+        const updateData = { status: 'faturamento_iniciado', data_inicio_faturamento: new Date().toISOString() };
+        await supabaseRequest(`expeditions?id=eq.${expeditionId}`, 'PATCH', updateData);
+        showNotification(`Faturamento iniciado!`, 'success');
+        loadFaturamento();
+    } catch (error) {
+        showNotification('Erro ao iniciar faturamento: ' + error.message, 'error');
+    }
+}
 
-        async function marcarSaiuEntrega(expeditionId) {
-            try {
-                await supabaseRequest(`expeditions?id=eq.${expeditionId}`, 'PATCH', { status: 'saiu_para_entrega', data_saida_entrega: new Date().toISOString() });
-                showNotification('Expedição marcada como saiu para entrega!', 'success');
-                loadFaturamento();
-            } catch (error) {
-                showNotification('Erro ao marcar saída: ' + error.message, 'error');
-            }
-        }
+async function finalizarFaturamento(expeditionId) {
+     try {
+        const updateData = { status: 'faturado', data_fim_faturamento: new Date().toISOString() };
+        await supabaseRequest(`expeditions?id=eq.${expeditionId}`, 'PATCH', updateData);
+        showNotification(`Faturamento finalizado!`, 'success');
+        loadFaturamento();
+    } catch (error) {
+        showNotification('Erro ao finalizar faturamento: ' + error.message, 'error');
+    }
+}
+
+async function marcarSaiuEntrega(expeditionId) {
+    try {
+        await supabaseRequest(`expeditions?id=eq.${expeditionId}`, 'PATCH', { status: 'saiu_para_entrega', data_saida_entrega: new Date().toISOString() });
+        showNotification('Expedição marcada como saiu para entrega!', 'success');
+        loadFaturamento();
+    } catch (error) {
+        showNotification('Erro ao marcar saída: ' + error.message, 'error');
+    }
+}
 // --- FUNCIONALIDADES DO HISTÓRICO DE FATURAMENTO ---
 async function loadHistoricoFaturamento() {
     const dataInicio = document.getElementById('historicoFaturamentoDataInicio').value;
@@ -4209,7 +2424,7 @@ function clearHistoricoFaturamentoFilters() {
     
     loadHistoricoFaturamento();
 }
-       function showSubTab(tabName, subTabName, element) {
+function showSubTab(tabName, subTabName, element) {
     const tabContent = document.getElementById(tabName);
     if (!tabContent) return; 
     
@@ -4264,761 +2479,762 @@ function clearHistoricoFaturamentoFilters() {
     feather.replace();
 }
 
-        async function loadMotoristaTab() {
-            showSubTab('motoristas', 'statusFrota', document.querySelector('#motoristas .sub-tab'));
-            await renderMotoristasStatusList();
-            
-            // Definir datas padrão para o relatório (últimos 30 dias)
-            const hoje = new Date();
-            const ha30Dias = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
-            
-            const dataInicio = document.getElementById('relatorioMotoristaDataInicio');
-            const dataFim = document.getElementById('relatorioMotoristaDataFim');
-            
-            if (dataInicio && !dataInicio.value) {
-                dataInicio.value = ha30Dias.toISOString().split('T')[0];
-            }
-            if (dataFim && !dataFim.value) {
-                dataFim.value = hoje.toISOString().split('T')[0];
-            }
+async function loadMotoristaTab() {
+    showSubTab('motoristas', 'statusFrota', document.querySelector('#motoristas .sub-tab'));
+    await renderMotoristasStatusList();
+    
+    // Definir datas padrão para o relatório (últimos 30 dias)
+    const hoje = new Date();
+    const ha30Dias = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
+    
+    const dataInicio = document.getElementById('relatorioMotoristaDataInicio');
+    const dataFim = document.getElementById('relatorioMotoristaDataFim');
+    
+    if (dataInicio && !dataInicio.value) {
+        dataInicio.value = ha30Dias.toISOString().split('T')[0];
+    }
+    if (dataFim && !dataFim.value) {
+        dataFim.value = hoje.toISOString().split('T')[0];
+    }
+}
+
+async function renderMotoristasStatusList() {
+    const container = document.getElementById('motoristasStatusList');
+    if (!container) return;
+    container.innerHTML = `<div class="loading"><div class="spinner"></div>Carregando status...</div>`;
+    Object.values(activeTimers).forEach(clearInterval);
+    activeTimers = {};
+
+    const [activeExpeditions, recentlyCompletedExpeditions, allItems] = await Promise.all([
+         supabaseRequest(`expeditions?status=not.in.(entregue,cancelado)`),
+         supabaseRequest(`expeditions?status=eq.entregue&order=data_hora.desc&limit=50`),
+         supabaseRequest('expedition_items')
+    ]);
+    
+    let html = `<div class="stats-grid">
+        <div class="stat-card"><div class="stat-number">${motoristas.filter(m => m.status === 'disponivel').length}</div><div class="stat-label">Disponíveis</div></div>
+        <div class="stat-card" style="background: var(--secondary-gradient);"><div class="stat-number">${motoristas.filter(m => ['em_viagem', 'descarregando_imobilizado', 'saiu_para_entrega'].includes(m.status)).length}</div><div class="stat-label">Em Atividade</div></div>
+        <div class="stat-card" style="background: var(--accent-gradient);"><div class="stat-number">${motoristas.filter(m => ['retornando_cd', 'retornando_com_imobilizado'].includes(m.status)).length}</div><div class="stat-label">Retornando</div></div>
+    </div>
+    <h3 class="text-xl font-semibold text-gray-800 my-4">Status dos Motoristas</h3>
+    `;
+
+    const motoristasComStatus = motoristas.map(m => {
+        const activeExp = activeExpeditions.find(exp => exp.motorista_id === m.id);
+        if (activeExp) {
+            const itemsForExp = allItems.filter(i => i.expedition_id === activeExp.id);
+            return { ...m, displayStatus: activeExp.status, veiculoId: activeExp.veiculo_id, activeExp: { ...activeExp, items: itemsForExp } };
+        } else {
+            const lastCompletedExp = recentlyCompletedExpeditions.find(exp => exp.motorista_id === m.id);
+            return { ...m, displayStatus: m.status, veiculoId: lastCompletedExp ? lastCompletedExp.veiculo_id : null };
+        }
+    });
+
+    motoristasComStatus.sort((a, b) => a.nome.localeCompare(b.nome));
+
+    motoristasComStatus.forEach(m => {
+        let actionButton = '';
+        if ((m.status === 'retornando_cd' || m.status === 'retornando_com_imobilizado') && m.veiculoId) {
+            actionButton = `<button class="btn btn-primary btn-small" onclick="marcarRetornoCD('${m.id}', '${m.veiculoId}')">Cheguei no CD</button>`;
+        } else if (m.status === 'descarregando_imobilizado' && m.veiculoId) {
+            actionButton = `<button class="btn btn-warning btn-small" onclick="finalizarDescargaImobilizado('${m.id}', '${m.veiculoId}')">Finalizar Descarga</button>`;
         }
 
-        async function renderMotoristasStatusList() {
-            const container = document.getElementById('motoristasStatusList');
-            if (!container) return;
-            container.innerHTML = `<div class="loading"><div class="spinner"></div>Carregando status...</div>`;
-            Object.values(activeTimers).forEach(clearInterval);
-            activeTimers = {};
+        let timeInfo = '';
+        if (m.activeExp && m.displayStatus === 'saiu_para_entrega') {
+            timeInfo = `
+                <div class="text-xs text-gray-500 mt-1">
+                    <span id="loja_timer_${m.id}">Loja: --:--</span> | 
+                    <span id="desloc_timer_${m.id}">Desloc.: --:--</span>
+                </div>
+            `;
+        }
 
-            const [activeExpeditions, recentlyCompletedExpeditions, allItems] = await Promise.all([
-                 supabaseRequest(`expeditions?status=not.in.(entregue,cancelado)`),
-                 supabaseRequest(`expeditions?status=eq.entregue&order=data_hora.desc&limit=50`),
-                 supabaseRequest('expedition_items')
-            ]);
+        html += `
+            <div class="motorista-status-item">
+                <div>
+                    <strong class="text-gray-800">${m.nome}</strong>
+                    ${timeInfo}
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="status-badge status-${m.displayStatus.replace(/ /g, '_')}">${getStatusLabel(m.displayStatus)}</span>
+                    ${actionButton}
+                </div>
+            </div>`;
+    });
+    container.innerHTML = html;
+
+    // Iniciar timers
+    motoristasComStatus.forEach(m => {
+        if(m.activeExp && m.displayStatus === 'saiu_para_entrega') {
+            const timerId = `motorista_${m.id}`;
+            if(activeTimers[timerId]) clearInterval(activeTimers[timerId]);
             
-            let html = `<div class="stats-grid">
-                <div class="stat-card"><div class="stat-number">${motoristas.filter(m => m.status === 'disponivel').length}</div><div class="stat-label">Disponíveis</div></div>
-                <div class="stat-card" style="background: var(--secondary-gradient);"><div class="stat-number">${motoristas.filter(m => ['em_viagem', 'descarregando_imobilizado', 'saiu_para_entrega'].includes(m.status)).length}</div><div class="stat-label">Em Atividade</div></div>
-                <div class="stat-card" style="background: var(--accent-gradient);"><div class="stat-number">${motoristas.filter(m => ['retornando_cd', 'retornando_com_imobilizado'].includes(m.status)).length}</div><div class="stat-label">Retornando</div></div>
+            activeTimers[timerId] = setInterval(() => {
+                let tempoEmLoja = 0, tempoDeslocamento = 0;
+                let lastEventTime = new Date(m.activeExp.data_saida_entrega);
+
+                m.activeExp.items.sort((a,b) => new Date(a.data_inicio_descarga) - new Date(b.data_inicio_descarga)).forEach(item => {
+                    if(item.data_inicio_descarga) {
+                       const inicio = new Date(item.data_inicio_descarga);
+                       tempoDeslocamento += (inicio - lastEventTime);
+                       if(item.data_fim_descarga) {
+                           const fim = new Date(item.data_fim_descarga);
+                           tempoEmLoja += (fim - inicio);
+                           lastEventTime = fim;
+                       } else {
+                           tempoEmLoja += (new Date() - inicio);
+                           lastEventTime = new Date();
+                       }
+                    }
+                });
+                
+                const elLoja = document.getElementById(`loja_timer_${m.id}`);
+                const elDesloc = document.getElementById(`desloc_timer_${m.id}`);
+
+                if(elLoja) elLoja.textContent = `Loja: ${minutesToHHMM(tempoEmLoja / 60000)}`;
+                if(elDesloc) elDesloc.textContent = `Desloc.: ${minutesToHHMM(tempoDeslocamento / 60000)}`;
+
+            }, 1000);
+        }
+    });
+}
+
+async function consultarExpedicoesPorPlaca() {
+    const placa = document.getElementById('placaMotorista').value;
+    if (!placa) {
+        showNotification('Por favor, selecione uma placa', 'error');
+        return;
+    }
+    const resultsContainer = document.getElementById('resultadosMotorista');
+    resultsContainer.innerHTML = `<div class="loading"><div class="spinner"></div>Consultando...</div>`;
+
+    try {
+        const expeditions = await supabaseRequest("expeditions?status=in.(aguardando_veiculo,em_carregamento,saiu_para_entrega)&order=data_hora.desc");
+        const items = await supabaseRequest('expedition_items');
+
+        const expeditionsWithItems = expeditions.map(exp => {
+            const veiculo = veiculos.find(v => v.id === exp.veiculo_id);
+            return { ...exp, items: items.filter(i => i.expedition_id === exp.id), veiculo_placa: veiculo?.placa };
+        }).filter(exp => exp.veiculo_placa === placa);
+        
+        renderExpedicoesMotorista(expeditionsWithItems);
+    } catch (error) {
+        resultsContainer.innerHTML = `<div class="alert alert-error">Erro ao consultar expedições.</div>`;
+    }
+}
+
+function renderExpedicoesMotorista(expeditions) {
+    const container = document.getElementById('resultadosMotorista');
+    Object.values(activeTimers).forEach(clearInterval);
+    activeTimers = {};
+
+    if(expeditions.length === 0) {
+        container.innerHTML = `<div class="alert alert-success mt-4">Nenhuma expedição ativa encontrada para esta placa.</div>`;
+        return;
+    }
+
+    container.innerHTML = expeditions.map(exp => {
+        if (exp.status === 'saiu_para_entrega') {
+            return renderPainelDescarga(exp);
+        }
+        const doca = docas.find(d => d.id === exp.doca_id);
+        const coddocaValue = doca?.coddoca || 'N/A';
+        let actionButton = '';
+        if (exp.status === 'aguardando_veiculo') {
+            actionButton = `<button class="btn btn-success" onclick="openQrModal('iniciar', '${exp.id}', '${coddocaValue}')">Iniciar Carregamento</button>`;
+        } else if (exp.status === 'em_carregamento') {
+            actionButton = `<button class="btn btn-primary" onclick="openQrModal('finalizar', '${exp.id}', '${coddocaValue}')">Finalizar Carregamento</button>`;
+        }
+        return `
+            <div class="motorista-card">
+                 <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-lg font-bold">Viagem para ${exp.items.length} Lojas</h3>
+                    <span class="status-badge status-${exp.status}">${getStatusLabel(exp.status)}</span>
+                </div>
+                <div class="text-center mt-4">${actionButton}</div>
             </div>
-            <h3 class="text-xl font-semibold text-gray-800 my-4">Status dos Motoristas</h3>
-            `;
+        `;
+    }).join('');
+}
 
-            const motoristasComStatus = motoristas.map(m => {
-                const activeExp = activeExpeditions.find(exp => exp.motorista_id === m.id);
-                if (activeExp) {
-                    const itemsForExp = allItems.filter(i => i.expedition_id === activeExp.id);
-                    return { ...m, displayStatus: activeExp.status, veiculoId: activeExp.veiculo_id, activeExp: { ...activeExp, items: itemsForExp } };
-                } else {
-                    const lastCompletedExp = recentlyCompletedExpeditions.find(exp => exp.motorista_id === m.id);
-                    return { ...m, displayStatus: m.status, veiculoId: lastCompletedExp ? lastCompletedExp.veiculo_id : null };
-                }
-            });
-
-            motoristasComStatus.sort((a, b) => a.nome.localeCompare(b.nome));
-
-            motoristasComStatus.forEach(m => {
-                let actionButton = '';
-                if ((m.status === 'retornando_cd' || m.status === 'retornando_com_imobilizado') && m.veiculoId) {
-                    actionButton = `<button class="btn btn-primary btn-small" onclick="marcarRetornoCD('${m.id}', '${m.veiculoId}')">Cheguei no CD</button>`;
-                } else if (m.status === 'descarregando_imobilizado' && m.veiculoId) {
-                    actionButton = `<button class="btn btn-warning btn-small" onclick="finalizarDescargaImobilizado('${m.id}', '${m.veiculoId}')">Finalizar Descarga</button>`;
-                }
-
-                let timeInfo = '';
-                if (m.activeExp && m.displayStatus === 'saiu_para_entrega') {
-                    timeInfo = `
-                        <div class="text-xs text-gray-500 mt-1">
-                            <span id="loja_timer_${m.id}">Loja: --:--</span> | 
-                            <span id="desloc_timer_${m.id}">Desloc.: --:--</span>
-                        </div>
-                    `;
-                }
-
-                html += `
-                    <div class="motorista-status-item">
-                        <div>
-                            <strong class="text-gray-800">${m.nome}</strong>
-                            ${timeInfo}
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <span class="status-badge status-${m.displayStatus.replace(/ /g, '_')}">${getStatusLabel(m.displayStatus)}</span>
-                            ${actionButton}
-                        </div>
-                    </div>`;
-            });
-            container.innerHTML = html;
-
-            // Iniciar timers
-            motoristasComStatus.forEach(m => {
-                if(m.activeExp && m.displayStatus === 'saiu_para_entrega') {
-                    const timerId = `motorista_${m.id}`;
-                    if(activeTimers[timerId]) clearInterval(activeTimers[timerId]);
-                    
-                    activeTimers[timerId] = setInterval(() => {
-                        let tempoEmLoja = 0, tempoDeslocamento = 0;
-                        let lastEventTime = new Date(m.activeExp.data_saida_entrega);
-
-                        m.activeExp.items.sort((a,b) => new Date(a.data_inicio_descarga) - new Date(b.data_inicio_descarga)).forEach(item => {
-                            if(item.data_inicio_descarga) {
-                               const inicio = new Date(item.data_inicio_descarga);
-                               tempoDeslocamento += (inicio - lastEventTime);
-                               if(item.data_fim_descarga) {
-                                   const fim = new Date(item.data_fim_descarga);
-                                   tempoEmLoja += (fim - inicio);
-                                   lastEventTime = fim;
-                               } else {
-                                   tempoEmLoja += (new Date() - inicio);
-                                   lastEventTime = new Date();
-                               }
-                            }
-                        });
-                        
-                        const elLoja = document.getElementById(`loja_timer_${m.id}`);
-                        const elDesloc = document.getElementById(`desloc_timer_${m.id}`);
-
-                        if(elLoja) elLoja.textContent = `Loja: ${minutesToHHMM(tempoEmLoja / 60000)}`;
-                        if(elDesloc) elDesloc.textContent = `Desloc.: ${minutesToHHMM(tempoDeslocamento / 60000)}`;
-
-                    }, 1000);
-                }
-            });
-        }
-
-        async function consultarExpedicoesPorPlaca() {
-            const placa = document.getElementById('placaMotorista').value;
-            if (!placa) {
-                showNotification('Por favor, selecione uma placa', 'error');
-                return;
-            }
-            const resultsContainer = document.getElementById('resultadosMotorista');
-            resultsContainer.innerHTML = `<div class="loading"><div class="spinner"></div>Consultando...</div>`;
-
-            try {
-                const expeditions = await supabaseRequest("expeditions?status=in.(aguardando_veiculo,em_carregamento,saiu_para_entrega)&order=data_hora.desc");
-                const items = await supabaseRequest('expedition_items');
-
-                const expeditionsWithItems = expeditions.map(exp => {
-                    const veiculo = veiculos.find(v => v.id === exp.veiculo_id);
-                    return { ...exp, items: items.filter(i => i.expedition_id === exp.id), veiculo_placa: veiculo?.placa };
-                }).filter(exp => exp.veiculo_placa === placa);
-                
-                renderExpedicoesMotorista(expeditionsWithItems);
-            } catch (error) {
-                resultsContainer.innerHTML = `<div class="alert alert-error">Erro ao consultar expedições.</div>`;
-            }
-        }
+function renderPainelDescarga(exp) {
+    let html = `<div class="motorista-card"><h3 class="text-xl font-semibold mb-4">Roteiro de Entregas</h3>`;
+    let emTransito = true;
+    
+    exp.items.forEach(item => {
+        const loja = lojas.find(l => l.id === item.loja_id);
+        let actionButton = '', statusDescargaLabel = '', statusColor = '';
         
-        function renderExpedicoesMotorista(expeditions) {
-            const container = document.getElementById('resultadosMotorista');
-            Object.values(activeTimers).forEach(clearInterval);
-            activeTimers = {};
-
-            if(expeditions.length === 0) {
-                container.innerHTML = `<div class="alert alert-success mt-4">Nenhuma expedição ativa encontrada para esta placa.</div>`;
-                return;
-            }
-
-            container.innerHTML = expeditions.map(exp => {
-                if (exp.status === 'saiu_para_entrega') {
-                    return renderPainelDescarga(exp);
-                }
-                const doca = docas.find(d => d.id === exp.doca_id);
-                const coddocaValue = doca?.coddoca || 'N/A';
-                let actionButton = '';
-                if (exp.status === 'aguardando_veiculo') {
-                    actionButton = `<button class="btn btn-success" onclick="openQrModal('iniciar', '${exp.id}', '${coddocaValue}')">Iniciar Carregamento</button>`;
-                } else if (exp.status === 'em_carregamento') {
-                    actionButton = `<button class="btn btn-primary" onclick="openQrModal('finalizar', '${exp.id}', '${coddocaValue}')">Finalizar Carregamento</button>`;
-                }
-                return `
-                    <div class="motorista-card">
-                         <div class="flex justify-between items-start mb-4">
-                            <h3 class="text-lg font-bold">Viagem para ${exp.items.length} Lojas</h3>
-                            <span class="status-badge status-${exp.status}">${getStatusLabel(exp.status)}</span>
-                        </div>
-                        <div class="text-center mt-4">${actionButton}</div>
-                    </div>
-                `;
-            }).join('');
+        if (item.status_descarga === 'pendente' && emTransito) {
+            statusDescargaLabel = 'Próxima Entrega'; statusColor = 'text-blue-600';
+            actionButton = `<button class="btn btn-success" onclick="openQrModal('iniciar_descarga', '${item.id}', '${loja.codlojaqr || ''}', '${exp.id}')">Iniciar Descarga</button>`;
+            emTransito = false;
+        } else if (item.status_descarga === 'pendente' && !emTransito) {
+            statusDescargaLabel = 'Aguardando'; statusColor = 'text-gray-500';
+        } else if (item.status_descarga === 'em_descarga') {
+            statusDescargaLabel = 'Em Descarga'; statusColor = 'text-yellow-600';
+            actionButton = `<button class="btn btn-primary" onclick="openQrModal('finalizar_descarga', '${item.id}', '${loja.codlojaqr || ''}', '${exp.id}')">Finalizar Descarga</button>`;
+            emTransito = false;
+        } else if (item.status_descarga === 'descarregado') {
+            statusDescargaLabel = 'Descarregado'; statusColor = 'text-green-600';
         }
 
-        function renderPainelDescarga(exp) {
-            let html = `<div class="motorista-card"><h3 class="text-xl font-semibold mb-4">Roteiro de Entregas</h3>`;
-            let emTransito = true;
-            
-            exp.items.forEach(item => {
-                const loja = lojas.find(l => l.id === item.loja_id);
-                let actionButton = '', statusDescargaLabel = '', statusColor = '';
-                
-                if (item.status_descarga === 'pendente' && emTransito) {
-                    statusDescargaLabel = 'Próxima Entrega'; statusColor = 'text-blue-600';
-                    actionButton = `<button class="btn btn-success" onclick="openQrModal('iniciar_descarga', '${item.id}', '${loja.codlojaqr || ''}', '${exp.id}')">Iniciar Descarga</button>`;
-                    emTransito = false;
-                } else if (item.status_descarga === 'pendente' && !emTransito) {
-                    statusDescargaLabel = 'Aguardando'; statusColor = 'text-gray-500';
-                } else if (item.status_descarga === 'em_descarga') {
-                    statusDescargaLabel = 'Em Descarga'; statusColor = 'text-yellow-600';
-                    actionButton = `<button class="btn btn-primary" onclick="openQrModal('finalizar_descarga', '${item.id}', '${loja.codlojaqr || ''}', '${exp.id}')">Finalizar Descarga</button>`;
-                    emTransito = false;
-                } else if (item.status_descarga === 'descarregado') {
-                    statusDescargaLabel = 'Descarregado'; statusColor = 'text-green-600';
-                }
-
-                html += `
-                    <div class="loja-descarga-card">
-                        <div class="flex justify-between items-center mb-2">
-                             <h4 class="font-bold">${loja?.nome || 'N/A'}</h4>
-                             <span class="font-bold ${statusColor}">${statusDescargaLabel}</span>
-                        </div>
-                        <div class="text-center mt-4">${actionButton}</div>
-                    </div>`;
-            });
-            return html + `</div>`;
-        }
-        
-        async function showYesNoModal(message) {
-            // Reutiliza o modal de QR, simplificado
-            return new Promise((resolve) => {
-                const modal = document.getElementById('qrModal');
-                document.getElementById('qrModalTitle').textContent = "Confirmação";
-                document.getElementById('qrModalMessage').innerHTML = message;
-                document.getElementById('qr-reader').style.display = 'none';
-                
-                const confirmBtn = document.getElementById('confirmQrBtn');
-                const newConfirmBtn = confirmBtn.cloneNode(true);
-                confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-                newConfirmBtn.textContent = 'Sim';
-                newConfirmBtn.disabled = false;
-                newConfirmBtn.onclick = () => { closeQrModal(); resolve(true); };
-
-                const cancelBtn = modal.querySelector('.btn-danger');
-                const newCancelBtn = cancelBtn.cloneNode(true);
-                cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
-                newCancelBtn.textContent = 'Não';
-                newCancelBtn.onclick = () => { closeQrModal(); resolve(false); };
-                
-                modal.style.display = 'flex';
-            });
-        }
-        
-        async function marcarRetornoCD(motoristaId, veiculoId) {
-            try {
-                const motorista = motoristas.find(m => m.id === motoristaId);
-                const veiculo = veiculos.find(v => v.id === veiculoId);
-                let novoStatusMotorista, novoStatusVeiculo, msg;
-
-                if (motorista.status === 'retornando_com_imobilizado') {
-                    novoStatusMotorista = 'descarregando_imobilizado';
-                    novoStatusVeiculo = 'descarregando_imobilizado';
-                    msg = 'Retorno com imobilizado registrado. Inicie a descarga.';
-                } else {
-                    novoStatusMotorista = 'disponivel';
-                    novoStatusVeiculo = 'disponivel';
-                    msg = 'Retorno ao CD registrado. Motorista e veículo disponíveis!';
-                }
-
-                await Promise.all([
-                    supabaseRequest(`motoristas?id=eq.${motoristaId}`, 'PATCH', { status: novoStatusMotorista }, false),
-                    supabaseRequest(`veiculos?id=eq.${veiculoId}`, 'PATCH', { status: novoStatusVeiculo }, false)
-                ]);
-                showNotification(msg, 'success');
-                await loadSelectData();
-                await renderMotoristasStatusList();
-            } catch (error) {
-                showNotification('Erro ao marcar retorno: ' + error.message, 'error');
-            }
-        }
-        
-        async function finalizarDescargaImobilizado(motoristaId, veiculoId) {
-            try {
-                await Promise.all([
-                    supabaseRequest(`motoristas?id=eq.${motoristaId}`, 'PATCH', { status: 'disponivel' }, false),
-                    supabaseRequest(`veiculos?id=eq.${veiculoId}`, 'PATCH', { status: 'disponivel' }, false)
-                ]);
-                showNotification('Descarga de imobilizado finalizada. Motorista e veículo disponíveis!', 'success');
-                await loadSelectData();
-                await renderMotoristasStatusList();
-            } catch (error) {
-                showNotification('Erro ao finalizar descarga: ' + error.message, 'error');
-            }
-        }
-
-        // --- FUNCIONALIDADES DO RELATÓRIO DE MOTORISTAS ---
-        
-        async function generateMotoristaReports() {
-            const dataInicio = document.getElementById('relatorioMotoristaDataInicio').value;
-            const dataFim = document.getElementById('relatorioMotoristaDataFim').value;
-            
-            // Se não há filtros de data, usar últimos 30 dias
-            const hoje = new Date();
-            const inicioAnalise = dataInicio ? new Date(dataInicio + 'T00:00:00.000Z') : new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
-            const fimAnalise = dataFim ? new Date(dataFim + 'T23:59:59.999Z') : hoje;
-
-            try {
-                // Buscar expedições entregues no período
-                const expeditions = await supabaseRequest('expeditions?status=eq.entregue&order=data_hora.desc');
-                const items = await supabaseRequest('expedition_items');
-                
-                // Filtrar por período
-                const expedicoesFiltradas = expeditions.filter(exp => {
-                    const dataExp = new Date(exp.data_hora);
-                    return dataExp >= inicioAnalise && dataExp <= fimAnalise;
-                });
-
-                // Processar dados dos motoristas
-                const motoristasStats = {};
-                
-                expedicoesFiltradas.forEach(exp => {
-                    if (!exp.motorista_id) return;
-                    
-                    const motorista = motoristas.find(m => m.id === exp.motorista_id);
-                    if (!motorista) return;
-                    
-                    const expItems = items.filter(item => item.expedition_id === exp.id);
-                    const totalEntregas = expItems.length;
-                    const totalPallets = expItems.reduce((sum, item) => sum + (item.pallets || 0), 0);
-                    
-                    // Calcular tempo total da viagem (da criação até última entrega)
-                    let tempoTotalViagem = 0;
-                    const ultimaEntrega = expItems.reduce((ultima, item) => {
-                        const fimDescarga = item.data_fim_descarga ? new Date(item.data_fim_descarga) : null;
-                        return fimDescarga && (!ultima || fimDescarga > ultima) ? fimDescarga : ultima;
-                    }, null);
-                    
-                    if (ultimaEntrega) {
-                        tempoTotalViagem = (ultimaEntrega - new Date(exp.data_hora)) / 60000; // em minutos
-                    }
-                    
-                    if (!motoristasStats[exp.motorista_id]) {
-                        motoristasStats[exp.motorista_id] = {
-                            nome: motorista.nome,
-                            produtivo: motorista.PRODUTIVO || 'N/A',
-                            viagens: 0,
-                            entregas: 0,
-                            totalPallets: 0,
-                            temposTotalViagem: [],
-                            ocupacaoMedia: []
-                        };
-                    }
-                    
-                    const stats = motoristasStats[exp.motorista_id];
-                    stats.viagens++;
-                    stats.entregas += totalEntregas;
-                    stats.totalPallets += totalPallets;
-                    
-                    if (tempoTotalViagem > 0) {
-                        stats.temposTotalViagem.push(tempoTotalViagem);
-                    }
-                    
-                    // Calcular ocupação do veículo
-                    if (exp.veiculo_id) {
-                        const veiculo = veiculos.find(v => v.id === exp.veiculo_id);
-                        if (veiculo && veiculo.capacidade_pallets > 0) {
-                            const totalRolls = expItems.reduce((sum, item) => sum + (item.rolltrainers || 0), 0);
-                            const cargaTotal = totalPallets + (totalRolls / 2);
-                            const ocupacao = (cargaTotal / veiculo.capacidade_pallets) * 100;
-                            stats.ocupacaoMedia.push(ocupacao);
-                        }
-                    }
-                });
-
-                // Calcular médias e preparar dados finais
-                const motoristasData = Object.values(motoristasStats).map(stats => ({
-                    ...stats,
-                    tempoMedioViagem: stats.temposTotalViagem.length > 0 ? 
-                        stats.temposTotalViagem.reduce((a, b) => a + b, 0) / stats.temposTotalViagem.length : 0,
-                    ocupacaoMediaCalc: stats.ocupacaoMedia.length > 0 ? 
-                        stats.ocupacaoMedia.reduce((a, b) => a + b, 0) / stats.ocupacaoMedia.length : 0,
-                    entregasPorViagem: stats.viagens > 0 ? (stats.entregas / stats.viagens).toFixed(1) : 0
-                }));
-
-                // Ordenar por número de entregas (ranking)
-                motoristasData.sort((a, b) => b.entregas - a.entregas);
-
-                renderMotoristaReportSummary(motoristasData, expedicoesFiltradas.length);
-                renderMotoristaRankingChart(motoristasData.slice(0, 10)); // Top 10
-                renderMotoristaTable(motoristasData);
-
-            } catch (error) {
-                console.error('Erro ao gerar relatório de motoristas:', error);
-                document.getElementById('motoristaReportSummary').innerHTML = 
-                    `<div class="alert alert-error">Erro ao carregar relatório: ${error.message}</div>`;
-            }
-        }
-
-        function renderMotoristaReportSummary(motoristasData, totalExpedicoes) {
-            const summaryContainer = document.getElementById('motoristaReportSummary');
-            
-            if (motoristasData.length === 0) {
-                summaryContainer.innerHTML = '<div class="alert alert-info">Nenhum dado encontrado para o período selecionado.</div>';
-                summaryContainer.style.display = 'block';
-                return;
-            }
-
-            const totalEntregas = motoristasData.reduce((sum, m) => sum + m.entregas, 0);
-            const totalPallets = motoristasData.reduce((sum, m) => sum + m.totalPallets, 0);
-            const motoristasAtivos = motoristasData.length;
-            const mediaEntregasPorMotorista = motoristasAtivos > 0 ? (totalEntregas / motoristasAtivos).toFixed(1) : 0;
-            
-            summaryContainer.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-number">${motoristasAtivos}</div>
-                    <div class="stat-label">Motoristas Ativos</div>
+        html += `
+            <div class="loja-descarga-card">
+                <div class="flex justify-between items-center mb-2">
+                     <h4 class="font-bold">${loja?.nome || 'N/A'}</h4>
+                     <span class="font-bold ${statusColor}">${statusDescargaLabel}</span>
                 </div>
-                <div class="stat-card" style="background: var(--secondary-gradient);">
-                    <div class="stat-number">${totalExpedicoes}</div>
-                    <div class="stat-label">Total Viagens</div>
-                </div>
-                <div class="stat-card" style="background: var(--accent-gradient);">
-                    <div class="stat-number">${totalEntregas}</div>
-                    <div class="stat-label">Total Entregas</div>
-                </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #7209B7, #A663CC);">
-                    <div class="stat-number">${totalPallets}</div>
-                    <div class="stat-label">Total Pallets</div>
-                </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #F77F00, #FCBF49);">
-                    <div class="stat-number">${mediaEntregasPorMotorista}</div>
-                    <div class="stat-label">Média Entregas/Motorista</div>
-                </div>
-            `;
-            summaryContainer.style.display = 'grid';
-        }
+                <div class="text-center mt-4">${actionButton}</div>
+            </div>`;
+    });
+    return html + `</div>`;
+}
 
-        function renderMotoristaRankingChart(motoristasData) {
-            if (motoristasData.length === 0) {
-                destroyChart('motoristasRankingChart');
-                return;
-            }
-
-            const backgroundColors = motoristasData.map((_, index) => {
-                if (index === 0) return 'rgba(255, 215, 0, 0.8)'; // Ouro para 1º lugar
-                if (index === 1) return 'rgba(192, 192, 192, 0.8)'; // Prata para 2º lugar  
-                if (index === 2) return 'rgba(205, 127, 50, 0.8)'; // Bronze para 3º lugar
-                return 'rgba(0, 119, 182, 0.7)'; // Azul padrão para os demais
-            });
-
-            renderChart('motoristasRankingChart', 'bar', {
-                labels: motoristasData.map(m => m.nome),
-                datasets: [{
-                    label: 'Número de Entregas',
-                    data: motoristasData.map(m => m.entregas),
-                    backgroundColor: backgroundColors,
-                    borderColor: backgroundColors.map(color => color.replace('0.7', '1').replace('0.8', '1')),
-                    borderWidth: 2
-                }]
-            }, {
-                indexAxis: 'y',
-                plugins: {
-                    datalabels: {
-                        anchor: 'end',
-                        align: 'end',
-                        color: '#333',
-                        font: { weight: 'bold' }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const motorista = motoristasData[context.dataIndex];
-                                return [
-                                    `Entregas: ${context.raw}`,
-                                    `Viagens: ${motorista.viagens}`,
-                                    `Tempo Médio: ${minutesToHHMM(motorista.tempoMedioViagem)}`
-                                ];
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Número de Entregas'
-                        }
-                    }
-                }
-            });
-        }
-
-        function renderMotoristaTable(motoristasData) {
-            const container = document.getElementById('motoristaTableContainer');
-            
-            if (motoristasData.length === 0) {
-                container.innerHTML = '<div class="alert alert-info p-4">Nenhum dado encontrado para o período selecionado.</div>';
-                return;
-            }
-
-            let tableHtml = `
-                <table class="w-full">
-                    <thead>
-                        <tr>
-                            <th class="text-left p-3">Ranking</th>
-                            <th class="text-left p-3">Nome</th>
-                            <th class="text-left p-3">Produtivo</th>
-                            <th class="text-left p-3">Viagens</th>
-                            <th class="text-left p-3">Entregas</th>
-                            <th class="text-left p-3">Entregas/Viagem</th>
-                            <th class="text-left p-3">Total Pallets</th>
-                            <th class="text-left p-3">Tempo Médio Viagem</th>
-                            <th class="text-left p-3">Ocupação Média</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            motoristasData.forEach((motorista, index) => {
-                let rankingIcon = '';
-                if (index === 0) rankingIcon = '🥇';
-                else if (index === 1) rankingIcon = '🥈';
-                else if (index === 2) rankingIcon = '🥉';
-                else rankingIcon = `${index + 1}º`;
-
-                tableHtml += `
-                    <tr class="hover:bg-gray-50 border-b">
-                        <td class="p-3 font-bold">${rankingIcon}</td>
-                        <td class="p-3 font-medium">${motorista.nome}</td>
-                        <td class="p-3">${motorista.produtivo}</td>
-                        <td class="p-3 text-center">${motorista.viagens}</td>
-                        <td class="p-3 text-center font-bold text-blue-600">${motorista.entregas}</td>
-                        <td class="p-3 text-center">${motorista.entregasPorViagem}</td>
-                        <td class="p-3 text-center">${motorista.totalPallets}</td>
-                        <td class="p-3 text-center">${minutesToHHMM(motorista.tempoMedioViagem)}</td>
-                        <td class="p-3 text-center">${motorista.ocupacaoMediaCalc.toFixed(1)}%</td>
-                    </tr>
-                `;
-            });
-
-            tableHtml += '</tbody></table>';
-            container.innerHTML = tableHtml;
-        }
+async function showYesNoModal(message) {
+    // Reutiliza o modal de QR, simplificado
+    return new Promise((resolve) => {
+        const modal = document.getElementById('qrModal');
+        document.getElementById('qrModalTitle').textContent = "Confirmação";
+        document.getElementById('qrModalMessage').innerHTML = message;
+        document.getElementById('qr-reader').style.display = 'none';
         
-        // --- FUNÇÕES DO MODAL DE QR CODE ---
-        async function openQrModal(action, mainId, code, secondaryId = null) {
-            modalState = { action, mainId, secondaryId, expectedCode: code, scannedValue: null };
-            const modal = document.getElementById('qrModal');
-            document.getElementById('qrModalTitle').textContent = `Escanear QR Code`;
-            document.getElementById('qrModalMessage').textContent = `Aponte a câmera para o QR Code do local (código: ${code}).`;
-            modal.style.display = 'flex';
+        const confirmBtn = document.getElementById('confirmQrBtn');
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        newConfirmBtn.textContent = 'Sim';
+        newConfirmBtn.disabled = false;
+        newConfirmBtn.onclick = () => { closeQrModal(); resolve(true); };
+
+        const cancelBtn = modal.querySelector('.btn-danger');
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+        newCancelBtn.textContent = 'Não';
+        newCancelBtn.onclick = () => { closeQrModal(); resolve(false); };
+        
+        modal.style.display = 'flex';
+    });
+}
+
+async function marcarRetornoCD(motoristaId, veiculoId) {
+    try {
+        const motorista = motoristas.find(m => m.id === motoristaId);
+        const veiculo = veiculos.find(v => v.id === veiculoId);
+        let novoStatusMotorista, novoStatusVeiculo, msg;
+
+        if (motorista.status === 'retornando_com_imobilizado') {
+            novoStatusMotorista = 'descarregando_imobilizado';
+            novoStatusVeiculo = 'descarregando_imobilizado';
+            msg = 'Retorno com imobilizado registrado. Inicie a descarga.';
+        } else {
+            novoStatusMotorista = 'disponivel';
+            novoStatusVeiculo = 'disponivel';
+            msg = 'Retorno ao CD registrado. Motorista e veículo disponíveis!';
+        }
+
+        await Promise.all([
+            supabaseRequest(`motoristas?id=eq.${motoristaId}`, 'PATCH', { status: novoStatusMotorista }, false),
+            supabaseRequest(`veiculos?id=eq.${veiculoId}`, 'PATCH', { status: novoStatusVeiculo }, false)
+        ]);
+        showNotification(msg, 'success');
+        await loadSelectData();
+        await renderMotoristasStatusList();
+    } catch (error) {
+        showNotification('Erro ao marcar retorno: ' + error.message, 'error');
+    }
+}
+
+async function finalizarDescargaImobilizado(motoristaId, veiculoId) {
+    try {
+        await Promise.all([
+            supabaseRequest(`motoristas?id=eq.${motoristaId}`, 'PATCH', { status: 'disponivel' }, false),
+            supabaseRequest(`veiculos?id=eq.${veiculoId}`, 'PATCH', { status: 'disponivel' }, false)
+        ]);
+        showNotification('Descarga de imobilizado finalizada. Motorista e veículo disponíveis!', 'success');
+        await loadSelectData();
+        await renderMotoristasStatusList();
+    } catch (error) {
+        showNotification('Erro ao finalizar descarga: ' + error.message, 'error');
+    }
+}
+
+// --- FUNCIONALIDADES DO RELATÓRIO DE MOTORISTAS ---
+
+async function generateMotoristaReports() {
+    const dataInicio = document.getElementById('relatorioMotoristaDataInicio').value;
+    const dataFim = document.getElementById('relatorioMotoristaDataFim').value;
+    
+    // Se não há filtros de data, usar últimos 30 dias
+    const hoje = new Date();
+    const inicioAnalise = dataInicio ? new Date(dataInicio + 'T00:00:00.000Z') : new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const fimAnalise = dataFim ? new Date(dataFim + 'T23:59:59.999Z') : hoje;
+
+    try {
+        // Buscar expedições entregues no período
+        const expeditions = await supabaseRequest('expeditions?status=eq.entregue&order=data_hora.desc');
+        const items = await supabaseRequest('expedition_items');
+        
+        // Filtrar por período
+        const expedicoesFiltradas = expeditions.filter(exp => {
+            const dataExp = new Date(exp.data_hora);
+            return dataExp >= inicioAnalise && dataExp <= fimAnalise;
+        });
+
+        // Processar dados dos motoristas
+        const motoristasStats = {};
+        
+        expedicoesFiltradas.forEach(exp => {
+            if (!exp.motorista_id) return;
             
-            if (html5QrCodeScanner) await stopScannerSafely();
-            html5QrCodeScanner = new Html5Qrcode("qr-reader");
-            try {
-                await html5QrCodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, ()=>{});
-                scannerIsRunning = true;
-            } catch (err) {
-                document.getElementById('qr-reader').innerHTML = '<p class="text-red-500">Erro ao iniciar câmera. Use a inserção manual.</p>';
-                document.getElementById('manualInputContainer').style.display = 'block';
+            const motorista = motoristas.find(m => m.id === exp.motorista_id);
+            if (!motorista) return;
+            
+            const expItems = items.filter(item => item.expedition_id === exp.id);
+            const totalEntregas = expItems.length;
+            const totalPallets = expItems.reduce((sum, item) => sum + (item.pallets || 0), 0);
+            
+            // Calcular tempo total da viagem (da criação até última entrega)
+            let tempoTotalViagem = 0;
+            const ultimaEntrega = expItems.reduce((ultima, item) => {
+                const fimDescarga = item.data_fim_descarga ? new Date(item.data_fim_descarga) : null;
+                return fimDescarga && (!ultima || fimDescarga > ultima) ? fimDescarga : ultima;
+            }, null);
+            
+            if (ultimaEntrega) {
+                tempoTotalViagem = (ultimaEntrega - new Date(exp.data_hora)) / 60000; // em minutos
             }
-        }
-
-        function onScanSuccess(decodedText) {
-            if (modalState.scannedValue !== decodedText) {
-                modalState.scannedValue = decodedText;
-                document.getElementById('scannedValue').textContent = decodedText;
-                document.getElementById('qr-result-display').style.display = 'block';
-                document.getElementById('confirmQrBtn').disabled = false;
-                stopScannerSafely();
+            
+            if (!motoristasStats[exp.motorista_id]) {
+                motoristasStats[exp.motorista_id] = {
+                    nome: motorista.nome,
+                    produtivo: motorista.PRODUTIVO || 'N/A',
+                    viagens: 0,
+                    entregas: 0,
+                    totalPallets: 0,
+                    temposTotalViagem: [],
+                    ocupacaoMedia: []
+                };
             }
-        }
-
-        async function stopScannerSafely() {
-            if (html5QrCodeScanner && scannerIsRunning) {
-                try { await html5QrCodeScanner.stop(); } catch(e) {}
-                scannerIsRunning = false;
+            
+            const stats = motoristasStats[exp.motorista_id];
+            stats.viagens++;
+            stats.entregas += totalEntregas;
+            stats.totalPallets += totalPallets;
+            
+            if (tempoTotalViagem > 0) {
+                stats.temposTotalViagem.push(tempoTotalViagem);
             }
-        }
-
-        function closeQrModal() {
-            stopScannerSafely();
-            document.getElementById('qrModal').style.display = 'none';
-        }
-
-        async function handleQrScan() {
-            let value = modalState.scannedValue || document.getElementById('qrCodeInput').value.trim();
-            if (value.toLowerCase() !== modalState.expectedCode.toLowerCase()) {
-                showNotification(`QR Code incorreto! Esperado: "${modalState.expectedCode}"`, 'error');
-                return;
-            }
-            closeQrModal();
-            switch(modalState.action) {
-                case 'iniciar': await startLoading(modalState.mainId); break;
-                case 'finalizar': await finishLoading(modalState.mainId); break;
-                case 'iniciar_descarga': await iniciarDescarga(modalState.mainId); break;
-                case 'finalizar_descarga': await finalizarDescarga(modalState.mainId); break;
-            }
-        }
-
-        async function startLoading(expeditionId) { /* ... */ }
-        async function finishLoading(expeditionId) { /* ... */ }
-
-        async function iniciarDescarga(itemId) {
-            try {
-                await supabaseRequest(`expedition_items?id=eq.${itemId}`, 'PATCH', { status_descarga: 'em_descarga', data_inicio_descarga: new Date().toISOString() });
-                showNotification('Descarga iniciada!', 'success');
-                consultarExpedicoesPorPlaca();
-            } catch(error) {
-                showNotification('Erro ao iniciar descarga: ' + error.message, 'error');
-            }
-        }
-
-        async function finalizarDescarga(itemId) {
-            try {
-                await supabaseRequest(`expedition_items?id=eq.${itemId}`, 'PATCH', { status_descarga: 'descarregado', data_fim_descarga: new Date().toISOString() });
-                
-                const itemData = await supabaseRequest(`expedition_items?id=eq.${itemId}&select=expedition_id`);
-                const expeditionId = itemData[0].expedition_id;
-                const allItems = await supabaseRequest(`expedition_items?expedition_id=eq.${expeditionId}`);
-
-                if (allItems.every(item => item.status_descarga === 'descarregado')) {
-                    await supabaseRequest(`expeditions?id=eq.${expeditionId}`, 'PATCH', { status: 'entregue' });
-                    const comImobilizado = await showYesNoModal('Retornando com imobilizados?');
-                    const novoStatus = comImobilizado ? 'retornando_com_imobilizado' : 'retornando_cd';
-                    
-                    const expDetails = await supabaseRequest(`expeditions?id=eq.${expeditionId}&select=motorista_id`);
-                    await supabaseRequest(`motoristas?id=eq.${expDetails[0].motorista_id}`, 'PATCH', { status: novoStatus }, false);
-                    
-                    showNotification(`Última entrega finalizada! Viagem concluída.`, 'success');
-                } else {
-                    showNotification('Descarga da loja finalizada!', 'success');
+            
+            // Calcular ocupação do veículo
+            if (exp.veiculo_id) {
+                const veiculo = veiculos.find(v => v.id === exp.veiculo_id);
+                if (veiculo && veiculo.capacidade_pallets > 0) {
+                    const totalRolls = expItems.reduce((sum, item) => sum + (item.rolltrainers || 0), 0);
+                    const cargaTotal = totalPallets + (totalRolls / 2);
+                    const ocupacao = (cargaTotal / veiculo.capacidade_pallets) * 100;
+                    stats.ocupacaoMedia.push(ocupacao);
                 }
-                consultarExpedicoesPorPlaca();
-            } catch(error) {
-                showNotification('Erro ao finalizar descarga: ' + error.message, 'error');
+            }
+        });
+
+        // Calcular médias e preparar dados finais
+        const motoristasData = Object.values(motoristasStats).map(stats => ({
+            ...stats,
+            tempoMedioViagem: stats.temposTotalViagem.length > 0 ? 
+                stats.temposTotalViagem.reduce((a, b) => a + b, 0) / stats.temposTotalViagem.length : 0,
+            ocupacaoMediaCalc: stats.ocupacaoMedia.length > 0 ? 
+                stats.ocupacaoMedia.reduce((a, b) => a + b, 0) / stats.ocupacaoMedia.length : 0,
+            entregasPorViagem: stats.viagens > 0 ? (stats.entregas / stats.viagens).toFixed(1) : 0
+        }));
+
+        // Ordenar por número de entregas (ranking)
+        motoristasData.sort((a, b) => b.entregas - a.entregas);
+
+        renderMotoristaReportSummary(motoristasData, expedicoesFiltradas.length);
+        renderMotoristaRankingChart(motoristasData.slice(0, 10)); // Top 10
+        renderMotoristaTable(motoristasData);
+
+    } catch (error) {
+        console.error('Erro ao gerar relatório de motoristas:', error);
+        document.getElementById('motoristaReportSummary').innerHTML = 
+            `<div class="alert alert-error">Erro ao carregar relatório: ${error.message}</div>`;
+    }
+}
+
+function renderMotoristaReportSummary(motoristasData, totalExpedicoes) {
+    const summaryContainer = document.getElementById('motoristaReportSummary');
+    
+    if (motoristasData.length === 0) {
+        summaryContainer.innerHTML = '<div class="alert alert-info">Nenhum dado encontrado para o período selecionado.</div>';
+        summaryContainer.style.display = 'block';
+        return;
+    }
+
+    const totalEntregas = motoristasData.reduce((sum, m) => sum + m.entregas, 0);
+    const totalPallets = motoristasData.reduce((sum, m) => sum + m.totalPallets, 0);
+    const motoristasAtivos = motoristasData.length;
+    const mediaEntregasPorMotorista = motoristasAtivos > 0 ? (totalEntregas / motoristasAtivos).toFixed(1) : 0;
+    
+    summaryContainer.innerHTML = `
+        <div class="stat-card">
+            <div class="stat-number">${motoristasAtivos}</div>
+            <div class="stat-label">Motoristas Ativos</div>
+        </div>
+        <div class="stat-card" style="background: var(--secondary-gradient);">
+            <div class="stat-number">${totalExpedicoes}</div>
+            <div class="stat-label">Total Viagens</div>
+        </div>
+        <div class="stat-card" style="background: var(--accent-gradient);">
+            <div class="stat-number">${totalEntregas}</div>
+            <div class="stat-label">Total Entregas</div>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #7209B7, #A663CC);">
+            <div class="stat-number">${totalPallets}</div>
+            <div class="stat-label">Total Pallets</div>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #F77F00, #FCBF49);">
+            <div class="stat-number">${mediaEntregasPorMotorista}</div>
+            <div class="stat-label">Média Entregas/Motorista</div>
+        </div>
+    `;
+    summaryContainer.style.display = 'grid';
+}
+
+function renderMotoristaRankingChart(motoristasData) {
+    if (motoristasData.length === 0) {
+        destroyChart('motoristasRankingChart');
+        return;
+    }
+
+    const backgroundColors = motoristasData.map((_, index) => {
+        if (index === 0) return 'rgba(255, 215, 0, 0.8)'; // Ouro para 1º lugar
+        if (index === 1) return 'rgba(192, 192, 192, 0.8)'; // Prata para 2º lugar  
+        if (index === 2) return 'rgba(205, 127, 50, 0.8)'; // Bronze para 3º lugar
+        return 'rgba(0, 119, 182, 0.7)'; // Azul padrão para os demais
+    });
+
+    renderChart('motoristasRankingChart', 'bar', {
+        labels: motoristasData.map(m => m.nome),
+        datasets: [{
+            label: 'Número de Entregas',
+            data: motoristasData.map(m => m.entregas),
+            backgroundColor: backgroundColors,
+            borderColor: backgroundColors.map(color => color.replace('0.7', '1').replace('0.8', '1')),
+            borderWidth: 2
+        }]
+    }, {
+        indexAxis: 'y',
+        plugins: {
+            datalabels: {
+                anchor: 'end',
+                align: 'end',
+                color: '#333',
+                font: { weight: 'bold' }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const motorista = motoristasData[context.dataIndex];
+                        return [
+                            `Entregas: ${context.raw}`,
+                            `Viagens: ${motorista.viagens}`,
+                            `Tempo Médio: ${minutesToHHMM(motorista.tempoMedioViagem)}`
+                        ];
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Número de Entregas'
+                }
             }
         }
-        // --- FUNCIONALIDADES DA ABA ACOMPANHAMENTO ---
-        async function loadAcompanhamento() {
-            showSubTab('acompanhamento', 'expedicoesEmAndamento', document.querySelector('#acompanhamento .sub-tab'));
-            setDefaultDateFilters();
+    });
+}
+
+function renderMotoristaTable(motoristasData) {
+    const container = document.getElementById('motoristaTableContainer');
+    
+    if (motoristasData.length === 0) {
+        container.innerHTML = '<div class="alert alert-info p-4">Nenhum dado encontrado para o período selecionado.</div>';
+        return;
+    }
+
+    let tableHtml = `
+        <table class="w-full">
+            <thead>
+                <tr>
+                    <th class="text-left p-3">Ranking</th>
+                    <th class="text-left p-3">Nome</th>
+                    <th class="text-left p-3">Produtivo</th>
+                    <th class="text-left p-3">Viagens</th>
+                    <th class="text-left p-3">Entregas</th>
+                    <th class="text-left p-3">Entregas/Viagem</th>
+                    <th class="text-left p-3">Total Pallets</th>
+                    <th class="text-left p-3">Tempo Médio Viagem</th>
+                    <th class="text-left p-3">Ocupação Média</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    motoristasData.forEach((motorista, index) => {
+        let rankingIcon = '';
+        if (index === 0) rankingIcon = '🥇';
+        else if (index === 1) rankingIcon = '🥈';
+        else if (index === 2) rankingIcon = '🥉';
+        else rankingIcon = `${index + 1}º`;
+
+        tableHtml += `
+            <tr class="hover:bg-gray-50 border-b">
+                <td class="p-3 font-bold">${rankingIcon}</td>
+                <td class="p-3 font-medium">${motorista.nome}</td>
+                <td class="p-3">${motorista.produtivo}</td>
+                <td class="p-3 text-center">${motorista.viagens}</td>
+                <td class="p-3 text-center font-bold text-blue-600">${motorista.entregas}</td>
+                <td class="p-3 text-center">${motorista.entregasPorViagem}</td>
+                <td class="p-3 text-center">${motorista.totalPallets}</td>
+                <td class="p-3 text-center">${minutesToHHMM(motorista.tempoMedioViagem)}</td>
+                <td class="p-3 text-center">${motorista.ocupacaoMediaCalc.toFixed(1)}%</td>
+            </tr>
+        `;
+    });
+
+    tableHtml += '</tbody></table>';
+    container.innerHTML = tableHtml;
+}
+
+// --- FUNÇÕES DO MODAL DE QR CODE ---
+async function openQrModal(action, mainId, code, secondaryId = null) {
+    modalState = { action, mainId, secondaryId, expectedCode: code, scannedValue: null };
+    const modal = document.getElementById('qrModal');
+    document.getElementById('qrModalTitle').textContent = `Escanear QR Code`;
+    document.getElementById('qrModalMessage').textContent = `Aponte a câmera para o QR Code do local (código: ${code}).`;
+    modal.style.display = 'flex';
+    
+    if (html5QrCodeScanner) await stopScannerSafely();
+    html5QrCodeScanner = new Html5Qrcode("qr-reader");
+    try {
+        await html5QrCodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, ()=>{});
+        scannerIsRunning = true;
+    } catch (err) {
+        document.getElementById('qr-reader').innerHTML = '<p class="text-red-500">Erro ao iniciar câmera. Use a inserção manual.</p>';
+        document.getElementById('manualInputContainer').style.display = 'block';
+    }
+}
+
+function onScanSuccess(decodedText) {
+    if (modalState.scannedValue !== decodedText) {
+        modalState.scannedValue = decodedText;
+        document.getElementById('scannedValue').textContent = decodedText;
+        document.getElementById('qr-result-display').style.display = 'block';
+        document.getElementById('confirmQrBtn').disabled = false;
+        stopScannerSafely();
+    }
+}
+
+async function stopScannerSafely() {
+    if (html5QrCodeScanner && scannerIsRunning) {
+        try { await html5QrCodeScanner.stop(); } catch(e) {}
+        scannerIsRunning = false;
+    }
+}
+
+function closeQrModal() {
+    stopScannerSafely();
+    document.getElementById('qrModal').style.display = 'none';
+}
+
+async function handleQrScan() {
+    let value = modalState.scannedValue || document.getElementById('qrCodeInput').value.trim();
+    if (value.toLowerCase() !== modalState.expectedCode.toLowerCase()) {
+        showNotification(`QR Code incorreto! Esperado: "${modalState.expectedCode}"`, 'error');
+        return;
+    }
+    closeQrModal();
+    switch(modalState.action) {
+        case 'iniciar': await startLoading(modalState.mainId); break;
+        case 'finalizar': await finishLoading(modalState.mainId); break;
+        case 'iniciar_descarga': await iniciarDescarga(modalState.mainId); break;
+        case 'finalizar_descarga': await finalizarDescarga(modalState.mainId); break;
+    }
+}
+
+async function startLoading(expeditionId) { /* ... */ }
+async function finishLoading(expeditionId) { /* ... */ }
+
+async function iniciarDescarga(itemId) {
+    try {
+        await supabaseRequest(`expedition_items?id=eq.${itemId}`, 'PATCH', { status_descarga: 'em_descarga', data_inicio_descarga: new Date().toISOString() });
+        showNotification('Descarga iniciada!', 'success');
+        consultarExpedicoesPorPlaca();
+    } catch(error) {
+        showNotification('Erro ao iniciar descarga: ' + error.message, 'error');
+    }
+}
+
+async function finalizarDescarga(itemId) {
+    try {
+        await supabaseRequest(`expedition_items?id=eq.${itemId}`, 'PATCH', { status_descarga: 'descarregado', data_fim_descarga: new Date().toISOString() });
+        
+        const itemData = await supabaseRequest(`expedition_items?id=eq.${itemId}&select=expedition_id`);
+        const expeditionId = itemData[0].expedition_id;
+        const allItems = await supabaseRequest(`expedition_items?expedition_id=eq.${expeditionId}`);
+
+        if (allItems.every(item => item.status_descarga === 'descarregado')) {
+            await supabaseRequest(`expeditions?id=eq.${expeditionId}`, 'PATCH', { status: 'entregue' });
+            const comImobilizado = await showYesNoModal('Retornando com imobilizados?');
+            const novoStatus = comImobilizado ? 'retornando_com_imobilizado' : 'retornando_cd';
             
-            const tbody = document.getElementById('acompanhamentoBody');
-            tbody.innerHTML = `<tr><td colspan="12" class="loading"><div class="spinner"></div>Carregando expedições...</td></tr>`;
+            const expDetails = await supabaseRequest(`expeditions?id=eq.${expeditionId}&select=motorista_id`);
+            await supabaseRequest(`motoristas?id=eq.${expDetails[0].motorista_id}`, 'PATCH', { status: novoStatus }, false);
+            
+            showNotification(`Última entrega finalizada! Viagem concluída.`, 'success');
+        } else {
+            showNotification('Descarga da loja finalizada!', 'success');
+        }
+        consultarExpedicoesPorPlaca();
+    } catch(error) {
+        showNotification('Erro ao finalizar descarga: ' + error.message, 'error');
+    }
+}
 
-            try {
-                const expeditions = await supabaseRequest('expeditions?status=not.eq.entregue&order=data_hora.desc');
-                const items = await supabaseRequest('expedition_items');
-                
-                allExpeditions = expeditions.map(exp => {
-                    const expItems = items.filter(item => item.expedition_id === exp.id);
-                    const veiculo = exp.veiculo_id ? veiculos.find(v => v.id === exp.veiculo_id) : null;
-                    const totalCarga = (expItems.reduce((s, i) => s + (i.pallets || 0), 0)) + ((expItems.reduce((s, i) => s + (i.rolltrainers || 0), 0)) / 2);
+// --- FUNCIONALIDADES DA ABA ACOMPANHAMENTO ---
+async function loadAcompanhamento() {
+    showSubTab('acompanhamento', 'expedicoesEmAndamento', document.querySelector('#acompanhamento .sub-tab'));
+    setDefaultDateFilters();
+    
+    const tbody = document.getElementById('acompanhamentoBody');
+    tbody.innerHTML = `<tr><td colspan="12" class="loading"><div class="spinner"></div>Carregando expedições...</td></tr>`;
 
-                    return {
-                        ...exp, items: expItems,
-                        total_pallets: expItems.reduce((s, i) => s + (i.pallets || 0), 0),
-                        total_rolltrainers: expItems.reduce((s, i) => s + (i.rolltrainers || 0), 0),
-                        lojas_count: expItems.length,
-                        lojas_info: expItems.map(item => {
+    try {
+        const expeditions = await supabaseRequest('expeditions?status=not.eq.entregue&order=data_hora.desc');
+        const items = await supabaseRequest('expedition_items');
+        
+        allExpeditions = expeditions.map(exp => {
+            const expItems = items.filter(item => item.expedition_id === exp.id);
+            const veiculo = exp.veiculo_id ? veiculos.find(v => v.id === exp.veiculo_id) : null;
+            const totalCarga = (expItems.reduce((s, i) => s + (i.pallets || 0), 0)) + ((expItems.reduce((s, i) => s + (i.rolltrainers || 0), 0)) / 2);
+
+            return {
+                ...exp, items: expItems,
+                total_pallets: expItems.reduce((s, i) => s + (i.pallets || 0), 0),
+                total_rolltrainers: expItems.reduce((s, i) => s + (i.rolltrainers || 0), 0),
+                lojas_count: expItems.length,
+                lojas_info: expItems.map(item => {
     const loja = lojas.find(l => l.id === item.loja_id);
     return loja ? `${loja.codigo} - ${loja.nome}` : 'N/A';
 }).join(', '),
-                        doca_nome: docas.find(d => d.id === exp.doca_id)?.nome || 'N/A',
-                        lider_nome: lideres.find(l => l.id === exp.lider_id)?.nome || 'N/A',
-                        veiculo_placa: veiculo?.placa,
-                        motorista_nome: motoristas.find(m => m.id === exp.motorista_id)?.nome,
-                        ocupacao: veiculo && veiculo.capacidade_pallets > 0 ? (totalCarga / veiculo.capacidade_pallets) * 100 : 0
-                    };
-                });
-                
-                populateStatusFilter();
+                doca_nome: docas.find(d => d.id === exp.doca_id)?.nome || 'N/A',
+                lider_nome: lideres.find(l => l.id === exp.lider_id)?.nome || 'N/A',
+                veiculo_placa: veiculo?.placa,
+                motorista_nome: motoristas.find(m => m.id === exp.motorista_id)?.nome,
+                ocupacao: veiculo && veiculo.capacidade_pallets > 0 ? (totalCarga / veiculo.capacidade_pallets) * 100 : 0
+            };
+        });
+        
+        populateStatusFilter();
 applyFilters();
 
 // Popula filtro de motoristas para rastreio
 populateRastreioFilters();
 
-            } catch(error) {
-                tbody.innerHTML = `<tr><td colspan="12" class="alert alert-error">Erro ao carregar dados: ${error.message}</td></tr>`;
-            }
+    } catch(error) {
+        tbody.innerHTML = `<tr><td colspan="12" class="alert alert-error">Erro ao carregar dados: ${error.message}</td></tr>`;
+    }
+}
+
+function populateStatusFilter() {
+    const filtroStatus = document.getElementById('filtroStatus');
+    const statuses = [...new Set(allExpeditions.map(e => e.status))];
+    filtroStatus.innerHTML = '<option value="">Todos</option>';
+    statuses.forEach(s => {
+        filtroStatus.innerHTML += `<option value="${s}">${getStatusLabel(s)}</option>`;
+    });
+}
+
+function applyFilters() {
+    const dataInicio = document.getElementById('filtroDataInicio').value;
+    const dataFim = document.getElementById('filtroDataFim').value;
+    const status = document.getElementById('filtroStatus').value;
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+    filteredExpeditions = allExpeditions.filter(exp => {
+        const expDate = new Date(exp.data_hora).toISOString().split('T')[0];
+        if (dataInicio && expDate < dataInicio) return false;
+        if (dataFim && expDate > dataFim) return false;
+        if (status && exp.status !== status) return false;
+        if (searchTerm) {
+            const numerosCargaSearch = exp.numeros_carga ? exp.numeros_carga.join(' ') : '';
+            const searchable = [exp.lojas_info, exp.doca_nome, exp.lider_nome, exp.veiculo_placa, exp.motorista_nome, numerosCargaSearch].join(' ').toLowerCase();
+            if (!searchable.includes(searchTerm)) return false;
         }
+        return true;
+    });
+
+    updateStats(filteredExpeditions);
+    updateTimeStats(filteredExpeditions);
+    renderAcompanhamentoTable(filteredExpeditions);
+}
+
+function clearFilters() {
+    document.getElementById('filtroDataInicio').value = '';
+    document.getElementById('filtroDataFim').value = '';
+    document.getElementById('filtroStatus').value = '';
+    document.getElementById('searchInput').value = '';
+    setDefaultDateFilters();
+    applyFilters();
+}
+
+function setDefaultDateFilters() {
+    const hoje = new Date().toISOString().split('T')[0];
+    document.getElementById('filtroDataInicio').value = hoje;
+    document.getElementById('filtroDataFim').value = hoje;
+}
+
+function updateStats(data) {
+    document.getElementById('totalExpedicoes').textContent = data.length;
+    document.getElementById('pendentesCount').textContent = data.filter(d => d.status === 'pendente' || d.status === 'aguardando_agrupamento').length;
+    document.getElementById('emAndamentoCount').textContent = data.filter(d => !['pendente', 'aguardando_agrupamento', 'entregue', 'cancelado'].includes(d.status)).length;
+}
+
+function updateTimeStats(data) {
+    const calcularMedia = (arr) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+    const temposAlocacao = data.filter(e => e.data_alocacao_veiculo).map(e => (new Date(e.data_alocacao_veiculo) - new Date(e.data_hora)) / 60000);
+    const temposChegada = data.filter(e => e.data_chegada_veiculo).map(e => (new Date(e.data_chegada_veiculo) - new Date(e.data_hora)) / 60000);
+    const temposCarregamento = data.filter(e => e.data_chegada_veiculo && e.data_saida_veiculo).map(e => (new Date(e.data_saida_veiculo) - new Date(e.data_chegada_veiculo)) / 60000);
+    const temposTotal = data.filter(e => e.data_saida_veiculo).map(e => (new Date(e.data_saida_veiculo) - new Date(e.data_hora)) / 60000);
+
+    document.getElementById('tempoMedioAlocar').textContent = minutesToHHMM(calcularMedia(temposAlocacao));
+    document.getElementById('tempoMedioChegada').textContent = minutesToHHMM(calcularMedia(temposChegada));
+    document.getElementById('tempoMedioCarregamento').textContent = minutesToHHMM(calcularMedia(temposCarregamento));
+    document.getElementById('tempoMedioTotal').textContent = minutesToHHMM(calcularMedia(temposTotal));
+}
+
+function renderAcompanhamentoTable(expeditions) {
+    const tbody = document.getElementById('acompanhamentoBody');
+    if (expeditions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="12" class="text-center py-8 text-gray-500">Nenhuma expedição encontrada para os filtros selecionados.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = expeditions.map(exp => {
+        const ocupacaoPerc = Math.round(exp.ocupacao || 0);
+        let barColor = 'progress-green';
+        if (ocupacaoPerc > 90) barColor = 'progress-orange';
+        if (ocupacaoPerc > 100) barColor = 'progress-red';
         
-        function populateStatusFilter() {
-            const filtroStatus = document.getElementById('filtroStatus');
-            const statuses = [...new Set(allExpeditions.map(e => e.status))];
-            filtroStatus.innerHTML = '<option value="">Todos</option>';
-            statuses.forEach(s => {
-                filtroStatus.innerHTML += `<option value="${s}">${getStatusLabel(s)}</option>`;
-            });
-        }
-        
-        function applyFilters() {
-            const dataInicio = document.getElementById('filtroDataInicio').value;
-            const dataFim = document.getElementById('filtroDataFim').value;
-            const status = document.getElementById('filtroStatus').value;
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-
-            filteredExpeditions = allExpeditions.filter(exp => {
-                const expDate = new Date(exp.data_hora).toISOString().split('T')[0];
-                if (dataInicio && expDate < dataInicio) return false;
-                if (dataFim && expDate > dataFim) return false;
-                if (status && exp.status !== status) return false;
-                if (searchTerm) {
-                    const numerosCargaSearch = exp.numeros_carga ? exp.numeros_carga.join(' ') : '';
-                    const searchable = [exp.lojas_info, exp.doca_nome, exp.lider_nome, exp.veiculo_placa, exp.motorista_nome, numerosCargaSearch].join(' ').toLowerCase();
-                    if (!searchable.includes(searchTerm)) return false;
-                }
-                return true;
-            });
-
-            updateStats(filteredExpeditions);
-            updateTimeStats(filteredExpeditions);
-            renderAcompanhamentoTable(filteredExpeditions);
-        }
-
-        function clearFilters() {
-            document.getElementById('filtroDataInicio').value = '';
-            document.getElementById('filtroDataFim').value = '';
-            document.getElementById('filtroStatus').value = '';
-            document.getElementById('searchInput').value = '';
-            setDefaultDateFilters();
-            applyFilters();
-        }
-
-        function setDefaultDateFilters() {
-            const hoje = new Date().toISOString().split('T')[0];
-            document.getElementById('filtroDataInicio').value = hoje;
-            document.getElementById('filtroDataFim').value = hoje;
-        }
-
-        function updateStats(data) {
-            document.getElementById('totalExpedicoes').textContent = data.length;
-            document.getElementById('pendentesCount').textContent = data.filter(d => d.status === 'pendente' || d.status === 'aguardando_agrupamento').length;
-            document.getElementById('emAndamentoCount').textContent = data.filter(d => !['pendente', 'aguardando_agrupamento', 'entregue', 'cancelado'].includes(d.status)).length;
-        }
-
-        function updateTimeStats(data) {
-            const calcularMedia = (arr) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
-            const temposAlocacao = data.filter(e => e.data_alocacao_veiculo).map(e => (new Date(e.data_alocacao_veiculo) - new Date(e.data_hora)) / 60000);
-            const temposChegada = data.filter(e => e.data_chegada_veiculo).map(e => (new Date(e.data_chegada_veiculo) - new Date(e.data_hora)) / 60000);
-            const temposCarregamento = data.filter(e => e.data_chegada_veiculo && e.data_saida_veiculo).map(e => (new Date(e.data_saida_veiculo) - new Date(e.data_chegada_veiculo)) / 60000);
-            const temposTotal = data.filter(e => e.data_saida_veiculo).map(e => (new Date(e.data_saida_veiculo) - new Date(e.data_hora)) / 60000);
-
-            document.getElementById('tempoMedioAlocar').textContent = minutesToHHMM(calcularMedia(temposAlocacao));
-            document.getElementById('tempoMedioChegada').textContent = minutesToHHMM(calcularMedia(temposChegada));
-            document.getElementById('tempoMedioCarregamento').textContent = minutesToHHMM(calcularMedia(temposCarregamento));
-            document.getElementById('tempoMedioTotal').textContent = minutesToHHMM(calcularMedia(temposTotal));
-        }
-        
-        function renderAcompanhamentoTable(expeditions) {
-            const tbody = document.getElementById('acompanhamentoBody');
-            if (expeditions.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="12" class="text-center py-8 text-gray-500">Nenhuma expedição encontrada para os filtros selecionados.</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = expeditions.map(exp => {
-                const ocupacaoPerc = Math.round(exp.ocupacao || 0);
-                let barColor = 'progress-green';
-                if (ocupacaoPerc > 90) barColor = 'progress-orange';
-                if (ocupacaoPerc > 100) barColor = 'progress-red';
-                
-                const tempos = {
-                    
-                    alocar: exp.data_alocacao_veiculo ? minutesToHHMM((new Date(exp.data_alocacao_veiculo) - new Date(exp.data_hora)) / 60000) : '-',
-                    chegada: exp.data_chegada_veiculo ? minutesToHHMM((new Date(exp.data_chegada_veiculo) - new Date(exp.data_hora)) / 60000) : '-',
-                    carreg: (exp.data_chegada_veiculo && exp.data_saida_veiculo) ? minutesToHHMM((new Date(exp.data_saida_veiculo) - new Date(exp.data_chegada_veiculo)) / 60000) : '-'
-                };
+        const tempos = {
+            
+            alocar: exp.data_alocacao_veiculo ? minutesToHHMM((new Date(exp.data_alocacao_veiculo) - new Date(exp.data_hora)) / 60000) : '-',
+            chegada: exp.data_chegada_veiculo ? minutesToHHMM((new Date(exp.data_chegada_veiculo) - new Date(exp.data_hora)) / 60000) : '-',
+            carreg: (exp.data_chegada_veiculo && exp.data_saida_veiculo) ? minutesToHHMM((new Date(exp.data_saida_veiculo) - new Date(exp.data_chegada_veiculo)) / 60000) : '-'
+        };
 // Verificar se pode editar/excluir
 const canEdit = exp.status !== 'saiu_para_entrega' && exp.status !== 'entregue';
 const editButton = canEdit ? 
@@ -5027,149 +3243,149 @@ const editButton = canEdit ?
 const deleteButton = canEdit ?
     `<button class="btn btn-danger btn-small" onclick="deleteExpedition('${exp.id}')">Excluir</button>` :
     `<button class="btn btn-secondary btn-small" disabled title="Não pode excluir após saída para entrega">Excluir</button>`;
-                return `
-                    <tr class="hover:bg-gray-50 text-sm">
-                        <td>${new Date(exp.data_hora).toLocaleString('pt-BR')}</td>
-                        <td class="whitespace-normal">
-                            ${exp.lojas_info}
-                            ${exp.numeros_carga_display ? `<br><span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">📦 ${exp.numeros_carga_display}</span>` : ''}
-                        </td>
-                        <td>${exp.total_pallets}</td>
-                        <td>${exp.total_rolltrainers}</td>
-                        <td>${exp.doca_nome}</td>
-                        <td>${exp.lider_nome}</td>
-                        <td><span class="status-badge status-${exp.status}">${getStatusLabel(exp.status)}</span></td>
-                        <td>${exp.veiculo_placa || '-'}</td>
-                        <td>
-                            <div class="progress-container"><div class="progress-bar ${barColor}" style="width: ${Math.min(100, ocupacaoPerc)}%;">${ocupacaoPerc}%</div></div>
-                        </td>
-                        <td>${exp.motorista_nome || '-'}</td>
-                        <td class="text-xs">
-                            <div>Aloc: ${tempos.alocar}</div>
-                            <div>Cheg: ${tempos.chegada}</div>
-                            <div>Carr: ${tempos.carreg}</div>
-                        </td>
-                      <td>
-    <div class="flex gap-2">
-        ${editButton}
-        ${deleteButton}
-    </div>
+        return `
+            <tr class="hover:bg-gray-50 text-sm">
+                <td>${new Date(exp.data_hora).toLocaleString('pt-BR')}</td>
+                <td class="whitespace-normal">
+                    ${exp.lojas_info}
+                    ${exp.numeros_carga_display ? `<br><span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">📦 ${exp.numeros_carga_display}</span>` : ''}
+                </td>
+                <td>${exp.total_pallets}</td>
+                <td>${exp.total_rolltrainers}</td>
+                <td>${exp.doca_nome}</td>
+                <td>${exp.lider_nome}</td>
+                <td><span class="status-badge status-${exp.status}">${getStatusLabel(exp.status)}</span></td>
+                <td>${exp.veiculo_placa || '-'}</td>
+                <td>
+                    <div class="progress-container"><div class="progress-bar ${barColor}" style="width: ${Math.min(100, ocupacaoPerc)}%;">${ocupacaoPerc}%</div></div>
+                </td>
+                <td>${exp.motorista_nome || '-'}</td>
+                <td class="text-xs">
+                    <div>Aloc: ${tempos.alocar}</div>
+                    <div>Cheg: ${tempos.chegada}</div>
+                    <div>Carr: ${tempos.carreg}</div>
+                </td>
+              <td>
+<div class="flex gap-2">
+    ${editButton}
+    ${deleteButton}
+</div>
 </td>
-                    </tr>
-                `;
-            }).join('');
-        }
+            </tr>
+        `;
+    }).join('');
+}
+
+async function loadFrotaData() {
+    if (!selectedFilial) {
+        document.getElementById('ociosidadeBody').innerHTML = '<tr><td colspan="5" class="alert alert-error">Selecione uma filial primeiro!</td></tr>';
+        return;
+    }
+
+    const tbody = document.getElementById('ociosidadeBody');
+    tbody.innerHTML = `<tr><td colspan="5" class="loading"><div class="spinner"></div>Calculando ociosidade...</td></tr>`;
+
+    try {
+        // 1. Definir Período de Análise
+        const hoje = new Date();
+        const dataInicio = document.getElementById('frotaFiltroDataInicio').value || new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString().split('T')[0];
+        const dataFimInput = document.getElementById('frotaFiltroDataFim').value || hoje.toISOString().split('T')[0];
+
+        const startOfAnalysis = new Date(dataInicio + 'T00:00:00.000Z');
+        const endOfAnalysis = new Date(dataFimInput + 'T23:59:59.999Z');
+
+        // 2. Buscar histórico de status relevante
+        const startQuery = new Date(startOfAnalysis);
+        startQuery.setDate(startQuery.getDate() - 1); // Pega um dia antes para garantir o status inicial
         
-        async function loadFrotaData() {
-            if (!selectedFilial) {
-                document.getElementById('ociosidadeBody').innerHTML = '<tr><td colspan="5" class="alert alert-error">Selecione uma filial primeiro!</td></tr>';
-                return;
-            }
+        const statusHistory = await supabaseRequest(`veiculos_status_historico?created_at=gte.${startQuery.toISOString()}&created_at=lte.${endOfAnalysis.toISOString()}&order=created_at.asc`, 'GET', null, false);
 
-            const tbody = document.getElementById('ociosidadeBody');
-            tbody.innerHTML = `<tr><td colspan="5" class="loading"><div class="spinner"></div>Calculando ociosidade...</td></tr>`;
+        const ociosidadeData = [];
 
-            try {
-                // 1. Definir Período de Análise
-                const hoje = new Date();
-                const dataInicio = document.getElementById('frotaFiltroDataInicio').value || new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString().split('T')[0];
-                const dataFimInput = document.getElementById('frotaFiltroDataFim').value || hoje.toISOString().split('T')[0];
+        for (const veiculo of veiculos) {
+            if (veiculo.filial !== selectedFilial.nome) continue;
 
-                const startOfAnalysis = new Date(dataInicio + 'T00:00:00.000Z');
-                const endOfAnalysis = new Date(dataFimInput + 'T23:59:59.999Z');
+            const veiculoHistory = statusHistory.filter(h => h.veiculo_id === veiculo.id);
 
-                // 2. Buscar histórico de status relevante
-                const startQuery = new Date(startOfAnalysis);
-                startQuery.setDate(startQuery.getDate() - 1); // Pega um dia antes para garantir o status inicial
+            const lastStatusBeforePeriod = veiculoHistory
+                .filter(h => new Date(h.created_at) < startOfAnalysis)
+                .pop();
+            
+            let statusAtual = lastStatusBeforePeriod ? lastStatusBeforePeriod.status_novo : (veiculo.status || 'disponivel');
+            let ultimoTimestamp = startOfAnalysis;
+            let tempoOciosoTotal = 0;
+            let inicioOciosidadeAtual = statusAtual === 'disponivel' ? startOfAnalysis : null;
+
+            const historyInPeriod = veiculoHistory.filter(h => new Date(h.created_at) >= startOfAnalysis);
+            
+            historyInPeriod.forEach(evento => {
+                const tempoEvento = new Date(evento.created_at);
                 
-                const statusHistory = await supabaseRequest(`veiculos_status_historico?created_at=gte.${startQuery.toISOString()}&created_at=lte.${endOfAnalysis.toISOString()}&order=created_at.asc`, 'GET', null, false);
-
-                const ociosidadeData = [];
-
-                for (const veiculo of veiculos) {
-                    if (veiculo.filial !== selectedFilial.nome) continue;
-
-                    const veiculoHistory = statusHistory.filter(h => h.veiculo_id === veiculo.id);
-
-                    const lastStatusBeforePeriod = veiculoHistory
-                        .filter(h => new Date(h.created_at) < startOfAnalysis)
-                        .pop();
-                    
-                    let statusAtual = lastStatusBeforePeriod ? lastStatusBeforePeriod.status_novo : (veiculo.status || 'disponivel');
-                    let ultimoTimestamp = startOfAnalysis;
-                    let tempoOciosoTotal = 0;
-                    let inicioOciosidadeAtual = statusAtual === 'disponivel' ? startOfAnalysis : null;
-
-                    const historyInPeriod = veiculoHistory.filter(h => new Date(h.created_at) >= startOfAnalysis);
-                    
-                    historyInPeriod.forEach(evento => {
-                        const tempoEvento = new Date(evento.created_at);
-                        
-                        if (statusAtual === 'disponivel') {
-                            tempoOciosoTotal += (tempoEvento - ultimoTimestamp);
-                        }
-
-                        statusAtual = evento.status_novo;
-                        ultimoTimestamp = tempoEvento;
-                        
-                        if (statusAtual === 'disponivel') {
-                            if (!inicioOciosidadeAtual) inicioOciosidadeAtual = tempoEvento;
-                        } else {
-                            inicioOciosidadeAtual = null;
-                        }
-                    });
-
-                    if (statusAtual === 'disponivel') {
-                        tempoOciosoTotal += (endOfAnalysis - ultimoTimestamp);
-                    }
-
-                    ociosidadeData.push({
-                        placa: veiculo.placa,
-                        status: veiculo.status,
-                        idleTime: tempoOciosoTotal / 60000, // para minutos
-                        idleSince: inicioOciosidadeAtual,
-                        lastAction: ultimoTimestamp > startOfAnalysis ? ultimoTimestamp : null
-                    });
+                if (statusAtual === 'disponivel') {
+                    tempoOciosoTotal += (tempoEvento - ultimoTimestamp);
                 }
-                
-                const mediaOciosidade = ociosidadeData.length > 0 ? ociosidadeData.reduce((sum, v) => sum + v.idleTime, 0) / ociosidadeData.length : 0;
-                document.getElementById('totalOciosidade').textContent = minutesToHHMM(mediaOciosidade);
-                document.getElementById('frotaAtiva').textContent = veiculos.filter(v => v.status !== 'disponivel' && v.status !== 'folga' && v.status !== 'manutencao').length;
-                document.getElementById('frotaOciosa').textContent = veiculos.filter(v => v.status === 'disponivel').length;
-                
-                renderOciosidadeTable(ociosidadeData.sort((a, b) => b.idleTime - a.idleTime));
 
-            } catch (error) {
-                console.error('Erro ao carregar dados da frota:', error);
-                tbody.innerHTML = `<tr><td colspan="5" class="alert alert-error">Erro ao calcular ociosidade: ${error.message}</td></tr>`;
+                statusAtual = evento.status_novo;
+                ultimoTimestamp = tempoEvento;
+                
+                if (statusAtual === 'disponivel') {
+                    if (!inicioOciosidadeAtual) inicioOciosidadeAtual = tempoEvento;
+                } else {
+                    inicioOciosidadeAtual = null;
+                }
+            });
+
+            if (statusAtual === 'disponivel') {
+                tempoOciosoTotal += (endOfAnalysis - ultimoTimestamp);
             }
+
+            ociosidadeData.push({
+                placa: veiculo.placa,
+                status: veiculo.status,
+                idleTime: tempoOciosoTotal / 60000, // para minutos
+                idleSince: inicioOciosidadeAtual,
+                lastAction: ultimoTimestamp > startOfAnalysis ? ultimoTimestamp : null
+            });
         }
         
-        function renderOciosidadeTable(data) {
-            const tbody = document.getElementById('ociosidadeBody');
-            if (!tbody) return;
+        const mediaOciosidade = ociosidadeData.length > 0 ? ociosidadeData.reduce((sum, v) => sum + v.idleTime, 0) / ociosidadeData.length : 0;
+        document.getElementById('totalOciosidade').textContent = minutesToHHMM(mediaOciosidade);
+        document.getElementById('frotaAtiva').textContent = veiculos.filter(v => v.status !== 'disponivel' && v.status !== 'folga' && v.status !== 'manutencao').length;
+        document.getElementById('frotaOciosa').textContent = veiculos.filter(v => v.status === 'disponivel').length;
+        
+        renderOciosidadeTable(ociosidadeData.sort((a, b) => b.idleTime - a.idleTime));
 
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">Nenhum dado de ociosidade encontrado para o período.</td></tr>';
-                return;
-            }
+    } catch (error) {
+        console.error('Erro ao carregar dados da frota:', error);
+        tbody.innerHTML = `<tr><td colspan="5" class="alert alert-error">Erro ao calcular ociosidade: ${error.message}</td></tr>`;
+    }
+}
 
-            tbody.innerHTML = data.map(v => {
-                const tempoOciosoDisplay = v.idleTime > 0 ? minutesToHHMM(v.idleTime) : '-';
-                const ociosoDesdeDisplay = v.idleSince ? new Date(v.idleSince).toLocaleString('pt-BR') : '-';
-                const ultimaAcaoDisplay = v.lastAction ? new Date(v.lastAction).toLocaleString('pt-BR') : '-';
+function renderOciosidadeTable(data) {
+    const tbody = document.getElementById('ociosidadeBody');
+    if (!tbody) return;
 
-                return `
-                    <tr class="hover:bg-gray-50 text-sm">
-                        <td class="font-semibold">${v.placa}</td>
-                        <td><span class="status-badge status-${v.status.replace(/ /g, '_')}">${getStatusLabel(v.status)}</span></td>
-                        <td>${ociosoDesdeDisplay}</td>
-                        <td>${tempoOciosoDisplay}</td>
-                        <td>${ultimaAcaoDisplay}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
+    if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">Nenhum dado de ociosidade encontrado para o período.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = data.map(v => {
+        const tempoOciosoDisplay = v.idleTime > 0 ? minutesToHHMM(v.idleTime) : '-';
+        const ociosoDesdeDisplay = v.idleSince ? new Date(v.idleSince).toLocaleString('pt-BR') : '-';
+        const ultimaAcaoDisplay = v.lastAction ? new Date(v.lastAction).toLocaleString('pt-BR') : '-';
+
+        return `
+            <tr class="hover:bg-gray-50 text-sm">
+                <td class="font-semibold">${v.placa}</td>
+                <td><span class="status-badge status-${v.status.replace(/ /g, '_')}">${getStatusLabel(v.status)}</span></td>
+                <td>${ociosoDesdeDisplay}</td>
+                <td>${tempoOciosoDisplay}</td>
+                <td>${ultimaAcaoDisplay}</td>
+            </tr>
+        `;
+    }).join('');
+}
 // --- FUNCIONALIDADES DO RASTREIO EM TEMPO REAL ---
 
 function populateRastreioFilters() {
@@ -5390,7 +3606,6 @@ function applyRastreioFilters() {
     console.log('Dados filtrados para exibição:', filteredData.length); // DEBUG
     renderRastreioList(filteredData);
 }
-
 function renderRastreioList(data) {
     const container = document.getElementById('rastreioList');
     
@@ -5544,7 +3759,7 @@ return `<div class="flex items-center text-sm ...">
     }).join('');
 }
 
-function showLocationMap(expeditionId, lat, lng) {
+function showLocationMap(expeditionId, lat, lng, vehiclePlaca) {
     // Em uma implementação real, isso abriria um mapa (Google Maps, OpenStreetMap, etc.)
     const mapUrl = `https://www.google.com/maps?q=${lat},${lng}&z=15`;
     window.open(mapUrl, '_blank');
@@ -6405,6 +4620,10 @@ if (expeditionToDel.status === 'saiu_para_entrega' || expeditionToDel.status ===
                 <option value="#EC4899">Rosa</option>
             </select></div>
             <div class="form-group" style="display:none;"><label>Status:</label><select id="add_ativo"><option value="true">Ativo</option><option value="false">Inativo</option></select></div>
+            <div class="text-center mt-4 md:col-span-2">
+                <button type="button" class="btn btn-secondary mr-2" onclick="getCurrentLocation()">📍 Usar Localização Atual</button>
+                <button type="button" class="btn btn-primary" onclick="geocodeAddress()">🌍 Buscar por Endereço</button>
+            </div>
         `;
     }
     fieldsContainer.innerHTML = formHtml;
@@ -6417,38 +4636,38 @@ if (expeditionToDel.status === 'saiu_para_entrega' || expeditionToDel.status ===
         }
 
         async function handleSave() {
-    const title = document.getElementById('addFormTitle').textContent;
-    let success = false;
-    try {
-        if (title.includes('Filial')) success = await saveFilial();
-        else if (title.includes('Loja')) success = await saveLoja();
-        else if (title.includes('Doca')) success = await saveDoca();
-        else if (title.includes('Líder')) success = await saveLider();
-        else if (title.includes('Veículo')) success = await saveVeiculo();
-        else if (title.includes('Motorista')) success = await saveMotorista();
-        else if (title.includes('Acesso')) success = await saveAcesso();
-        else if (title.includes('Ponto de Interesse')) success = await savePontoInteresse();
-        
-        if (success) {
-             showNotification('Cadastro realizado com sucesso!', 'success');
-             hideAddForm();
-             await loadSelectData(); 
-             if (title.includes('Filial')) await loadFiliais();
-             
-             if (document.getElementById('configuracoes').classList.contains('active')) {
-                 const activeSubTabEl = document.querySelector('#configuracoes .sub-tab.active');
-                 if(activeSubTabEl) {
-                    const activeSubTab = activeSubTabEl.getAttribute('onclick').match(/'([^']*)','([^']*)'/)[2];
-                    showSubTab('configuracoes', activeSubTab);
-                 }
-             }
+            const title = document.getElementById('addFormTitle').textContent;
+            let success = false;
+            try {
+                if (title.includes('Filial')) success = await saveFilial();
+                else if (title.includes('Loja')) success = await saveLoja();
+                else if (title.includes('Doca')) success = await saveDoca();
+                else if (title.includes('Líder')) success = await saveLider();
+                else if (title.includes('Veículo')) success = await saveVeiculo();
+                else if (title.includes('Motorista')) success = await saveMotorista();
+                else if (title.includes('Acesso')) success = await saveAcesso();
+else if (title.includes('Ponto de Interesse')) success = await savePontoInteresse();
+                
+                if (success) {
+                     showNotification('Cadastro realizado com sucesso!', 'success');
+                     hideAddForm();
+                     await loadSelectData(); 
+                     if (title.includes('Filial')) await loadFiliais();
+                     
+                     if (document.getElementById('configuracoes').classList.contains('active')) {
+                         const activeSubTabEl = document.querySelector('#configuracoes .sub-tab.active');
+                         if(activeSubTabEl) {
+                            const activeSubTab = activeSubTabEl.getAttribute('onclick').match(/'([^']*)','([^']*)'/)[2];
+                            showSubTab('configuracoes', activeSubTab);
+                         }
+                     }
+                }
+            } catch (error) {
+                 showAlert('addFormAlert', `Erro ao salvar: ${error.message}`, 'error');
+            }
         }
-    } catch (error) {
-         showAlert('addFormAlert', `Erro ao salvar: ${error.message}`, 'error');
-    }
-}
 
-async function saveFilial() {
+       async function saveFilial() {
     const isEdit = !!document.getElementById('edit_filial_nome');
     const nomeOriginal = isEdit ? document.getElementById('edit_filial_nome').value : null;
     
@@ -6472,8 +4691,7 @@ async function saveFilial() {
     }
     return true;
 }
-
-async function saveLoja() {
+        async function saveLoja() {
     const isEdit = !!document.getElementById('edit_loja_id');
     const lojaId = isEdit ? document.getElementById('edit_loja_id').value : null;
     
@@ -6497,8 +4715,8 @@ async function saveLoja() {
     }
     return true;
 }
-
-async function saveDoca() {
+        
+        async function saveDoca() {
     const isEdit = !!document.getElementById('edit_doca_id');
     const docaId = isEdit ? document.getElementById('edit_doca_id').value : null;
     
@@ -6520,8 +4738,7 @@ async function saveDoca() {
     renderDocasConfig();
     return true;
 }
-
-async function saveLider() {
+        async function saveLider() {
     const isEdit = !!document.getElementById('edit_lider_id');
     const liderId = isEdit ? document.getElementById('edit_lider_id').value : null;
     
@@ -6542,8 +4759,7 @@ async function saveLider() {
     renderLideresConfig();
     return true;
 }
-
-async function saveVeiculo() {
+        async function saveVeiculo() {
     const isEdit = !!document.getElementById('edit_veiculo_id');
     const veiculoId = isEdit ? document.getElementById('edit_veiculo_id').value : null;
     
@@ -6566,8 +4782,7 @@ async function saveVeiculo() {
     renderVeiculosConfig();
     return true;
 }
-
-async function saveMotorista() {
+        async function saveMotorista() {
     const isEdit = !!document.getElementById('edit_motorista_id');
     const motoristaId = isEdit ? document.getElementById('edit_motorista_id').value : null;
     
@@ -6588,8 +4803,7 @@ async function saveMotorista() {
     renderMotoristasConfig();
     return true;
 }
-
-async function saveAcesso() {
+       async function saveAcesso() {
     const isEdit = !!document.getElementById('edit_acesso_nome');
     const nomeOriginal = isEdit ? document.getElementById('edit_acesso_nome').value : null;
     
@@ -6613,8 +4827,7 @@ async function saveAcesso() {
     renderAcessosConfig();
     return true;
 }
-
-async function renderVeiculosConfig() {
+        async function renderVeiculosConfig() {
     const tbody = document.getElementById('veiculosConfigBody');
     if (!tbody) return;
     
@@ -6646,7 +4859,6 @@ async function renderVeiculosConfig() {
         tbody.innerHTML = `<tr><td colspan="6" class="alert alert-error">Erro ao carregar veículos: ${error.message}</td></tr>`;
     }
 }
-
 async function editVeiculo(veiculoId) {
     const veiculo = veiculos.find(v => v.id === veiculoId);
     if (!veiculo) {
@@ -6731,8 +4943,8 @@ async function deleteMotorista(motoristaId) {
         }
     }
 }
-
-async function renderMotoristasConfig() {
+        
+        async function renderMotoristasConfig() {
     const tbody = document.getElementById('motoristasConfigBody');
     if (!tbody) return;
     
@@ -6757,24 +4969,23 @@ async function renderMotoristasConfig() {
         tbody.innerHTML = `<tr><td colspan="4" class="alert alert-error">Erro ao carregar motoristas: ${error.message}</td></tr>`;
     }
 }
-
-function updateSystemStatus() {
-    const statusEl = document.getElementById('systemStatus');
-    if(statusEl) {
-        statusEl.textContent = `
+        
+        function updateSystemStatus() {
+            const statusEl = document.getElementById('systemStatus');
+            if(statusEl) {
+                statusEl.textContent = `
         Filial Ativa: ${selectedFilial.nome}
         Usuário Logado: ${currentUser.nome}
         Tipo de Acesso: ${currentUser.tipo_acesso}
         Cache: ${lojas.length} lojas, ${docas.length} docas, ${lideres.length} líderes
-        `;
-    }
-}
+                `;
+            }
+        }
+ // Variável global para o mapa
+        let mapInstance = null;
+        let markersLayer = null;
 
-// Variável global para o mapa
-let mapInstance = null;
-let markersLayer = null;
-
-function showLocationMap(expeditionId, lat, lng, vehiclePlaca) {
+        function showLocationMap(expeditionId, lat, lng, vehiclePlaca) {
     console.log(`Abrindo mapa para ${vehiclePlaca} em:`, lat, lng); // DEBUG
     
     document.getElementById('mapModalTitle').textContent = `Localização de ${vehiclePlaca}`;
@@ -6785,8 +4996,7 @@ function showLocationMap(expeditionId, lat, lng, vehiclePlaca) {
         initMap(lat, lng, vehiclePlaca);
     }, 100);
 }
-
-function showAllVehiclesMap() {
+        function showAllVehiclesMap() {
     document.getElementById('mapModalTitle').textContent = 'Localização de Todos os Veículos e Lojas';
     document.getElementById('mapModal').style.display = 'flex';
     
@@ -6866,96 +5076,95 @@ function initAllVehiclesAndLojasMap() {
     }
 }
 
-function initMap(lat, lng, vehiclePlaca) {
-    // Destruir mapa existente se houver
-    if (mapInstance) {
-        mapInstance.remove();
-    }
-    
-    // Criar novo mapa
-    mapInstance = L.map('map').setView([lat, lng], 15);
-    
-    // Adicionar camada do OpenStreetMap
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(mapInstance);
-    
-    // Criar ícone personalizado para veículo
-    const vehicleIcon = L.divIcon({
-        className: 'custom-marker',
-        html: `<div style="background: #0077B6; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${vehiclePlaca}</div>`,
-        iconSize: [80, 30],
-        iconAnchor: [40, 15]
-    });
-    
-    // Adicionar marcador do veículo
-    L.marker([lat, lng], { icon: vehicleIcon })
-        .addTo(mapInstance)
-        .bindPopup(`<b>${vehiclePlaca}</b><br>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}`);
-}
+        function initMap(lat, lng, vehiclePlaca) {
+            // Destruir mapa existente se houver
+            if (mapInstance) {
+                mapInstance.remove();
+            }
+            
+            // Criar novo mapa
+            mapInstance = L.map('map').setView([lat, lng], 15);
+            
+            // Adicionar camada do OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(mapInstance);
+            
+            // Criar ícone personalizado para veículo
+            const vehicleIcon = L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="background: #0077B6; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${vehiclePlaca}</div>`,
+                iconSize: [80, 30],
+                iconAnchor: [40, 15]
+            });
+            
+            // Adicionar marcador do veículo
+            L.marker([lat, lng], { icon: vehicleIcon })
+                .addTo(mapInstance)
+                .bindPopup(`<b>${vehiclePlaca}</b><br>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}`);
+        }
 
-function initAllVehiclesMap() {
-    // Destruir mapa existente se houver
-    if (mapInstance) {
-        mapInstance.remove();
-    }
-    
-    // Criar novo mapa centrado em Cuiabá
-    mapInstance = L.map('map').setView([-15.6014, -56.0979], 11);
-    
-    // Adicionar camada do OpenStreetMap
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(mapInstance);
-    
-    // Adicionar marcadores para todos os veículos
-    const bounds = L.latLngBounds();
-    
-    rastreioData.forEach(rastreio => {
-        const { lat, lng } = rastreio.coordenadas;
-        
-        // Definir cor baseada no status
-        let color = '#0077B6'; // azul padrão
-        if (rastreio.status_rastreio === 'em_descarga') color = '#F59E0B'; // laranja
-        else if (rastreio.status_rastreio === 'retornando') color = '#10B981'; // verde
-        
-        const vehicleIcon = L.divIcon({
-            className: 'custom-marker',
-            html: `<div style="background: ${color}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${rastreio.veiculo_placa}</div>`,
-            iconSize: [70, 25],
-            iconAnchor: [35, 12]
-        });
-        
-        const marker = L.marker([lat, lng], { icon: vehicleIcon })
-            .addTo(mapInstance)
-            .bindPopup(`
-                <div style="text-align: center;">
-                    <b>${rastreio.veiculo_placa}</b><br>
-                    <small>${rastreio.motorista_nome}</small><br>
-                    <span style="color: ${color}; font-weight: bold;">${getStatusLabel(rastreio.status_rastreio)}</span><br>
-                    <small>Progresso: ${rastreio.progresso_rota}%</small><br>
-                    <small>Entregas: ${rastreio.entregas_concluidas}/${rastreio.total_entregas}</small>
-                </div>
-            `);
-        
-        bounds.extend([lat, lng]);
-    });
-    
-    // Ajustar zoom para mostrar todos os veículos
-    if (rastreioData.length > 0) {
-        mapInstance.fitBounds(bounds, { padding: [20, 20] });
-    }
-}
+        function initAllVehiclesMap() {
+            // Destruir mapa existente se houver
+            if (mapInstance) {
+                mapInstance.remove();
+            }
+            
+            // Criar novo mapa centrado em Cuiabá
+            mapInstance = L.map('map').setView([-15.6014, -56.0979], 11);
+            
+            // Adicionar camada do OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(mapInstance);
+            
+            // Adicionar marcadores para todos os veículos
+            const bounds = L.latLngBounds();
+            
+            rastreioData.forEach(rastreio => {
+                const { lat, lng } = rastreio.coordenadas;
+                
+                // Definir cor baseada no status
+                let color = '#0077B6'; // azul padrão
+                if (rastreio.status_rastreio === 'em_descarga') color = '#F59E0B'; // laranja
+                else if (rastreio.status_rastreio === 'retornando') color = '#10B981'; // verde
+                
+                const vehicleIcon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background: ${color}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${rastreio.veiculo_placa}</div>`,
+                    iconSize: [70, 25],
+                    iconAnchor: [35, 12]
+                });
+                
+                const marker = L.marker([lat, lng], { icon: vehicleIcon })
+                    .addTo(mapInstance)
+                    .bindPopup(`
+                        <div style="text-align: center;">
+                            <b>${rastreio.veiculo_placa}</b><br>
+                            <small>${rastreio.motorista_nome}</small><br>
+                            <span style="color: ${color}; font-weight: bold;">${getStatusLabel(rastreio.status_rastreio)}</span><br>
+                            <small>Progresso: ${rastreio.progresso_rota}%</small><br>
+                            <small>Entregas: ${rastreio.entregas_concluidas}/${rastreio.total_entregas}</small>
+                        </div>
+                    `);
+                
+                bounds.extend([lat, lng]);
+            });
+            
+            // Ajustar zoom para mostrar todos os veículos
+            if (rastreioData.length > 0) {
+                mapInstance.fitBounds(bounds, { padding: [20, 20] });
+            }
+        }
 
-function closeMapModal() {
-    document.getElementById('mapModal').style.display = 'none';
-    if (mapInstance) {
-        mapInstance.remove();
-        mapInstance = null;
-    }
-}
-
-// ===== ADICIONAR TODAS ESSAS FUNÇÕES NO SEU JAVASCRIPT =====
+        function closeMapModal() {
+            document.getElementById('mapModal').style.display = 'none';
+            if (mapInstance) {
+                mapInstance.remove();
+                mapInstance = null;
+            }
+        }
+        // ===== ADICIONAR TODAS ESSAS FUNÇÕES NO SEU JAVASCRIPT =====
 
 // === FUNÇÕES PARA TRAJETO NO HISTÓRICO ===
 
@@ -6967,6 +5176,8 @@ async function showTrajectoryMap(expeditionId, vehiclePlaca) {
         await initTrajectoryMap(expeditionId, vehiclePlaca);
     }, 100);
 }
+
+
 
 // Remove a função antiga para recriá-la com as novas funcionalidades
 async function initTrajectoryMap(expeditionId, vehiclePlaca) {
@@ -7062,7 +5273,6 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         showNotification('Erro ao carregar dados do trajeto: ' + error.message, 'error');
     }
 }
-
 // A função calculateTripStats também precisa ser ajustada para usar os dados do GPS
 function calculateTripStats(trajectoryData) {
     let distanciaTotal = 0;
@@ -7117,7 +5327,7 @@ function calculateTripStats(trajectoryData) {
 
 async function loadPontosInteresse() {
     try {
-        // Agora, a requisição busca os dados diretamente do banco de dados Supabase
+        // Agora, a requisção busca os dados diretamente do banco de dados Supabase
         const pontosInteresseData = await supabaseRequest('pontos_interesse?order=nome', 'GET', null, false);
         
         if (!pontosInteresseData) {
@@ -7217,7 +5427,6 @@ function showAddPontoInteresse() {
     
     modal.style.display = 'flex';
 }
-
 function getCurrentLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -7481,7 +5690,6 @@ function generateMockGPSTrajectory(expeditionId) {
     
     return points;
 }
-
 // === FUNÇÕES PARA GERENCIAMENTO DE LOJAS COM ENDEREÇOS ===
 
 async function showLojasConfig() {
@@ -7519,7 +5727,6 @@ async function renderLojasConfig() {
         tbody.innerHTML = `<tr><td colspan="6" class="alert alert-error">Erro ao carregar lojas: ${error.message}</td></tr>`;
     }
 }
-
 // --- FUNÇÕES DE EDIÇÃO E EXCLUSÃO ---
 
 async function editFilial(nomeFilial) {
@@ -7942,7 +6149,6 @@ function showSimulatedRoute(loja) {
     
     // Resto da implementação da função...
 }
-
 // Novas funções para geolocalização da filial
 async function geocodeAddressFilial() {
     const endereco = document.getElementById('add_endereco_cd').value.trim();
@@ -7988,7 +6194,6 @@ function getCurrentLocationFilial() {
         showNotification('Geolocalização não suportada pelo navegador.', 'error');
     }
 }
-
 // --- NOVO: FUNÇÃO PARA CALCULAR ROTA SIMULADA ---
 async function calculateSimulatedRoute(startLat, startLng, endLat, endLng) {
     const R = 6371e3;
@@ -8008,7 +6213,6 @@ async function calculateSimulatedRoute(startLat, startLng, endLat, endLng) {
         duration: duration
     };
 }
-
 // --- NOVO: FUNÇÃO PARA CALCULAR ROTA REAL VIA API OSRM ---
 async function getRouteFromAPI(waypoints) {
     if (!waypoints || waypoints.length < 2) {
@@ -8040,7 +6244,6 @@ async function getRouteFromAPI(waypoints) {
         return null;
     }
 }
-
 // NOVO: Funções para o Modal de Ordem de Carregamento
 
 /**
@@ -8122,6 +6325,7 @@ function getDragAfterElement(container, y) {
         }
     }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
+
 
 function closeOrdemCarregamentoModal() {
     document.getElementById('ordemCarregamentoModal').style.display = 'none';
@@ -8336,12 +6540,10 @@ async function showDetalhesExpedicao(expeditionId) {
                 
                 planilhaHTML += `
     <div class="planilha-controle">
-        <!-- Cabeçalho da Loja -->
         <div class="planilha-header" style="background: #4a90e2; color: white; font-size: 16px; padding: 10px;">
             LOJA ${loja?.codigo || 'N/A'} - ${loja?.nome || 'N/A'}
         </div>
         
-        <!-- Informações da Expedição -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 10px;">
             <div>
                 <div class="planilha-row" style="margin-bottom: 6px;">
@@ -8381,7 +6583,6 @@ async function showDetalhesExpedicao(expeditionId) {
             </div>
         </div>
         
-        <!-- Números de Carga -->
         ${exp.numeros_carga && exp.numeros_carga.length > 0 ? `
             <div style="margin: 10px;">
                 <div class="planilha-header" style="background: #f0f0f0; color: #333; padding: 6px; font-size: 12px;">
@@ -8393,7 +6594,6 @@ async function showDetalhesExpedicao(expeditionId) {
             </div>
         ` : ''}
         
-        <!-- Horários de Entrega -->
         ${item.data_inicio_descarga || item.data_fim_descarga ? `
             <div style="margin: 10px;">
                 <div class="planilha-header" style="background: #e8f4f8; color: #333; padding: 6px; font-size: 12px;">
@@ -8785,5 +6985,3 @@ async function imprimirIdentificacao(expeditionId, numeroCarga, liderNome, palle
         document.addEventListener('DOMContentLoaded', async () => {
             await loadFiliais();
         });
-    </script>
-   
