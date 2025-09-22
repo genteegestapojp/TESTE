@@ -6,20 +6,10 @@
     <title>Sistema de Controle de Expedição</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="css/styles.css">
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 font-sans">
     
@@ -28,7 +18,7 @@
             <h2>Selecione a Filial</h2>
             <p>Escolha a filial para acessar o sistema de expedição</p>
             <div id="filiaisGrid" class="filiais-grid">
-            </div>
+                </div>
         </div>
     </div>
 
@@ -43,7 +33,7 @@
             </div>
 
             <nav class="p-4">
-                <a href="#home" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer active" onclick="showView('home', this)">
+                 <a href="#home" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer active" onclick="showView('home', this)">
                     <i data-feather="home" class="h-5 w-5 mr-3"></i>
                     <span>Home</span>
                 </a>
@@ -203,39 +193,39 @@
                     </div>
                     
                     <div class="bg-white rounded-xl shadow-md p-6 mb-12" data-aos="fade-up">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-xl font-semibold text-gray-800">Visão Geral em Tempo Real</h2>
-                            <div class="flex items-center gap-4">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-sm text-gray-600">Auto-refresh</span>
-                                    <input type="checkbox" id="homeAutoRefresh" checked onchange="toggleHomeAutoRefresh()">
-                                    <span class="text-xs text-green-600" id="homeLastUpdate">Última atualização: --:--</span>
-                                </div>
-                                <button class="btn btn-primary btn-small" onclick="showHomeMapFullscreen()">🔍 Ver em Tela Cheia</button>
-                            </div>
-                        </div>
-                        <div class="relative">
-                            <div id="homeMap" style="height: 400px; width: 100%; border-radius: 8px; background: #f0f9ff;"></div>
-                            <div id="homeMapControls" class="absolute top-4 left-4 bg-white rounded-lg shadow-md p-3 max-w-xs">
-                                <h4 class="font-semibold text-sm mb-2">Legenda</h4>
-                                <div class="text-xs space-y-1">
-                                    <div class="flex items-center gap-2"><div class="w-3 h-3 bg-blue-600 rounded"></div><span>CD - Centro de Distribuição</span></div>
-                                    <div class="flex items-center gap-2"><div class="w-3 h-3 bg-orange-500 rounded"></div><span>🚚 Veículos em Trânsito</span></div>
-                                    <div class="flex items-center gap-2"><div class="w-3 h-3 bg-yellow-500 rounded"></div><span>📦 Veículos Descarregando</span></div>
-                                    <div class="flex items-center gap-2"><div class="w-3 h-3 bg-green-500 rounded"></div><span>🔄 Veículos Retornando</span></div>
-                                    <div class="flex items-center gap-2"><div class="w-3 h-3 bg-red-500 rounded"></div><span>🏪 Lojas Fort</span></div>
-                                    <div class="flex items-center gap-2"><div class="w-3 h-3 bg-blue-500 rounded"></div><span>🏪 Lojas Comper</span></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold text-gray-800">Visão Geral em Tempo Real</h2>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-600">Auto-refresh</span>
+                <input type="checkbox" id="homeAutoRefresh" checked onchange="toggleHomeAutoRefresh()">
+                <span class="text-xs text-green-600" id="homeLastUpdate">Última atualização: --:--</span>
+            </div>
+            <button class="btn btn-primary btn-small" onclick="showHomeMapFullscreen()">🔍 Ver em Tela Cheia</button>
+        </div>
+    </div>
+    <div class="relative">
+        <div id="homeMap" style="height: 400px; width: 100%; border-radius: 8px; background: #f0f9ff;"></div>
+        <div id="homeMapControls" class="absolute top-4 left-4 bg-white rounded-lg shadow-md p-3 max-w-xs">
+            <h4 class="font-semibold text-sm mb-2">Legenda</h4>
+            <div class="text-xs space-y-1">
+                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-blue-600 rounded"></div><span>CD - Centro de Distribuição</span></div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-orange-500 rounded"></div><span>🚚 Veículos em Trânsito</span></div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-yellow-500 rounded"></div><span>📦 Veículos Descarregando</span></div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-green-500 rounded"></div><span>🔄 Veículos Retornando</span></div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-red-500 rounded"></div><span>🏪 Lojas Fort</span></div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-blue-500 rounded"></div><span>🏪 Lojas Comper</span></div>
+            </div>
+        </div>
+    </div>
+</div>
                 </div>
 
                 <div id="operacao" class="view-content">
-                </div>
-            
+                    </div>
+                
                 <div id="transporte" class="view-content">
-                </div>
+                    </div>
 
                 <div id="faturamento" class="view-content"></div>
 
@@ -271,66 +261,59 @@
             </div>
         </div>
     </div>
-
-    <!-- Modal de Autenticação para Edição -->
     <div id="authEditModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 400px;">
-            <h3 class="text-xl font-semibold mb-4">Autenticação Necessária</h3>
-            <p class="text-gray-600 mb-4">Para editar expedições, é necessário inserir suas credenciais:</p>
-            <form id="authEditForm">
-                <div class="form-group">
-                    <label for="authEditUser">Usuário:</label>
-                    <input type="text" id="authEditUser" required class="w-full">
-                </div>
-                <div class="form-group">
-                    <label for="authEditPassword">Senha:</label>
-                    <input type="password" id="authEditPassword" required class="w-full">
-                </div>
-                <div class="flex gap-4 mt-6">
-                    <button type="submit" class="btn btn-primary flex-1">Autenticar</button>
-                    <button type="button" class="btn btn-danger flex-1" onclick="closeAuthEditModal()">Cancelar</button>
-                </div>
-            </form>
-            <div id="authEditAlert" class="mt-4"></div>
-        </div>
+    <div class="modal-content" style="max-width: 400px;">
+        <h3 class="text-xl font-semibold mb-4">Autenticação Necessária</h3>
+        <p class="text-gray-600 mb-4">Para editar expedições, é necessário inserir suas credenciais:</p>
+        <form id="authEditForm">
+            <div class="form-group">
+                <label for="authEditUser">Usuário:</label>
+                <input type="text" id="authEditUser" required class="w-full">
+            </div>
+            <div class="form-group">
+                <label for="authEditPassword">Senha:</label>
+                <input type="password" id="authEditPassword" required class="w-full">
+            </div>
+            <div class="flex gap-4 mt-6">
+                <button type="submit" class="btn btn-primary flex-1">Autenticar</button>
+                <button type="button" class="btn btn-danger flex-1" onclick="closeAuthEditModal()">Cancelar</button>
+            </div>
+        </form>
+        <div id="authEditAlert" class="mt-4"></div>
     </div>
-
+</div>
     <div id="editExpeditionModal" class="modal-overlay">
-        <div class="modal-content">
+         <div class="modal-content">
             <h3 class="text-xl font-semibold mb-4" id="editModalTitle">Editar Expedição</h3>
             <form id="editExpeditionForm">
                 <input type="hidden" id="editExpeditionId">
                 
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="editVeiculo">Veículo:</label>
-                        <select id="editVeiculo" class="w-full">
-                            <option value="">Selecione o veículo</option>
-                            <!-- Será preenchido dinamicamente -->
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="editMotorista">Motorista:</label>
-                        <select id="editMotorista" class="w-full">
-                            <option value="">Selecione o motorista</option>
-                            <!-- Será preenchido dinamicamente -->
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="editDoca">Doca:</label>
-                        <select id="editDoca" class="w-full">
-                            <option value="">Selecione a doca</option>
-                            <!-- Será preenchido dinamicamente -->
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="editLider">Líder:</label>
-                        <select id="editLider" class="w-full">
-                            <option value="">Selecione o líder</option>
-                            <!-- Será preenchido dinamicamente -->
-                        </select>
-                    </div>
-                </div>
+<div class="form-grid">
+    <div class="form-group">
+        <label for="editVeiculo">Veículo:</label>
+        <select id="editVeiculo" class="w-full">
+            <option value="">Selecione o veículo</option>
+            </select>
+    </div>
+    <div class="form-group">
+        <label for="editMotorista">Motorista:</label>
+        <select id="editMotorista" class="w-full">
+            <option value="">Selecione o motorista</option>
+            </select>
+    </div>
+    <div class="form-group">
+        <label for="editDoca">Doca:</label>
+        <select id="editDoca" class="w-full">
+            <option value="">Selecione a doca</option>
+            </select>
+    </div>
+    <div class="form-group">
+        <label for="editLider">Líder:</label>
+        <select id="editLider" class="w-full">
+            <option value="">Selecione o líder</option>
+            </select>
+    </div>
+</div>
 
                 <div id="editLojasContainer" class="my-4 space-y-4">
                     <h4 class="font-semibold text-gray-700">Lojas e Quantidades</h4>
@@ -352,9 +335,8 @@
             <div id="editFormAlert" class="mt-4"></div>
         </div>
     </div>
-
     <div id="addFormModal" class="modal-overlay">
-        <div class="modal-content">
+         <div class="modal-content">
             <h3 class="text-xl font-semibold mb-4" id="addFormTitle">Adicionar Item</h3>
             <form id="addForm">
                 <div id="addFormFields" class="form-grid"></div>
@@ -368,9 +350,7 @@
     </div>
     
     <div id="notificationContainer"></div>
-
-    <!-- Modal do Mapa -->
-    <div id="mapModal" class="modal-overlay">
+<div id="mapModal" class="modal-overlay">
         <div class="modal-content" style="width: 90vw; max-width: 1200px; height: 80vh;">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-semibold" id="mapModalTitle">Localização em Tempo Real</h3>
@@ -379,37 +359,41 @@
             <div id="map" style="height: calc(100% - 60px); width: 100%; border-radius: 8px;"></div>
         </div>
     </div>
-
-    <!-- Modal de Detalhes da Expedição -->
-    <div id="detalhesExpedicaoModal" class="modal-overlay">
-        <div class="modal-content" style="width: 95vw; max-width: 1000px; max-height: 90vh; overflow-y: auto;">
-            <div class="flex justify-between items-center mb-4 no-print">
-                <h3 class="text-xl font-semibold">Detalhes da Expedição</h3>
-                <div class="flex gap-2">
-                    <button class="btn btn-primary btn-small" onclick="imprimirDetalhes()">🖨️ Imprimir</button>
-                    <button class="btn btn-danger btn-small" onclick="closeDetalhesModal()">Fechar</button>
-                </div>
-            </div>
-            
-            <div id="detalhesContent" class="bg-white p-4">
-                <!-- Conteúdo será preenchido dinamicamente -->
+<div id="detalhesExpedicaoModal" class="modal-overlay">
+    <div class="modal-content" style="width: 95vw; max-width: 1000px; max-height: 90vh; overflow-y: auto;">
+        <div class="flex justify-between items-center mb-4 no-print">
+            <h3 class="text-xl font-semibold">Detalhes da Expedição</h3>
+            <div class="flex gap-2">
+                <button class="btn btn-primary btn-small" onclick="imprimirDetalhes()">🖨️ Imprimir</button>
+                <button class="btn btn-danger btn-small" onclick="closeDetalhesModal()">Fechar</button>
             </div>
         </div>
+        
+        <div id="detalhesContent" class="bg-white p-4">
+            </div>
     </div>
-
-    <!-- Modal de Ordem de Carregamento -->
+</div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="app.js"></script>
     <div id="ordemCarregamentoModal" class="modal-overlay">
-        <div class="modal-content" style="width: 90vw; max-width: 600px;">
-            <h3 class="text-xl font-semibold mb-4">Definir Ordem de Carregamento</h3>
-            <p class="text-gray-600 mb-4">Arraste e solte as lojas para definir a ordem de entrega. A primeira da lista será a primeira a ser visitada.</p>
-            <ul id="ordemLojasList" class="space-y-2">
+    <div class="modal-content" style="width: 90vw; max-width: 600px;">
+        <h3 class="text-xl font-semibold mb-4">Definir Ordem de Carregamento</h3>
+        <p class="text-gray-600 mb-4">Arraste e solte as lojas para definir a ordem de entrega. A primeira da lista será a primeira a ser visitada.</p>
+        <ul id="ordemLojasList" class="space-y-2">
             </ul>
-            <div class="flex gap-4 mt-6">
-                <button type="button" class="btn btn-success flex-1" onclick="saveOrdemCarregamento()">Salvar Ordem</button>
-                <button type="button" class="btn btn-danger flex-1" onclick="closeOrdemCarregamentoModal()">Cancelar</button>
-            </div>
-            <input type="hidden" id="ordemExpeditionId">
+        <div class="flex gap-4 mt-6">
+            <button type="button" class="btn btn-success flex-1" onclick="saveOrdemCarregamento()">Salvar Ordem</button>
+            <button type="button" class="btn btn-danger flex-1" onclick="closeOrdemCarregamentoModal()">Cancelar</button>
         </div>
+        <input type="hidden" id="ordemExpeditionId">
     </div>
+</div>
 </body>
 </html>
