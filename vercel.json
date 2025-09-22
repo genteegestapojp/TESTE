@@ -1,15 +1,22 @@
 {
   "version": 2,
   "buildCommand": "echo 'Build completed'",
-  "outputDirectory": "api",
   "routes": [
     {
       "src": "/",
-      "dest": "/index.html"
+      "dest": "/api/index.html"
     },
     {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "src": "/css/(.*)",
+      "dest": "/api/css/$1"
+    },
+    {
+      "src": "/js/(.*)",
+      "dest": "/api/js/$1"
+    },
+    {
+      "src": "/(.*\\.(css|js|png|jpg|svg|ico|json))",
+      "dest": "/api/$1"
     }
   ]
 }
