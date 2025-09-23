@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Controle de Expedição</title>
     
-    <!-- CAMINHOS CORRIGIDOS PARA PASTA API -->
-   <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="favicon.png">
-<link rel="stylesheet" href="css/style.css">
+    <!-- RECURSOS LOCAIS -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABRElEQVR42u2XO0oDQRiF3wQSxQfYCVoI1tpYWVnYWNjY2NjY2NjYWFlY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2Nj/wMyEuZmdye5mA/7h+2cOkJmZmZmZmZmZmZmZmZmZmZn9Ax8WQAghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBD+F2A=">
+    <link rel="stylesheet" href="css/style.css">
     
     <!-- BIBLIOTECAS EXTERNAS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -60,7 +60,7 @@
             </div>
 
             <nav class="p-4">
-                 <a href="#home" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer active" onclick="showView('home', this)">
+                <a href="#home" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer active" onclick="showView('home', this)">
                     <i data-feather="home" class="h-5 w-5 mr-3"></i>
                     <span>Home</span>
                 </a>
@@ -176,8 +176,6 @@
                             <canvas id="frotaProdutividadeChart"></canvas>
                         </div>
                     </div>
-                    
-                    <!-- Continue com o resto do HTML... -->
                 </div>
 
                 <!-- Outras views continuam iguais -->
@@ -193,7 +191,7 @@
         </main>
     </div>
 
-    <!-- MODAIS continuam iguais -->
+    <!-- TODOS OS MODAIS AQUI -->
     <div id="qrModal" class="modal-overlay">
         <div class="modal-content">
             <h3 class="modal-title" id="qrModalTitle"></h3>
@@ -347,7 +345,7 @@
         </div>
     </div>
 
-    <!-- SCRIPTS - ORDEM CRÍTICA COM CAMINHOS CORRIGIDOS -->
+    <!-- SCRIPTS COM ORDEM CORRIGIDA -->
     
     <!-- 1. BIBLIOTECAS EXTERNAS PRIMEIRO -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -358,55 +356,105 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     
-    <!-- SCRIPTS NA ORDEM CORRETA -->
-<script>
-// Aguardar todas as bibliotecas carregarem
-window.addEventListener('load', function() {
-    // Verificar dependências
-    const deps = {
-        'AOS': typeof AOS !== 'undefined',
-        'feather': typeof feather !== 'undefined',
-        'Chart': typeof Chart !== 'undefined',
-        'L': typeof L !== 'undefined'
-    };
-    
-    const missing = Object.keys(deps).filter(key => !deps[key]);
-    
-    if (missing.length > 0) {
-        console.error('❌ Bibliotecas faltando:', missing);
-        document.getElementById('connection-status').innerHTML = '❌ Erro: Bibliotecas não carregaram';
-        document.getElementById('connection-status').style.background = '#ef4444';
-        return;
-    }
-    
-    // Inicializar bibliotecas
-    AOS.init();
-    feather.replace();
-    Chart.register(ChartDataLabels);
-    
-    // Carregar app.js
-    const script = document.createElement('script');
-    script.src = 'js/app.js';
-    script.onload = function() {
-        console.log('✅ app.js carregado');
-        document.getElementById('connection-status').innerHTML = '✅ Carregando filiais...';
-        setTimeout(() => {
-            if (typeof loadFiliais === 'function') {
-                loadFiliais();
+    <!-- 2. SCRIPT DE INICIALIZAÇÃO SEGURA -->
+    <script>
+        // Aguardar TODAS as bibliotecas carregarem antes de inicializar
+        let loadingAttempts = 0;
+        const maxAttempts = 50;
+        
+        function waitForDependencies() {
+            loadingAttempts++;
+            
+            // Verificar se todas as dependências estão disponíveis
+            const dependencies = {
+                'AOS': typeof AOS !== 'undefined',
+                'feather': typeof feather !== 'undefined',
+                'Chart': typeof Chart !== 'undefined',
+                'L': typeof L !== 'undefined',
+                'Html5Qrcode': typeof Html5Qrcode !== 'undefined',
+                'ChartDataLabels': typeof ChartDataLabels !== 'undefined'
+            };
+            
+            const missing = Object.keys(dependencies).filter(key => !dependencies[key]);
+            
+            if (missing.length === 0) {
+                // Todas as dependências carregadas
+                console.log('✅ Todas as dependências carregadas');
+                initializeApp();
+            } else if (loadingAttempts < maxAttempts) {
+                console.log(`⏳ Tentativa ${loadingAttempts}/${maxAttempts} - Aguardando:`, missing.join(', '));
+                setTimeout(waitForDependencies, 100);
             } else {
-                console.error('❌ Função loadFiliais não encontrada');
-                document.getElementById('connection-status').innerHTML = '❌ Erro: Funções não carregaram';
+                console.error('❌ Falha ao carregar dependências após', maxAttempts, 'tentativas');
+                document.getElementById('connection-status').innerHTML = '❌ Erro: Bibliotecas não carregaram';
+                document.getElementById('connection-status').style.background = '#ef4444';
             }
-        }, 500);
-    };
-    script.onerror = function() {
-        console.error('❌ Erro ao carregar app.js');
-        document.getElementById('connection-status').innerHTML = '❌ Erro: app.js não encontrado';
-        document.getElementById('connection-status').style.background = '#ef4444';
-    };
-    document.head.appendChild(script);
-});
-</script>
+        }
+        
+        function initializeApp() {
+            try {
+                // Inicializar bibliotecas
+                AOS.init({
+                    duration: 600,
+                    once: true
+                });
+                feather.replace();
+                if (typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined') {
+                    Chart.register(ChartDataLabels);
+                }
+                
+                document.getElementById('connection-status').innerHTML = '✅ Carregando sistema...';
+                document.getElementById('connection-status').style.background = '#10b981';
+                
+                // Carregar o JavaScript principal
+                loadMainScript();
+                
+            } catch (error) {
+                console.error('❌ Erro na inicialização:', error);
+                document.getElementById('connection-status').innerHTML = '❌ Erro na inicialização';
+                document.getElementById('connection-status').style.background = '#ef4444';
+            }
+        }
+        
+        function loadMainScript() {
+            const script = document.createElement('script');
+            script.src = './js/app.js';
+            script.onload = function() {
+                console.log('✅ app.js carregado com sucesso');
+                document.getElementById('connection-status').innerHTML = '✅ Carregando filiais...';
+                
+                // Aguardar um pouco antes de inicializar as filiais
+                setTimeout(() => {
+                    if (typeof loadFiliais === 'function') {
+                        loadFiliais().then(() => {
+                            setTimeout(() => {
+                                const statusEl = document.getElementById('connection-status');
+                                if (statusEl) statusEl.style.display = 'none';
+                            }, 2000);
+                        });
+                    } else {
+                        console.error('❌ Função loadFiliais não encontrada');
+                        document.getElementById('connection-status').innerHTML = '❌ Erro: Funções não carregaram';
+                    }
+                }, 500);
+            };
+            
+            script.onerror = function() {
+                console.error('❌ Erro ao carregar app.js');
+                document.getElementById('connection-status').innerHTML = '❌ Erro: app.js não encontrado';
+                document.getElementById('connection-status').style.background = '#ef4444';
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        // Iniciar verificação quando o DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', waitForDependencies);
+        } else {
+            waitForDependencies();
+        }
+    </script>
 
 </body>
 </html>
