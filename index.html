@@ -5,47 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Controle de Expedição</title>
     
-    <!-- RECURSOS LOCAIS -->
+    <link rel="stylesheet" href="style.css">
+    
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABRElEQVR42u2XO0oDQRiF3wQSxQfYCVoI1tpYWVnYWNjY2NjY2NjYWFlY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2Nj/wMyEuZmdye5mA/7h+2cOkJmZmZmZmZmZmZmZmZmZmZn9Ax8WQAghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBD+F2A=">
-    <link rel="stylesheet" href="css/style.css">
-    
-    <!-- BIBLIOTECAS EXTERNAS -->
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    
-    <!-- TAILWIND CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#00D4AA',
-                        secondary: '#00B4D8',
-                        accent: '#0077B6'
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 </head>
 <body class="bg-gray-100 font-sans">
-    
-    <!-- INDICADOR DE STATUS -->
-    <div id="connection-status" style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: #f59e0b; color: white; text-align: center; padding: 8px; font-weight: bold;">
-        🔄 Carregando sistema...
-    </div>
     
     <div id="filialSelectionContainer" class="filial-selection-container">
         <div id="filialSelection" class="filial-selection">
             <h2>Selecione a Filial</h2>
             <p>Escolha a filial para acessar o sistema de expedição</p>
             <div id="filiaisGrid" class="filiais-grid">
-                <!-- Será preenchido dinamicamente -->
-            </div>
+                </div>
         </div>
     </div>
 
@@ -58,7 +42,6 @@
                 </div>
                 <p class="text-sm text-gray-300 mt-2">Filial: <span class="font-medium" id="sidebarFilial">N/A</span></p>
             </div>
-
             <nav class="p-4">
                 <a href="#home" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer active" onclick="showView('home', this)">
                     <i data-feather="home" class="h-5 w-5 mr-3"></i>
@@ -102,83 +85,7 @@
         <main class="flex-1 overflow-auto bg-gray-100 main-content">
             <div class="container mx-auto px-6 py-8">
                 
-                <div id="home" class="view-content active">
-                    <h1 class="text-3xl font-bold text-gray-800 mb-6">Home</h1>
-                    
-                    <div class="filters-section">
-                        <div class="filters-grid">
-                            <div class="form-group">
-                                <label for="homeDataInicio">Data Início:</label>
-                                <input type="date" id="homeDataInicio" onchange="loadHomeData()">
-                            </div>
-                            <div class="form-group">
-                                <label for="homeDataFim">Data Fim:</label>
-                                <input type="date" id="homeDataFim" onchange="loadHomeData()">
-                            </div>
-                            <div class="form-group">
-                                <label for="homeSearchInput">Busca Aberta:</label>
-                                <input type="text" id="homeSearchInput" placeholder="Buscar por Loja, Motorista..." onkeyup="loadHomeData()">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
-                        <div class="stat-card-dash">
-                            <div class="flex items-center">
-                                <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="truck" class="h-6 w-6 text-white"></i></div>
-                                <div class="ml-4">
-                                    <h3 class="text-2xl font-bold" id="homeViagensConcluidas">0</h3>
-                                    <p class="text-white text-opacity-80">Viagens Concluídas</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="stat-card-dash" style="background: var(--secondary-gradient);">
-                            <div class="flex items-center">
-                                <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="package" class="h-6 w-6 text-white"></i></div>
-                                <div class="ml-4">
-                                    <h3 class="text-2xl font-bold" id="homeEntregasRealizadas">0</h3>
-                                    <p class="text-white text-opacity-80">Entregas Realizadas</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="stat-card-dash" style="background: var(--accent-gradient);">
-                            <div class="flex items-center">
-                                <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="clock" class="h-6 w-6 text-white"></i></div>
-                                <div class="ml-4">
-                                    <h3 class="text-2xl font-bold" id="homeTempoMedioPatio">00:00</h3>
-                                    <p class="text-white text-opacity-80">Tempo Médio Pátio</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="stat-card-dash" style="background: linear-gradient(135deg, #FCBF49, #F77F00);">
-                            <div class="flex items-center">
-                                <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="shopping-bag" class="h-6 w-6 text-white"></i></div>
-                                <div class="ml-4">
-                                    <h3 class="text-2xl font-bold" id="homeTempoMedioLoja">00:00</h3>
-                                    <p class="text-white text-opacity-80">Tempo Médio em Loja</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="stat-card-dash" style="background: linear-gradient(135deg, #7209B7, #A663CC);">
-                            <div class="flex items-center">
-                                <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="pie-chart" class="h-6 w-6 text-white"></i></div>
-                                <div class="ml-4">
-                                    <h3 class="text-2xl font-bold" id="homeOcupacaoMedia">0%</h3>
-                                    <p class="text-white text-opacity-80">Ocupação Média</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white rounded-xl shadow-md p-6 mb-8" data-aos="fade-up">
-                        <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Top 5 Produtividade de Motoristas (por Entregas)</h2>
-                        <div class="relative" style="height: 250px;">
-                            <canvas id="frotaProdutividadeChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Outras views continuam iguais -->
+                <div id="home" class="view-content active"></div>
                 <div id="operacao" class="view-content"></div>
                 <div id="transporte" class="view-content"></div>
                 <div id="faturamento" class="view-content"></div>
@@ -191,7 +98,6 @@
         </main>
     </div>
 
-    <!-- TODOS OS MODAIS AQUI -->
     <div id="qrModal" class="modal-overlay">
         <div class="modal-content">
             <h3 class="modal-title" id="qrModalTitle"></h3>
@@ -234,37 +140,28 @@
             <div id="authEditAlert" class="mt-4"></div>
         </div>
     </div>
-    
+
     <div id="editExpeditionModal" class="modal-overlay">
-        <div class="modal-content">
+         <div class="modal-content">
             <h3 class="text-xl font-semibold mb-4" id="editModalTitle">Editar Expedição</h3>
             <form id="editExpeditionForm">
                 <input type="hidden" id="editExpeditionId">
-                
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="editVeiculo">Veículo:</label>
-                        <select id="editVeiculo" class="w-full">
-                            <option value="">Selecione o veículo</option>
-                        </select>
+                        <select id="editVeiculo" class="w-full"></select>
                     </div>
                     <div class="form-group">
                         <label for="editMotorista">Motorista:</label>
-                        <select id="editMotorista" class="w-full">
-                            <option value="">Selecione o motorista</option>
-                        </select>
+                        <select id="editMotorista" class="w-full"></select>
                     </div>
                     <div class="form-group">
                         <label for="editDoca">Doca:</label>
-                        <select id="editDoca" class="w-full">
-                            <option value="">Selecione a doca</option>
-                        </select>
+                        <select id="editDoca" class="w-full"></select>
                     </div>
                     <div class="form-group">
                         <label for="editLider">Líder:</label>
-                        <select id="editLider" class="w-full">
-                            <option value="">Selecione o líder</option>
-                        </select>
+                        <select id="editLider" class="w-full"></select>
                     </div>
                 </div>
 
@@ -288,9 +185,9 @@
             <div id="editFormAlert" class="mt-4"></div>
         </div>
     </div>
-    
+
     <div id="addFormModal" class="modal-overlay">
-        <div class="modal-content">
+         <div class="modal-content">
             <h3 class="text-xl font-semibold mb-4" id="addFormTitle">Adicionar Item</h3>
             <form id="addForm">
                 <div id="addFormFields" class="form-grid"></div>
@@ -302,8 +199,7 @@
             <div id="addFormAlert" class="mt-4"></div>
         </div>
     </div>
-    
-    <div id="notificationContainer"></div>
+
     <div id="mapModal" class="modal-overlay">
         <div class="modal-content" style="width: 90vw; max-width: 1200px; height: 80vh;">
             <div class="flex justify-between items-center mb-4">
@@ -313,7 +209,7 @@
             <div id="map" style="height: calc(100% - 60px); width: 100%; border-radius: 8px;"></div>
         </div>
     </div>
-    
+
     <div id="detalhesExpedicaoModal" class="modal-overlay">
         <div class="modal-content" style="width: 95vw; max-width: 1000px; max-height: 90vh; overflow-y: auto;">
             <div class="flex justify-between items-center mb-4 no-print">
@@ -323,20 +219,17 @@
                     <button class="btn btn-danger btn-small" onclick="closeDetalhesModal()">Fechar</button>
                 </div>
             </div>
-            
             <div id="detalhesContent" class="bg-white p-4">
-                <!-- Conteúdo será preenchido dinamicamente -->
-            </div>
+                </div>
         </div>
     </div>
-    
+
     <div id="ordemCarregamentoModal" class="modal-overlay">
         <div class="modal-content" style="width: 90vw; max-width: 600px;">
             <h3 class="text-xl font-semibold mb-4">Definir Ordem de Carregamento</h3>
             <p class="text-gray-600 mb-4">Arraste e solte as lojas para definir a ordem de entrega. A primeira da lista será a primeira a ser visitada.</p>
             <ul id="ordemLojasList" class="space-y-2">
-                <!-- Será preenchido dinamicamente -->
-            </ul>
+                </ul>
             <div class="flex gap-4 mt-6">
                 <button type="button" class="btn btn-success flex-1" onclick="saveOrdemCarregamento()">Salvar Ordem</button>
                 <button type="button" class="btn btn-danger flex-1" onclick="closeOrdemCarregamentoModal()">Cancelar</button>
@@ -345,116 +238,9 @@
         </div>
     </div>
 
-    <!-- SCRIPTS COM ORDEM CORRIGIDA -->
+    <div id="notificationContainer"></div>
     
-    <!-- 1. BIBLIOTECAS EXTERNAS PRIMEIRO -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    
-    <!-- 2. SCRIPT DE INICIALIZAÇÃO SEGURA -->
-    <script>
-        // Aguardar TODAS as bibliotecas carregarem antes de inicializar
-        let loadingAttempts = 0;
-        const maxAttempts = 50;
-        
-        function waitForDependencies() {
-            loadingAttempts++;
-            
-            // Verificar se todas as dependências estão disponíveis
-            const dependencies = {
-                'AOS': typeof AOS !== 'undefined',
-                'feather': typeof feather !== 'undefined',
-                'Chart': typeof Chart !== 'undefined',
-                'L': typeof L !== 'undefined',
-                'Html5Qrcode': typeof Html5Qrcode !== 'undefined',
-                'ChartDataLabels': typeof ChartDataLabels !== 'undefined'
-            };
-            
-            const missing = Object.keys(dependencies).filter(key => !dependencies[key]);
-            
-            if (missing.length === 0) {
-                // Todas as dependências carregadas
-                console.log('✅ Todas as dependências carregadas');
-                initializeApp();
-            } else if (loadingAttempts < maxAttempts) {
-                console.log(`⏳ Tentativa ${loadingAttempts}/${maxAttempts} - Aguardando:`, missing.join(', '));
-                setTimeout(waitForDependencies, 100);
-            } else {
-                console.error('❌ Falha ao carregar dependências após', maxAttempts, 'tentativas');
-                document.getElementById('connection-status').innerHTML = '❌ Erro: Bibliotecas não carregaram';
-                document.getElementById('connection-status').style.background = '#ef4444';
-            }
-        }
-        
-        function initializeApp() {
-            try {
-                // Inicializar bibliotecas
-                AOS.init({
-                    duration: 600,
-                    once: true
-                });
-                feather.replace();
-                if (typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined') {
-                    Chart.register(ChartDataLabels);
-                }
-                
-                document.getElementById('connection-status').innerHTML = '✅ Carregando sistema...';
-                document.getElementById('connection-status').style.background = '#10b981';
-                
-                // Carregar o JavaScript principal
-                loadMainScript();
-                
-            } catch (error) {
-                console.error('❌ Erro na inicialização:', error);
-                document.getElementById('connection-status').innerHTML = '❌ Erro na inicialização';
-                document.getElementById('connection-status').style.background = '#ef4444';
-            }
-        }
-        
-        function loadMainScript() {
-            const script = document.createElement('script');
-            script.src = './js/app.js';
-            script.onload = function() {
-                console.log('✅ app.js carregado com sucesso');
-                document.getElementById('connection-status').innerHTML = '✅ Carregando filiais...';
-                
-                // Aguardar um pouco antes de inicializar as filiais
-                setTimeout(() => {
-                    if (typeof loadFiliais === 'function') {
-                        loadFiliais().then(() => {
-                            setTimeout(() => {
-                                const statusEl = document.getElementById('connection-status');
-                                if (statusEl) statusEl.style.display = 'none';
-                            }, 2000);
-                        });
-                    } else {
-                        console.error('❌ Função loadFiliais não encontrada');
-                        document.getElementById('connection-status').innerHTML = '❌ Erro: Funções não carregaram';
-                    }
-                }, 500);
-            };
-            
-            script.onerror = function() {
-                console.error('❌ Erro ao carregar app.js');
-                document.getElementById('connection-status').innerHTML = '❌ Erro: app.js não encontrado';
-                document.getElementById('connection-status').style.background = '#ef4444';
-            };
-            
-            document.head.appendChild(script);
-        }
-        
-        // Iniciar verificação quando o DOM estiver pronto
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', waitForDependencies);
-        } else {
-            waitForDependencies();
-        }
-    </script>
+    <script src="script.js"></script>
 
 </body>
 </html>
