@@ -1,3 +1,289 @@
+// ==========================================
+// SISTEMA DE CONTROLE DE EXPEDIÇÃO - v2.0
+// ==========================================
+
+// VERIFICAÇÃO DE DEPENDÊNCIAS (Segurança extra)
+if (typeof AOS === 'undefined') {
+    console.error('❌ AOS não está definido');
+    throw new Error('Biblioteca AOS não carregada');
+}
+
+if (typeof feather === 'undefined') {
+    console.error('❌ Feather não está definido');
+    throw new Error('Biblioteca Feather Icons não carregada');
+}
+
+if (typeof Chart === 'undefined') {
+    console.error('❌ Chart.js não está definido');
+    throw new Error('Biblioteca Chart.js não carregada');
+}
+
+if (typeof L === 'undefined') {
+    console.error('❌ Leaflet não está definido');
+    throw new Error('Biblioteca Leaflet não carregada');
+}
+
+// INICIALIZAÇÃO SEGURA DAS BIBLIOTECAS
+try {
+    // Não inicializar aqui - será feito pelo index.html
+    console.log('✅ Dependências verificadas com sucesso');
+} catch (error) {
+    console.error('❌ Erro na verificação de dependências:', error);
+    throw error;
+}
+
+// --- CONFIGURAÇÃO DA API REST DO SUPABASE ---
+const SUPABASE_URL = 'https://owsoweqqttcmuuaohxke.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93c293ZXFxdHRjbXV1YW9oeGtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMjQ5OTAsImV4cCI6MjA3MTgwMDk5MH0.Iee27SUOIkhMFvgDWXrW3C38DUuMr0MyVtR-NjF6FRk';
+
+const headers = {
+    'apikey': SUPABASE_ANON_KEY,
+    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+    'Content-Type': 'application/json'
+};
+
+// --- VARIÁVEIS GLOBAIS ---
+let lojas = [], docas = [], lideres = [], veiculos = [], motoristas = [], filiais = [];
+let selectedFilial = null;
+let currentUser = null;
+let cargasDisponiveis = [];
+let allExpeditions = [], filteredExpeditions = [];
+let allHistorico = [], filteredHistorico = [];
+let chartInstances = {};
+let html5QrCodeScanner = null;
+let scannerIsRunning = false;
+let activeTimers = {};
+let modalState = { action: null, scannedValue: null, mainId: null, secondaryId: null, expectedCode: null };
+let editLojaLineCounter = 0;
+let rastreioTimer = null;
+let rastreioData = [];
+let pontosInteresse = [];
+let homeMapInstance = null;
+let homeMapTimer = null;
+
+// --- FUNÇÃO PRINCIPAL DE REQUISIÇÃO AO SUPABASE ---
+async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true) {
+    let url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
+    
+    if (includeFilialFilter && selectedFilial && method === 'GET') {
+        const separator = url.includes('?') ? '&' : '?';
+        url += `${separator}filial=eq.${selectedFilial.nome}`;
+    }
+    
+    const options = { 
+        method, 
+        headers: { ...headers } 
+    };
+    
+    if (data && (method === 'POST' || method === 'PATCH')) {
+        if (includeFilialFilter && selectedFilial) {
+            if (Array.isArray(data)) {
+                data = data.map(item => ({ ...item, filial: selectedFilial.nome }));
+            } else {
+                data = { ...data, filial: selectedFilial.nome };
+            }
+        }
+        options.body = JSON.stringify(data);
+        if (method !== 'DELETE') {
+            options.headers.Prefer = 'return=representation';
+        }
+    }
+    
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Erro ${response.status}: ${errorText}`);
+        }
+        return method === 'DELETE' ? null : await response.json();
+    } catch (error) {
+        console.error(`Falha na requisição: ${method} ${url}`, error);
+        showNotification(`Erro de comunicação com o servidor: ${error.message}`, 'error');
+        throw error;
+    }
+}
+
+// --- SISTEMA DE NOTIFICAÇÕES ---
+function showNotification(message, type = 'info', timeout = 4000) {
+    const container = document.getElementById('notificationContainer');
+    if (!container) {
+        console.warn('Container de notificações não encontrado');
+        return;
+    }
+
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    
+    let icon = '';
+    let title = '';
+    if (type === 'success') {
+        icon = '<i data-feather="check-circle" class="h-5 w-5 mr-2"></i>';
+        title = 'Sucesso!';
+    } else if (type === 'error') {
+        icon = '<i data-feather="x-circle" class="h-5 w-5 mr-2"></i>';
+        title = 'Erro!';
+    } else if (type === 'info') {
+        icon = '<i data-feather="info" class="h-5 w-5 mr-2"></i>';
+        title = 'Informação';
+    }
+    
+    notification.innerHTML = `
+        <div class="notification-header">
+            ${icon}
+            <span>${title}</span>
+        </div>
+        <div class="notification-body">${message}</div>
+    `;
+    
+    container.appendChild(notification);
+    
+    // Redesenhar ícones Feather
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+
+    setTimeout(() => {
+        notification.classList.add('hide');
+        notification.addEventListener('animationend', () => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        });
+    }, timeout);
+}
+
+// --- FUNÇÕES DE NAVEGAÇÃO ---
+function showView(viewId, element) {
+    // Esconder todas as views
+    document.querySelectorAll('.view-content').forEach(view => {
+        view.classList.remove('active');
+    });
+    
+    // Mostrar a view selecionada
+    const targetView = document.getElementById(viewId);
+    if (targetView) {
+        targetView.classList.add('active');
+    }
+
+    // Atualizar navegação ativa
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    if (element) {
+        element.classList.add('active');
+    }
+
+    // Limpar timers antigos
+    Object.values(activeTimers).forEach(timer => {
+        if (timer) clearInterval(timer);
+    });
+    activeTimers = {};
+
+    // Limpar timers específicos
+    if (rastreioTimer) {
+        clearInterval(rastreioTimer);
+        rastreioTimer = null;
+    }
+
+    if (homeMapTimer) {
+        clearInterval(homeMapTimer);
+        homeMapTimer = null;
+    }
+
+    // Carregar dados da view selecionada
+    try {
+        switch(viewId) {
+            case 'home': 
+                loadHomeData(); 
+                break;
+            case 'transporte': 
+                loadTransportList(); 
+                break;
+            case 'faturamento': 
+                loadFaturamento(); 
+                break;
+            case 'motoristas': 
+                loadMotoristaTab(); 
+                break;
+            case 'acompanhamento': 
+                loadAcompanhamento(); 
+                break;
+            case 'historico': 
+                loadHistorico(); 
+                break;
+            case 'configuracoes': 
+                loadConfiguracoes(); 
+                break;
+            case 'operacao': 
+                loadOperacao(); 
+                break;
+            default:
+                console.log(`View ${viewId} não tem função de carregamento específica`);
+        }
+        
+        // Redesenhar ícones após mudança de view
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+        
+    } catch (error) {
+        console.error(`Erro ao carregar view ${viewId}:`, error);
+        showNotification(`Erro ao carregar ${viewId}: ${error.message}`, 'error');
+    }
+}
+
+// Resto do código continua igual...
+
+// === CARREGAR FILIAIS ===
+async function loadFiliais() {
+    console.log('🔄 Carregando filiais...');
+    
+    try {
+        const filiaisData = await supabaseRequest('filiais?select=nome,descricao,ativo&ativo=eq.true&order=nome', 'GET', null, false);
+        
+        if (!filiaisData || filiaisData.length === 0) {
+            throw new Error('Nenhuma filial ativa encontrada');
+        }
+        
+        const grid = document.getElementById('filiaisGrid');
+        if (!grid) {
+            throw new Error('Elemento filiaisGrid não encontrado');
+        }
+        
+        grid.innerHTML = '';
+        filiaisData.forEach(filial => {
+            const card = document.createElement('div');
+            card.className = 'filial-card';
+            card.onclick = () => selectFilial(filial);
+            card.innerHTML = `
+                <h3>${filial.nome}</h3>
+                <p>${filial.descricao || 'Descrição não informada'}</p>
+            `;
+            grid.appendChild(card);
+        });
+        
+        filiais = filiaisData;
+        console.log(`✅ ${filiaisData.length} filiais carregadas`);
+        
+        return filiaisData;
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar filiais:', error);
+        const grid = document.getElementById('filiaisGrid');
+        if (grid) {
+            grid.innerHTML = `
+                <div class="alert alert-error" style="grid-column: 1 / -1;">
+                    <p>Erro ao carregar filiais: ${error.message}</p>
+                    <button class="btn btn-primary mt-2" onclick="loadFiliais()">Tentar Novamente</button>
+                </div>
+            `;
+        }
+        throw error;
+    }
+}
+
+// === CONTINUA COM O RESTO DO CÓDIGO... ===
+
 // Inicializa bibliotecas
 AOS.init();
 feather.replace();
