@@ -1404,24 +1404,24 @@ async function loadHomeData() {
             renderChart('lojaDesempenhoChart', 'bar', data, {
                 responsive: true,
                 maintainAspectRatio: false,
-               plugins: {
-                legend: { display: false },
-                datalabels: {
-                    color: 'white',
-                    font: { weight: 'bold' },
-                    formatter: (value) => minutesToHHMM(value),
-                    anchor: 'center',
-                    align: 'center'
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const loja = lojasData[context.dataIndex];
-                            return [ `Tempo Médio: ${minutesToHHMM(context.raw)}`, `Total de Entregas: ${loja.entregas}` ];
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        color: 'white',
+                        font: { weight: 'bold' },
+                        formatter: (value) => minutesToHHMM(value),
+                        anchor: 'center',
+                        align: 'center',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const loja = lojasData[context.dataIndex];
+                                return [ `Tempo Médio: ${minutesToHHMM(context.raw)}`, `Total de Entregas: ${loja.entregas}` ];
+                            }
                         }
                     }
-                }
-            },
+                },
                 scales: {
                     y: {
                         display: false,
@@ -4005,11 +4005,17 @@ function updateLastRefreshTime() {
 renderEntregasChart(entregasFort, entregasComper);
         }
         
-        function renderLojasRankingChart(lojasData) {
+       function renderLojasRankingChart(lojasData) {
             const ranking = Object.values(lojasData)
-                .map(loja => ({ ...loja, tempoMedio: loja.tempos.reduce((a, b) => a + b, 0) / loja.tempos.length }))
+                .map(loja => ({ ...loja, tempoMedio: (loja.tempos && loja.tempos.length > 0) ? loja.tempos.reduce((a, b) => a + b, 0) / loja.tempos.length : 0 }))
+                .filter(loja => loja.tempoMedio > 0)
                 .sort((a, b) => b.tempoMedio - a.tempoMedio)
                 .slice(0, 10);
+
+            if (ranking.length === 0) {
+                destroyChart('lojasRankingChart');
+                return;
+            }
             
             const backgroundColors = ranking.map(l => l.nome.toLowerCase().includes('fort') ? 'rgba(214, 40, 40, 0.7)' : 'rgba(0, 119, 182, 0.7)');
 
