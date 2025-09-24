@@ -1,5 +1,5 @@
  // --- INÍCIO DO SCRIPT ADAPTADO ---
-        
+        Chart.register(ChartDataLabels);
         // API REST do Supabase e Headers (do sistema original)
         const SUPABASE_URL = 'https://owsoweqqttcmuuaohxke.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93c293ZXFxdHRjbXV1YW9oeGtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMjQ5OTAsImV4cCI6MjA3MTgwMDk5MH0.Iee27SUOIkhMFvgDWXrW3C38DUuMr0MyVtR-NjF6FRk';
