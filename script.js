@@ -1050,188 +1050,195 @@ document.getElementById('authEditForm').addEventListener('submit', (e) => {
         }
 
 async function loadHomeData() {
-            const dataInicioInput = document.getElementById('homeDataInicio');
-            const dataFimInput = document.getElementById('homeDataFim');
-            const searchInput = document.getElementById('homeSearchInput').value.toLowerCase();
+    const dataInicioInput = document.getElementById('homeDataInicio');
+    const dataFimInput = document.getElementById('homeDataFim');
+    const searchInput = document.getElementById('homeSearchInput');
 
-            if (!dataInicioInput.value || !dataFimInput.value) {
-                const hoje = new Date().toISOString().split('T')[0];
-                dataInicioInput.value = hoje;
-                dataFimInput.value = hoje;
-            }
+    // Verifica se os elementos existem antes de tentar usá-los
+    if (!dataInicioInput || !dataFimInput || !searchInput) {
+        console.error("Erro: Elementos da página inicial não encontrados. A função loadHomeData não pode ser executada.");
+        return;
+    }
 
-            document.getElementById('homeViagensConcluidas').textContent = '...';
-            document.getElementById('homeEntregasRealizadas').textContent = '...';
-            document.getElementById('homeTempoMedioPatio').textContent = '...';
-            document.getElementById('homeOcupacaoMedia').textContent = '...';
-            document.getElementById('homeTempoMedioLoja').textContent = '...';
-            document.getElementById('temposMediosLojaTbody').innerHTML = `<tr><td colspan="5" class="loading"><div class="spinner"></div></td></tr>`;
+    if (!dataInicioInput.value || !dataFimInput.value) {
+        const hoje = new Date().toISOString().split('T')[0];
+        dataInicioInput.value = hoje;
+        dataFimInput.value = hoje;
+    }
 
-            try {
-                const dataInicio = dataInicioInput.value;
-                const dataFim = dataFimInput.value;
-                let query = `expeditions?status=eq.entregue&data_hora=gte.${dataInicio}T00:00:00&data_hora=lte.${dataFim}T23:59:59&order=data_hora.desc`;
-                
-                const allExpeditionsInPeriod = await supabaseRequest(query);
-                
-                if (!allExpeditionsInPeriod || allExpeditionsInPeriod.length === 0) {
-                     document.getElementById('homeViagensConcluidas').textContent = '0';
-                    document.getElementById('homeEntregasRealizadas').textContent = '0';
-                    document.getElementById('homeTempoMedioPatio').textContent = '00:00';
-                    document.getElementById('homeOcupacaoMedia').textContent = '0%';
-                    document.getElementById('homeTempoMedioLoja').textContent = '00:00';
-                    document.getElementById('temposMediosLojaTbody').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Nenhum dado encontrado para os filtros selecionados.</td></tr>';
-                    destroyChart('ocupacaoTotalChart');
-                    destroyChart('lojaDesempenhoChart');
-                    destroyChart('frotaProdutividadeChart');
-                    destroyChart('fleetUtilizationChart');
-                    return;
-                    initHomeMap(); // Inicializar mapa mesmo sem dados
-                }
-                
-                const expeditionIds = allExpeditionsInPeriod.map(e => e.id);
-                const allItemsInPeriod = await supabaseRequest(`expedition_items?expedition_id=in.(${expeditionIds.join(',')})`);
-                
-                const expToLojaNames = {};
-                allItemsInPeriod.forEach(item => {
-                    if (!expToLojaNames[item.expedition_id]) {
-                        expToLojaNames[item.expedition_id] = [];
-                    }
-                    const loja = lojas.find(l => l.id === item.loja_id);
-                    if (loja) expToLojaNames[item.expedition_id].push(loja.nome);
-                });
+    document.getElementById('homeViagensConcluidas').textContent = '...';
+    document.getElementById('homeEntregasRealizadas').textContent = '...';
+    document.getElementById('homeTempoMedioPatio').textContent = '...';
+    document.getElementById('homeOcupacaoMedia').textContent = '...';
+    document.getElementById('homeTempoMedioLoja').textContent = '...';
+    document.getElementById('temposMediosLojaTbody').innerHTML = `<tr><td colspan="5" class="loading"><div class="spinner"></div></td></tr>`;
 
-                let filteredExpeditions = allExpeditionsInPeriod;
-                if (searchInput) {
-                    filteredExpeditions = allExpeditionsInPeriod.filter(exp => {
-                        const motorista = motoristas.find(m => m.id === exp.motorista_id);
-                        const searchableMotorista = motorista ? motorista.nome.toLowerCase() : '';
-                        const searchableLojas = (expToLojaNames[exp.id] || []).join(' ').toLowerCase();
-                        
-                        return searchableMotorista.includes(searchInput) || searchableLojas.includes(searchInput);
-                    });
-                }
-                
-                const filteredExpeditionIds = filteredExpeditions.map(e => e.id);
-                const items = allItemsInPeriod.filter(item => filteredExpeditionIds.includes(item.expedition_id));
+    try {
+        const dataInicio = dataInicioInput.value;
+        const dataFim = dataFimInput.value;
+        let query = `expeditions?status=eq.entregue&data_hora=gte.${dataInicio}T00:00:00&data_hora=lte.${dataFim}T23:59:59&order=data_hora.desc`;
+        
+        const allExpeditionsInPeriod = await supabaseRequest(query);
+        
+        if (!allExpeditionsInPeriod || allExpeditionsInPeriod.length === 0) {
+             document.getElementById('homeViagensConcluidas').textContent = '0';
+             document.getElementById('homeEntregasRealizadas').textContent = '0';
+             document.getElementById('homeTempoMedioPatio').textContent = '00:00';
+             document.getElementById('homeOcupacaoMedia').textContent = '0%';
+             document.getElementById('homeTempoMedioLoja').textContent = '00:00';
+             document.getElementById('temposMediosLojaTbody').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Nenhum dado encontrado para os filtros selecionados.</td></tr>';
+             destroyChart('ocupacaoTotalChart');
+             destroyChart('lojaDesempenhoChart');
+             destroyChart('frotaProdutividadeChart');
+             destroyChart('fleetUtilizationChart');
+             return;
+             initHomeMap(); // Inicializar mapa mesmo sem dados
+        }
+        
+        const expeditionIds = allExpeditionsInPeriod.map(e => e.id);
+        const allItemsInPeriod = await supabaseRequest(`expedition_items?expedition_id=in.(${expeditionIds.join(',')})`);
+        
+        const expToLojaNames = {};
+        allItemsInPeriod.forEach(item => {
+            if (!expToLojaNames[item.expedition_id]) {
+                expToLojaNames[item.expedition_id] = [];
+            }
+            const loja = lojas.find(l => l.id === item.loja_id);
+            if (loja) expToLojaNames[item.expedition_id].push(loja.nome);
+        });
 
-                if (filteredExpeditions.length === 0) {
-                     document.getElementById('homeViagensConcluidas').textContent = '0';
-                    document.getElementById('homeEntregasRealizadas').textContent = '0';
-                    document.getElementById('homeTempoMedioPatio').textContent = '00:00';
-                    document.getElementById('homeOcupacaoMedia').textContent = '0%';
-                    document.getElementById('homeTempoMedioLoja').textContent = '00:00';
-                    document.getElementById('temposMediosLojaTbody').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Nenhum dado encontrado para os filtros selecionados.</td></tr>';
-                    destroyChart('ocupacaoTotalChart');
-                    destroyChart('lojaDesempenhoChart');
-                    destroyChart('frotaProdutividadeChart');
-                    destroyChart('fleetUtilizationChart');
-                    return;
-                    initHomeMap(); // Inicializar mapa mesmo sem dados
-                }
+        let filteredExpeditions = allExpeditionsInPeriod;
+        if (searchInput.value) {
+            filteredExpeditions = allExpeditionsInPeriod.filter(exp => {
+                const motorista = motoristas.find(m => m.id === exp.motorista_id);
+                const searchableMotorista = motorista ? motorista.nome.toLowerCase() : '';
+                const searchableLojas = (expToLojaNames[exp.id] || []).join(' ').toLowerCase();
+                
+                return searchableMotorista.includes(searchInput.value.toLowerCase()) || searchableLojas.includes(searchInput.value.toLowerCase());
+            });
+        }
+        
+        const filteredExpeditionIds = filteredExpeditions.map(e => e.id);
+        const items = allItemsInPeriod.filter(item => filteredExpeditionIds.includes(item.expedition_id));
+
+        if (filteredExpeditions.length === 0) {
+             document.getElementById('homeViagensConcluidas').textContent = '0';
+             document.getElementById('homeEntregasRealizadas').textContent = '0';
+             document.getElementById('homeTempoMedioPatio').textContent = '00:00';
+             document.getElementById('homeOcupacaoMedia').textContent = '0%';
+             document.getElementById('homeTempoMedioLoja').textContent = '00:00';
+             document.getElementById('temposMediosLojaTbody').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Nenhum dado encontrado para os filtros selecionados.</td></tr>';
+             destroyChart('ocupacaoTotalChart');
+             destroyChart('lojaDesempenhoChart');
+             destroyChart('frotaProdutividadeChart');
+             destroyChart('fleetUtilizationChart');
+             return;
+             initHomeMap(); // Inicializar mapa mesmo sem dados
+        }
 
 
-                const totalViagens = filteredExpeditions.length;
-                const totalEntregas = items.length;
+        const totalViagens = filteredExpeditions.length;
+        const totalEntregas = items.length;
 
-                const temposPatio = filteredExpeditions
-                    .filter(e => e.data_hora && e.data_saida_veiculo)
-                    .map(e => (new Date(e.data_saida_veiculo) - new Date(e.data_hora)) / 60000);
-                const tempoMedioPatio = temposPatio.length > 0 ? temposPatio.reduce((a, b) => a + b, 0) / temposPatio.length : 0;
+        const temposPatio = filteredExpeditions
+            .filter(e => e.data_hora && e.data_saida_veiculo)
+            .map(e => (new Date(e.data_saida_veiculo) - new Date(e.data_hora)) / 60000);
+        const tempoMedioPatio = temposPatio.length > 0 ? temposPatio.reduce((a, b) => a + b, 0) / temposPatio.length : 0;
 
-                const ocupacoes = [];
-                let perlogCount = 0;
-                let jjsCount = 0;
+        const ocupacoes = [];
+        let perlogCount = 0;
+        let jjsCount = 0;
 
-                filteredExpeditions.forEach(exp => {
-                    const veiculo = veiculos.find(v => v.id === exp.veiculo_id);
-                    if (veiculo) {
-                        if (veiculo.tipo === 'PERLOG') perlogCount++;
-                        if (veiculo.tipo === 'JJS') jjsCount++;
-                        
-                        if (veiculo.capacidade_pallets > 0) {
-                            const expItems = items.filter(i => i.expedition_id === exp.id);
-                            const totalPallets = expItems.reduce((sum, item) => sum + (item.pallets || 0), 0);
-                            const totalRolls = expItems.reduce((sum, item) => sum + (item.rolltrainers || 0), 0);
-                            const cargaTotal = totalPallets + (totalRolls / 2);
-                            ocupacoes.push((cargaTotal / veiculo.capacidade_pallets) * 100);
-                        }
-                    }
-                });
-                const ocupacaoMedia = ocupacoes.length > 0 ? ocupacoes.reduce((a, b) => a + b, 0) / ocupacoes.length : 0;
+        filteredExpeditions.forEach(exp => {
+            const veiculo = veiculos.find(v => v.id === exp.veiculo_id);
+            if (veiculo) {
+                if (veiculo.tipo === 'PERLOG') perlogCount++;
+                if (veiculo.tipo === 'JJS') jjsCount++;
+                
+                if (veiculo.capacidade_pallets > 0) {
+                    const expItems = items.filter(i => i.expedition_id === exp.id);
+                    const totalPallets = expItems.reduce((sum, item) => sum + (item.pallets || 0), 0);
+                    const totalRolls = expItems.reduce((sum, item) => sum + (item.rolltrainers || 0), 0);
+                    const cargaTotal = totalPallets + (totalRolls / 2);
+                    ocupacoes.push((cargaTotal / veiculo.capacidade_pallets) * 100);
+                }
+            }
+        });
+        const ocupacaoMedia = ocupacoes.length > 0 ? ocupacoes.reduce((a, b) => a + b, 0) / ocupacoes.length : 0;
 
-                document.getElementById('homeViagensConcluidas').textContent = totalViagens;
-                document.getElementById('homeEntregasRealizadas').textContent = totalEntregas;
-                document.getElementById('homeTempoMedioPatio').textContent = minutesToHHMM(tempoMedioPatio);
-                document.getElementById('homeOcupacaoMedia').textContent = `${ocupacaoMedia.toFixed(1)}%`;
+        document.getElementById('homeViagensConcluidas').textContent = totalViagens;
+        document.getElementById('homeEntregasRealizadas').textContent = totalEntregas;
+        document.getElementById('homeTempoMedioPatio').textContent = minutesToHHMM(tempoMedioPatio);
+        document.getElementById('homeOcupacaoMedia').textContent = `${ocupacaoMedia.toFixed(1)}%`;
 
-                const temposLojaGeral = [];
-                const lojasStats = {};
-                const motoristasStats = {};
+        const temposLojaGeral = [];
+        const lojasStats = {};
+        const motoristasStats = {};
 
-                items.forEach(item => {
-                    if (item.data_inicio_descarga && item.data_fim_descarga) {
-                        const tempo = (new Date(item.data_fim_descarga) - new Date(item.data_inicio_descarga)) / 60000;
-                        temposLojaGeral.push(tempo);
-                        
-                        const lojaId = item.loja_id;
-                        if (!lojasStats[lojaId]) {
-                            const lojaInfo = lojas.find(l => l.id === lojaId);
-                            lojasStats[lojaId] = {
-                                nome: lojaInfo ? `${lojaInfo.codigo} - ${lojaInfo.nome}` : 'Desconhecida',
-                                codigo: lojaInfo ? lojaInfo.codigo : 'N/A',
-                                tempos: [],
-                                entregas: 0,
-                                totalPallets: 0,
-                                totalRolls: 0
-                            };
-                        }
-                        lojasStats[lojaId].tempos.push(tempo);
-                        lojasStats[lojaId].entregas++;
-                        lojasStats[lojaId].totalPallets += item.pallets || 0;
-                        lojasStats[lojaId].totalRolls += item.rolltrainers || 0;
-                    }
-                });
+        items.forEach(item => {
+            if (item.data_inicio_descarga && item.data_fim_descarga) {
+                const tempo = (new Date(item.data_fim_descarga) - new Date(item.data_inicio_descarga)) / 60000;
+                temposLojaGeral.push(tempo);
+                
+                const lojaId = item.loja_id;
+                if (!lojasStats[lojaId]) {
+                    const lojaInfo = lojas.find(l => l.id === lojaId);
+                    lojasStats[lojaId] = {
+                        nome: lojaInfo ? `${lojaInfo.codigo} - ${lojaInfo.nome}` : 'Desconhecida',
+                        codigo: lojaInfo ? lojaInfo.codigo : 'N/A',
+                        tempos: [],
+                        entregas: 0,
+                        totalPallets: 0,
+                        totalRolls: 0
+                    };
+                }
+                lojasStats[lojaId].tempos.push(tempo);
+                lojasStats[lojaId].entregas++;
+                lojasStats[lojaId].totalPallets += item.pallets || 0;
+                lojasStats[lojaId].totalRolls += item.rolltrainers || 0;
+            }
+        });
 
-                filteredExpeditions.forEach(exp => {
-                    if (exp.motorista_id) {
-                        const motorista = motoristas.find(m => m.id === exp.motorista_id);
-                        if (motorista) {
-                            if (!motoristasStats[exp.motorista_id]) {
-                                motoristasStats[exp.motorista_id] = {
-                                    nome: motorista.nome,
-                                    entregas: 0
-                                };
-                            }
-                            const expItemsCount = items.filter(i => i.expedition_id === exp.id).length;
-                            motoristasStats[exp.motorista_id].entregas += expItemsCount;
-                        }
-                    }
-                });
+        filteredExpeditions.forEach(exp => {
+            if (exp.motorista_id) {
+                const motorista = motoristas.find(m => m.id === exp.motorista_id);
+                if (motorista) {
+                    if (!motoristasStats[exp.motorista_id]) {
+                        motoristasStats[exp.motorista_id] = {
+                            nome: motorista.nome,
+                            entregas: 0
+                        };
+                    }
+                    const expItemsCount = items.filter(i => i.expedition_id === exp.id).length;
+                    motoristasStats[exp.motorista_id].entregas += expItemsCount;
+                }
+            }
+        });
 
-                const tempoMedioLoja = temposLojaGeral.length > 0 ? temposLojaGeral.reduce((a, b) => a + b, 0) / temposLojaGeral.length : 0;
-                document.getElementById('homeTempoMedioLoja').textContent = minutesToHHMM(tempoMedioLoja);
+        const tempoMedioLoja = temposLojaGeral.length > 0 ? temposLojaGeral.reduce((a, b) => a + b, 0) / temposLojaGeral.length : 0;
+        document.getElementById('homeTempoMedioLoja').textContent = minutesToHHMM(tempoMedioLoja);
 
-                const lojasData = Object.values(lojasStats).map(loja => ({
-                    ...loja,
-                    tempoMedio: loja.tempos.reduce((a, b) => a + b, 0) / loja.tempos.length
-                })).sort((a, b) => b.tempoMedio - a.tempoMedio);
+        const lojasData = Object.values(lojasStats).map(loja => ({
+            ...loja,
+            tempoMedio: loja.tempos.reduce((a, b) => a + b, 0) / loja.tempos.length
+        })).sort((a, b) => b.tempoMedio - a.tempoMedio);
 
-                const motoristasData = Object.values(motoristasStats).sort((a, b) => b.entregas - a.entregas);
+        const motoristasData = Object.values(motoristasStats).sort((a, b) => b.entregas - a.entregas);
 
-                renderFrotaProdutividadeChart(motoristasData.slice(0, 5));
-                renderOcupacaoTotalChart(ocupacaoMedia);
-                renderLojaDesempenhoChart(lojasData.slice(0, 5));
-                renderFleetUtilizationChart(perlogCount, jjsCount);
-                renderTemposMediosTable(lojasData);
-                // Inicializar/atualizar mapa da home
-await initHomeMap();
+        renderFrotaProdutividadeChart(motoristasData.slice(0, 5));
+        renderOcupacaoTotalChart(ocupacaoMedia);
+        renderLojaDesempenhoChart(lojasData.slice(0, 5));
+        renderFleetUtilizationChart(perlogCount, jjsCount);
+        renderTemposMediosTable(lojasData);
+        // Inicializar/atualizar mapa da home
+        await initHomeMap();
 
-            } catch (error) {
-                console.error("Erro ao carregar dados da home:", error);
-                document.getElementById('temposMediosLojaTbody').innerHTML = `<tr><td colspan="5" class="alert alert-error">Erro ao carregar dados: ${error.message}</td></tr>`;
-            }
-        }
+    } catch (error) {
+        console.error("Erro ao carregar dados da home:", error);
+        document.getElementById('temposMediosLojaTbody').innerHTML = `<tr><td colspan="5" class="alert alert-error">Erro ao carregar dados: ${error.message}</td></tr>`;
+    }
+}
+
         function renderFleetUtilizationChart(perlogCount, jjsCount) {
             const total = perlogCount + jjsCount;
             if (total === 0) {
