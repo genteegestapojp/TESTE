@@ -1273,7 +1273,7 @@ async function loadHomeData() {
                             }
                         }
                     },
-                    datalabels: {
+                   datalabels: {
                         color: '#fff',
                         font: {
                             weight: 'bold',
@@ -1347,22 +1347,22 @@ async function loadHomeData() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false },
-                    datalabels: {
-                        color: '#023047',
-                        font: { weight: 'bold' },
-                        anchor: 'end',
-                        align: 'end',
-                        offset: -5,
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `Total de Entregas: ${context.raw}`;
-                            }
+                legend: { display: false },
+                datalabels: {
+                    color: '#023047',
+                    font: { weight: 'bold' },
+                    anchor: 'end',
+                    align: 'end',
+                    offset: -5,
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Total de Entregas: ${context.raw}`;
                         }
                     }
-                },
+                }
+            },
                 scales: {
                     y: {
                         display: false,
@@ -1403,24 +1403,24 @@ async function loadHomeData() {
             renderChart('lojaDesempenhoChart', 'bar', data, {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    datalabels: {
-                        color: 'white',
-                        font: { weight: 'bold' },
-                        formatter: (value) => minutesToHHMM(value),
-                        anchor: 'center',
-                        align: 'center'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const loja = lojasData[context.dataIndex];
-                                return [ `Tempo Médio: ${minutesToHHMM(context.raw)}`, `Total de Entregas: ${loja.entregas}` ];
-                            }
+               plugins: {
+                legend: { display: false },
+                datalabels: {
+                    color: 'white',
+                    font: { weight: 'bold' },
+                    formatter: (value) => minutesToHHMM(value),
+                    anchor: 'center',
+                    align: 'center'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const loja = lojasData[context.dataIndex];
+                            return [ `Tempo Médio: ${minutesToHHMM(context.raw)}`, `Total de Entregas: ${loja.entregas}` ];
                         }
                     }
-                },
+                }
+            },
                 scales: {
                     y: {
                         display: false,
