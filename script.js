@@ -1347,22 +1347,23 @@ async function loadHomeData() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                legend: { display: false },
-                datalabels: {
-                    color: '#023047',
-                    font: { weight: 'bold' },
-                    anchor: 'end',
-                    align: 'end',
-                    offset: -5,
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `Total de Entregas: ${context.raw}`;
+                    legend: { display: false },
+                    datalabels: {
+                        color: '#023047',
+                        font: { weight: 'bold' },
+                        anchor: 'end',
+                        align: 'end',
+                        offset: 5,
+                        formatter: (value) => value
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Total de Entregas: ${context.raw}`;
+                            }
                         }
                     }
-                }
-            },
+                },
                 scales: {
                     y: {
                         display: false,
