@@ -6991,8 +6991,16 @@ async function imprimirIdentificacao(expeditionId, numeroCarga, liderNome, palle
         showNotification('Erro ao carregar dados para impressão: ' + error.message, 'error');
     }
 }
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadFiliais();
+       // Inicialização
+document.addEventListener('DOMContentLoaded', async () => {
+    // Inicializar AOS (animações)
+    if (typeof AOS !== 'undefined') {
+        AOS.init({
+            duration: 800,
+            once: true,
+            easing: 'ease-out-cubic'
         });
+    }
+    await loadFiliais();
+});
  
