@@ -85,7 +85,127 @@
         <main class="flex-1 overflow-auto bg-gray-100 main-content">
             <div class="container mx-auto px-6 py-8">
                 
-                <div id="home" class="view-content active"></div>
+               <div id="home" class="view-content active">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Dashboard - Visão Geral</h1>
+    
+    <!-- Filtros da Home -->
+    <div class="filters-section mb-6">
+        <div class="filters-grid">
+            <div class="form-group">
+                <label for="homeDataInicio">Data Início:</label>
+                <input type="date" id="homeDataInicio" onchange="loadHomeData()">
+            </div>
+            <div class="form-group">
+                <label for="homeDataFim">Data Fim:</label>
+                <input type="date" id="homeDataFim" onchange="loadHomeData()">
+            </div>
+            <div class="form-group">
+                <label for="homeSearchInput">Pesquisar:</label>
+                <input type="text" id="homeSearchInput" placeholder="Motorista ou Loja..." onkeyup="loadHomeData()">
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary w-full" onclick="loadHomeData()">Atualizar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cards de Estatísticas -->
+    <div class="stats-grid mb-6">
+        <div class="stat-card">
+            <div class="stat-number" id="homeViagensConcluidas">0</div>
+            <div class="stat-label">Viagens Concluídas</div>
+        </div>
+        <div class="stat-card" style="background: var(--secondary-gradient);">
+            <div class="stat-number" id="homeEntregasRealizadas">0</div>
+            <div class="stat-label">Entregas Realizadas</div>
+        </div>
+        <div class="stat-card" style="background: var(--accent-gradient);">
+            <div class="stat-number" id="homeTempoMedioPatio">00:00</div>
+            <div class="stat-label">Tempo Médio Pátio</div>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #F77F00, #FCBF49);">
+            <div class="stat-number" id="homeOcupacaoMedia">0%</div>
+            <div class="stat-label">Ocupação Média</div>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #7209B7, #A663CC);">
+            <div class="stat-number" id="homeTempoMedioLoja">00:00</div>
+            <div class="stat-label">Tempo Médio em Loja</div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Ocupação Total da Frota</h3>
+            <div style="height: 200px; position: relative;">
+                <canvas id="ocupacaoTotalChart"></canvas>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Utilização por Tipo de Frota</h3>
+            <div style="height: 200px; position: relative;">
+                <canvas id="fleetUtilizationChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Top 5 Motoristas - Produtividade</h3>
+            <div style="height: 250px; position: relative;">
+                <canvas id="frotaProdutividadeChart"></canvas>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Top 5 Lojas - Tempo de Descarga</h3>
+            <div style="height: 250px; position: relative;">
+                <canvas id="lojaDesempenhoChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mapa em Tempo Real -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Rastreamento em Tempo Real</h3>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="homeAutoRefresh" onchange="toggleHomeAutoRefresh()">
+                    <label for="homeAutoRefresh" class="text-sm text-gray-600">Auto-refresh</label>
+                </div>
+                <span class="text-xs text-gray-500" id="homeLastUpdate">Última atualização: --:--</span>
+                <button class="btn btn-primary btn-small" onclick="showHomeMapFullscreen()">🗺️ Tela Cheia</button>
+            </div>
+        </div>
+        <div id="homeMap" style="height: 400px; width: 100%; border-radius: 8px;"></div>
+    </div>
+
+    <!-- Tabela de Tempos Médios -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Tempos Médios de Descarga por Loja</h3>
+        <div class="table-container">
+            <table class="w-full">
+                <thead>
+                    <tr>
+                        <th>Loja</th>
+                        <th class="text-center">Entregas</th>
+                        <th class="text-center">Pallets</th>
+                        <th class="text-center">RollTrainers</th>
+                        <th class="text-center">Tempo Médio</th>
+                    </tr>
+                </thead>
+                <tbody id="temposMediosLojaTbody">
+                    <tr>
+                        <td colspan="5" class="loading">
+                            <div class="spinner"></div>
+                            Carregando dados...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
                 <div id="operacao" class="view-content"></div>
                 <div id="transporte" class="view-content"></div>
                 <div id="faturamento" class="view-content"></div>
