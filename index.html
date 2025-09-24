@@ -85,11 +85,10 @@
         <main class="flex-1 overflow-auto bg-gray-100 main-content">
             <div class="container mx-auto px-6 py-8">
                 
-               <div id="home" class="view-content active">
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">Dashboard - Visão Geral</h1>
+                <div id="home" class="view-content active">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Home</h1>
     
-    <!-- Filtros da Home -->
-    <div class="filters-section mb-6">
+    <div class="filters-section">
         <div class="filters-grid">
             <div class="form-group">
                 <label for="homeDataInicio">Data Início:</label>
@@ -100,74 +99,93 @@
                 <input type="date" id="homeDataFim" onchange="loadHomeData()">
             </div>
             <div class="form-group">
-                <label for="homeSearchInput">Pesquisar:</label>
-                <input type="text" id="homeSearchInput" placeholder="Motorista ou Loja..." onkeyup="loadHomeData()">
-            </div>
-            <div class="form-group">
-                <button class="btn btn-primary w-full" onclick="loadHomeData()">Atualizar</button>
+                <label for="homeSearchInput">Busca Aberta:</label>
+                <input type="text" id="homeSearchInput" placeholder="Buscar por Loja, Motorista..." onkeyup="loadHomeData()">
             </div>
         </div>
     </div>
 
-    <!-- Cards de Estatísticas -->
-    <div class="stats-grid mb-6">
-        <div class="stat-card">
-            <div class="stat-number" id="homeViagensConcluidas">0</div>
-            <div class="stat-label">Viagens Concluídas</div>
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+        <div class="stat-card-dash">
+            <div class="flex items-center">
+                <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="truck" class="h-6 w-6 text-white"></i></div>
+                <div class="ml-4">
+                    <h3 class="text-2xl font-bold" id="homeViagensConcluidas">0</h3>
+                    <p class="text-white text-opacity-80">Viagens Concluídas</p>
+                </div>
+            </div>
         </div>
-        <div class="stat-card" style="background: var(--secondary-gradient);">
-            <div class="stat-number" id="homeEntregasRealizadas">0</div>
-            <div class="stat-label">Entregas Realizadas</div>
+        <div class="stat-card-dash" style="background: var(--secondary-gradient);">
+            <div class="flex items-center">
+                <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="package" class="h-6 w-6 text-white"></i></div>
+                <div class="ml-4">
+                    <h3 class="text-2xl font-bold" id="homeEntregasRealizadas">0</h3>
+                    <p class="text-white text-opacity-80">Entregas Realizadas</p>
+                </div>
+            </div>
         </div>
-        <div class="stat-card" style="background: var(--accent-gradient);">
-            <div class="stat-number" id="homeTempoMedioPatio">00:00</div>
-            <div class="stat-label">Tempo Médio Pátio</div>
+        <div class="stat-card-dash" style="background: var(--accent-gradient);">
+            <div class="flex items-center">
+                <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="clock" class="h-6 w-6 text-white"></i></div>
+                <div class="ml-4">
+                    <h3 class="text-2xl font-bold" id="homeTempoMedioPatio">00:00</h3>
+                    <p class="text-white text-opacity-80">Tempo Médio Pátio</p>
+                </div>
+            </div>
         </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, #F77F00, #FCBF49);">
-            <div class="stat-number" id="homeOcupacaoMedia">0%</div>
-            <div class="stat-label">Ocupação Média</div>
+        <div class="stat-card-dash" style="background: linear-gradient(135deg, #FCBF49, #F77F00);">
+            <div class="flex items-center">
+                <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="shopping-bag" class="h-6 w-6 text-white"></i></div>
+                <div class="ml-4">
+                    <h3 class="text-2xl font-bold" id="homeTempoMedioLoja">00:00</h3>
+                    <p class="text-white text-opacity-80">Tempo Médio em Loja</p>
+                </div>
+            </div>
         </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, #7209B7, #A663CC);">
-            <div class="stat-number" id="homeTempoMedioLoja">00:00</div>
-            <div class="stat-label">Tempo Médio em Loja</div>
+        <div class="stat-card-dash" style="background: linear-gradient(135deg, #7209B7, #A663CC);">
+            <div class="flex items-center">
+                <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="pie-chart" class="h-6 w-6 text-white"></i></div>
+                <div class="ml-4">
+                    <h3 class="text-2xl font-bold" id="homeOcupacaoMedia">0%</h3>
+                    <p class="text-white text-opacity-80">Ocupação Média</p>
+                </div>
+            </div>
         </div>
     </div>
-
-    <!-- Gráficos -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Ocupação Total da Frota</h3>
-            <div style="height: 200px; position: relative;">
+    
+    <div class="bg-white rounded-xl shadow-md p-6 mb-8" data-aos="fade-up">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Top 5 Produtividade de Motoristas (por Entregas)</h2>
+        <div class="relative" style="height: 250px;">
+            <canvas id="frotaProdutividadeChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-12">
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6" data-aos="fade-up">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Ocupação Média da Frota</h2>
+            <div class="relative mx-auto" style="max-width: 250px; height: 150px;">
                 <canvas id="ocupacaoTotalChart"></canvas>
             </div>
         </div>
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Utilização por Tipo de Frota</h3>
-            <div style="height: 200px; position: relative;">
-                <canvas id="fleetUtilizationChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Top 5 Motoristas - Produtividade</h3>
-            <div style="height: 250px; position: relative;">
-                <canvas id="frotaProdutividadeChart"></canvas>
-            </div>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Top 5 Lojas - Tempo de Descarga</h3>
-            <div style="height: 250px; position: relative;">
+        <div class="lg:col-span-3 bg-white rounded-xl shadow-md p-6" data-aos="fade-up">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Desempenho por Loja (Top 5 com maior tempo)</h2>
+            <div class="relative" style="height: 250px;">
                 <canvas id="lojaDesempenhoChart"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- Mapa em Tempo Real -->
-    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+    <div class="bg-white rounded-xl shadow-md p-6 mb-12" data-aos="fade-up">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">% de Utilização por Frota (Viagens)</h2>
+        <div class="relative mx-auto" style="height: 250px; max-width: 300px;">
+            <canvas id="fleetUtilizationChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Mapa em Tempo Real (ADICIONAL - Opcional) -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-12" data-aos="fade-up">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-800">Rastreamento em Tempo Real</h3>
+            <h2 class="text-xl font-semibold text-gray-800">Rastreamento em Tempo Real</h2>
             <div class="flex items-center gap-4">
                 <div class="flex items-center gap-2">
                     <input type="checkbox" id="homeAutoRefresh" onchange="toggleHomeAutoRefresh()">
@@ -180,27 +198,21 @@
         <div id="homeMap" style="height: 400px; width: 100%; border-radius: 8px;"></div>
     </div>
 
-    <!-- Tabela de Tempos Médios -->
-    <div class="bg-white p-6 rounded-lg shadow-md">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Tempos Médios de Descarga por Loja</h3>
+    <div class="bg-white rounded-xl shadow-md p-6 mb-12" data-aos="fade-up">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Tempos Médios por Loja</h2>
         <div class="table-container">
-            <table class="w-full">
+            <table class="w-full min-w-max">
                 <thead>
                     <tr>
-                        <th>Loja</th>
-                        <th class="text-center">Entregas</th>
-                        <th class="text-center">Pallets</th>
-                        <th class="text-center">RollTrainers</th>
-                        <th class="text-center">Tempo Médio</th>
+                        <th class="py-3 px-4">Loja</th>
+                        <th class="py-3 px-4 text-center">Total de Entregas</th>
+                        <th class="py-3 px-4 text-center">Total Pallets</th>
+                        <th class="py-3 px-4 text-center">Total Rolls</th>
+                        <th class="py-3 px-4 text-center">Tempo Médio em Loja (HH:mm)</th>
                     </tr>
                 </thead>
                 <tbody id="temposMediosLojaTbody">
-                    <tr>
-                        <td colspan="5" class="loading">
-                            <div class="spinner"></div>
-                            Carregando dados...
-                        </td>
-                    </tr>
+                    <tr><td colspan="5" class="loading"><div class="spinner"></div></td></tr>
                 </tbody>
             </table>
         </div>
