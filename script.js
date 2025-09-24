@@ -219,734 +219,546 @@ if (mapInstance) {
             document.getElementById('mainSystem').style.display = 'none';
             document.getElementById('filialSelectionContainer').style.display = 'block';
         }
-        
-        // NOVO: Carrega o conteúdo das abas originais para as divs de view
         async function loadAllTabData() {
-            
-            document.getElementById('operacao').innerHTML = `
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">Operação</h1>
     
-    <div class="sub-tabs">
-        <button class="sub-tab active" onclick="showSubTab('operacao', 'lancamento', this)">Lançamento</button>
-        <button class="sub-tab" onclick="showSubTab('operacao', 'identificacao', this)">Identificação</button>
-    </div>
-
-    <div id="lancamento" class="sub-tab-content active">
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">Lançamento de Expedição</h2>
-        <div class="bg-white p-6 rounded-lg shadow-md max-w-4xl mx-auto">
-            <p class="text-sm text-gray-500 mb-4">A data e hora da expedição serão registradas automaticamente no momento do lançamento.</p>
-            <form id="expeditionForm">
-              <div class="form-grid">
-                <div class="form-group">
-                    <label for="lancar_lojaSelect">Loja:</label>
-                    <select id="lancar_lojaSelect" class="loja-select" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="lancar_docaSelect">Doca de Preparação:</label>
-                    <select id="lancar_docaSelect" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="lancar_palletsInput">Pallets:</label>
-                    <input type="number" id="lancar_palletsInput" class="pallets-input" min="0" required placeholder="0">
-                </div>
-                <div class="form-group">
-                    <label for="lancar_rolltrainersInput">RollTainers:</label>
-                    <input type="number" id="lancar_rolltrainersInput" class="rolltrainers-input" min="0" required placeholder="0">
-                </div>
-                <div class="form-group md:col-span-2">
-                    <label for="lancar_numerosCarga">Números de Carga (separados por vírgula):</label>
-                    <input type="text" id="lancar_numerosCarga" placeholder="Ex: CG001, CG002, CG003" class="w-full">
-                    <small class="text-gray-500">Deixe em branco se não houver números específicos</small>
-                </div>
-                <div class="form-group md:col-span-2">
-                     <label for="lancar_liderSelect">Líder Responsável:</label>
-                     <select id="lancar_liderSelect" required></select>
-                </div>
-                <div class="form-group md:col-span-2">
-                    <label for="lancar_observacoes">Observações:</label>
-                    <textarea id="lancar_observacoes" placeholder="Observações para esta carga específica..." class="w-full"></textarea>
-                </div>
-            </div>
-            <div class="mt-6 text-center">
-                <button type="submit" class="btn btn-primary w-full md:w-auto">Lançar Expedição</button>
-            </div>
-            </form>
-            <div id="operacaoAlert" class="mt-4"></div>
-        </div>
-    </div>
-
-    <div id="identificacao" class="sub-tab-content">
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">Impressão de Identificação</h2>
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <p class="text-sm text-gray-500 mb-4">Expedições aguardando impressão de etiquetas de identificação</p>
-            <div id="expedicoesParaIdentificacao" class="loading">
-                <div class="spinner"></div>
-                Carregando expedições...
-            </div>
-        </div>
-    </div>
-`;
-            
-            document.getElementById('transporte').innerHTML = `
-                <h1 class="text-3xl font-bold text-gray-800 mb-6">Agrupamento e Alocação de Cargas</h1>
-                <div id="availabilityInfo" class="availability-info" style="max-width: 600px; margin: 0 auto 2rem auto;">
-                    <div class="availability-stat">
-                        <div class="stat-number" id="availableVehicles">0</div>
-                        <div class="stat-label">Veículos Disponíveis</div>
-                    </div>
-                    <div class="availability-stat">
-                        <div class="stat-number" id="availableDrivers">0</div>
-                        <div class="stat-label">Motoristas Disponíveis</div>
-                    </div>
-                </div>
-                
-                <div class="transport-card mb-6">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Cargas Disponíveis para Agrupamento</h3>
-                    <div id="cargasDisponiveisList" class="loading">
-                        <div class="spinner"></div>
-                        Carregando cargas...
-                    </div>
-                </div>
-                
-                <div class="transport-card">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Montar Expedição</h3>
-                    <div class="stats-grid mb-6">
-                        <div class="stat-card" style="background: var(--secondary-gradient);"><div class="stat-number" id="summaryLojas">0</div><div class="stat-label">Lojas</div></div>
-                        <div class="stat-card"><div class="stat-number" id="summaryPallets">0</div><div class="stat-label">Pallets</div></div>
-                        <div class="stat-card" style="background: var(--accent-gradient);"><div class="stat-number" id="summaryRolls">0</div><div class="stat-label">RollTrainers</div></div>
-                        <div class="stat-card" style="background: linear-gradient(135deg, #7209B7, #A663CC);"><div class="stat-number" id="summaryCargaTotal">0</div><div class="stat-label">Carga Total</div></div>
-                    </div>
-
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="alocar_veiculoSelect">Selecione o Veículo:</label>
-                            <select id="alocar_veiculoSelect" required class="w-full"></select>
-                        </div>
-                        <div class="form-group">
-                            <label for="alocar_motoristaSelect">Selecione o Motorista:</label>
-                            <select id="alocar_motoristaSelect" required class="w-full"></select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="alocar_observacoes">Observações da Expedição:</label>
-                        <textarea id="alocar_observacoes" placeholder="Observações gerais para a viagem..." class="w-full"></textarea>
-                    </div>
-                    <div class="text-center mt-6">
-                        <button class="btn btn-primary w-full md:w-auto" onclick="agruparEAlocar()">Agrupar e Alocar Transporte</button>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('faturamento').innerHTML = `
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">Controle de Faturamento</h1>
-    
-    <div class="sub-tabs">
-        <button class="sub-tab active" onclick="showSubTab('faturamento', 'faturamentoAtivo', this)">Faturamento Ativo</button>
-        <button class="sub-tab" onclick="showSubTab('faturamento', 'historicoFaturamento', this)">Histórico de Faturamento</button>
-    </div>
-
-    <div id="faturamentoAtivo" class="sub-tab-content active">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number" id="totalCarregadas">0</div>
-                <div class="stat-label">Aguardando Faturamento</div>
-            </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #F77F00, #FCBF49);">
-                <div class="stat-number" id="emFaturamento">0</div>
-                <div class="stat-label">Em Faturamento</div>
-            </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #00D4AA, #00B4D8);">
-                <div class="stat-number" id="faturadas">0</div>
-                <div class="stat-label">Faturadas</div>
-            </div>
-        </div>
-
-        <div class="time-stats-grid max-w-xs mx-auto">
-            <div class="time-stat-card">
-                <div class="stat-number" id="tempoMedioFaturamento">-</div>
-                <div class="stat-label">Tempo Médio<br>Faturamento (HH:mm)</div>
-            </div>
-        </div>
-
-        <div id="faturamentoList" class="loading">
-            <div class="spinner"></div>
-            Carregando expedições...
-        </div>
-    </div>
-
-    <div id="historicoFaturamento" class="sub-tab-content">
+    // NOVO: Adicionar o conteúdo da home
+    document.getElementById('home').innerHTML = `
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Home</h1>
+                    
         <div class="filters-section">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">Filtros de Pesquisa</h3>
             <div class="filters-grid">
                 <div class="form-group">
-                    <label for="historicoFaturamentoDataInicio">Data Início:</label>
-                    <input type="date" id="historicoFaturamentoDataInicio" onchange="loadHistoricoFaturamento()">
+                    <label for="homeDataInicio">Data Início:</label>
+                    <input type="date" id="homeDataInicio" onchange="loadHomeData()">
                 </div>
                 <div class="form-group">
-                    <label for="historicoFaturamentoDataFim">Data Fim:</label>
-                    <input type="date" id="historicoFaturamentoDataFim" onchange="loadHistoricoFaturamento()">
+                    <label for="homeDataFim">Data Fim:</label>
+                    <input type="date" id="homeDataFim" onchange="loadHomeData()">
                 </div>
                 <div class="form-group">
-                    <label for="historicoFaturamentoSearch">Pesquisar:</label>
-                    <input type="text" id="historicoFaturamentoSearch" placeholder="Buscar por placa, loja..." onkeyup="loadHistoricoFaturamento()">
+                    <label for="homeSearchInput">Busca Aberta:</label>
+                    <input type="text" id="homeSearchInput" placeholder="Buscar por Loja, Motorista..." onkeyup="loadHomeData()">
                 </div>
             </div>
-            <div class="text-right mt-4">
-                <button class="btn btn-primary btn-small" onclick="clearHistoricoFaturamentoFilters()">Limpar Filtros</button>
-            </div>
         </div>
 
-        <div class="stats-grid mb-6">
-            <div class="stat-card">
-                <div class="stat-number" id="historicoTotalFaturadas">0</div>
-                <div class="stat-label">Total Faturadas</div>
-            </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #7209B7, #A663CC);">
-                <div class="stat-number" id="historicoTempoMedio">00:00</div>
-                <div class="stat-label">Tempo Médio Faturamento</div>
-            </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #F77F00, #FCBF49);">
-                <div class="stat-number" id="historicoMenorTempo">00:00</div>
-                <div class="stat-label">Menor Tempo</div>
-            </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #D62828, #F77F00);">
-                <div class="stat-number" id="historicoMaiorTempo">00:00</div>
-                <div class="stat-label">Maior Tempo</div>
-            </div>
-        </div>
-
-        <div class="table-container bg-white rounded-lg shadow-md">
-<table class="w-full" style="min-width: 1100px;">
-    <thead>
-        <tr>
-            <th>Data</th>
-            <th>Placa</th>
-            <th>Motorista</th>
-            <th>Lojas/Cargas</th>
-            <th>Início Faturamento</th>
-            <th>Fim Faturamento</th>
-            <th>Tempo Faturamento</th>
-            <th>Pallets</th>
-            <th>RollTrainers</th>
-            <th>Ações</th>
-        </tr>
-    </thead>
-    <tbody id="historicoFaturamentoBody">
-        <tr><td colspan="10" class="loading"><div class="spinner"></div>Carregando histórico...</td></tr>
-    </tbody>
-                <tbody id="historicoFaturamentoBody">
-                    <tr><td colspan="9" class="loading"><div class="spinner"></div>Carregando histórico...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-`;
-
-            document.getElementById('motoristas').innerHTML = `
-                <h1 class="text-3xl font-bold text-gray-800 mb-6">Painel de Motoristas</h1>
-                <div class="sub-tabs">
-                    <button class="sub-tab active" onclick="showSubTab('motoristas', 'statusFrota', this)">Status da Frota</button>
-                    <button class="sub-tab" onclick="showSubTab('motoristas', 'relatorioMotoristas', this)">Relatório</button>
-                </div>
-
-                <div id="statusFrota" class="sub-tab-content active">
-                    <div class="transport-card mb-6">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Consulta por Placa</h3>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="placaMotorista">Placa do Veículo:</label>
-                                <select id="placaMotorista" class="w-full">
-                                    <option value="">Selecione a placa</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <button class="btn btn-primary w-full" onclick="consultarExpedicoesPorPlaca()">Consultar Expedições</button>
-                            </div>
-                        </div>
-                        <div id="resultadosMotorista" class="mt-4"></div>
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+            <div class="stat-card-dash">
+                <div class="flex items-center">
+                    <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="truck" class="h-6 w-6 text-white"></i></div>
+                    <div class="ml-4">
+                        <h3 class="text-2xl font-bold" id="homeViagensConcluidas">0</h3>
+                        <p class="text-white text-opacity-80">Viagens Concluídas</p>
                     </div>
+                </div>
+            </div>
+            <div class="stat-card-dash" style="background: var(--secondary-gradient);">
+                <div class="flex items-center">
+                    <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="package" class="h-6 w-6 text-white"></i></div>
+                    <div class="ml-4">
+                        <h3 class="text-2xl font-bold" id="homeEntregasRealizadas">0</h3>
+                        <p class="text-white text-opacity-80">Entregas Realizadas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card-dash" style="background: var(--accent-gradient);">
+                <div class="flex items-center">
+                    <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="clock" class="h-6 w-6 text-white"></i></div>
+                    <div class="ml-4">
+                        <h3 class="text-2xl font-bold" id="homeTempoMedioPatio">00:00</h3>
+                        <p class="text-white text-opacity-80">Tempo Médio Pátio</p>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card-dash" style="background: linear-gradient(135deg, #FCBF49, #F77F00);">
+                <div class="flex items-center">
+                    <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="shopping-bag" class="h-6 w-6 text-white"></i></div>
+                    <div class="ml-4">
+                        <h3 class="text-2xl font-bold" id="homeTempoMedioLoja">00:00</h3>
+                        <p class="text-white text-opacity-80">Tempo Médio em Loja</p>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card-dash" style="background: linear-gradient(135deg, #7209B7, #A663CC);">
+                <div class="flex items-center">
+                    <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="pie-chart" class="h-6 w-6 text-white"></i></div>
+                    <div class="ml-4">
+                        <h3 class="text-2xl font-bold" id="homeOcupacaoMedia">0%</h3>
+                        <p class="text-white text-opacity-80">Ocupação Média</p>
+                    </div>
+                </div>
+            </div>
+        </div>
                     
-                     <div id="motoristasStatusList">
-                         <div class="loading"><div class="spinner"></div>Carregando status...</div>
-                    </div>
-                </div>
-               
-                <div id="relatorioMotoristas" class="sub-tab-content">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Relatório de Desempenho dos Motoristas</h2>
-                    <div class="filters-section">
-                        <div class="filters-grid">
-                            <div class="form-group">
-                                <label for="relatorioMotoristaDataInicio">Data Início:</label>
-                                <input type="date" id="relatorioMotoristaDataInicio" onchange="generateMotoristaReports()">
-                            </div>
-                            <div class="form-group">
-                                <label for="relatorioMotoristaDataFim">Data Fim:</label>
-                                <input type="date" id="relatorioMotoristaDataFim" onchange="generateMotoristaReports()">
-                            </div>
-                        </div>
-                    </div>
-                    <div id="motoristaReportSummary" class="stats-grid" style="display:none;"></div>
-                    <div class="bg-white p-4 rounded-lg shadow-md mt-8">
-                         <h3 class="text-lg font-semibold text-center mb-4">Ranking de Motoristas por Entregas</h3>
-                        <canvas id="motoristasRankingChart"></canvas>
-                    </div>
-                    <div id="motoristaTableContainer" class="table-container bg-white rounded-lg shadow-md mt-8"></div>
-                </div>
-            `;
-
-            document.getElementById('acompanhamento').innerHTML = `
-                 <h1 class="text-3xl font-bold text-gray-800 mb-6">Acompanhamento de Tempos</h1>
-               <div class="sub-tabs">
-    <button class="sub-tab active" onclick="showSubTab('acompanhamento', 'expedicoesEmAndamento', this)">Expedições</button>
-    <button class="sub-tab" onclick="showSubTab('acompanhamento', 'rastreio', this)">Rastreio</button>
-    <button class="sub-tab" onclick="showSubTab('acompanhamento', 'frota', this)">Frota</button>
-</div>
-
-                <div id="expedicoesEmAndamento" class="sub-tab-content active">
-                    <div class="stats-grid">
-                        <div class="stat-card"><div class="stat-number" id="totalExpedicoes">0</div><div class="stat-label">Total</div></div>
-                        <div class="stat-card" style="background: linear-gradient(135deg, #D62828, #F77F00);"><div class="stat-number" id="pendentesCount">0</div><div class="stat-label">Pendentes</div></div>
-                        <div class="stat-card" style="background: linear-gradient(135deg, #F77F00, #FCBF49);"><div class="stat-number" id="emAndamentoCount">0</div><div class="stat-label">Em Andamento</div></div>
-                    </div>
-
-                    <div class="time-stats-grid">
-                        <div class="time-stat-card"><div class="stat-number" id="tempoMedioAlocar">-</div><div class="stat-label">T.M. Alocar Placa</div></div>
-                        <div class="time-stat-card"><div class="stat-number" id="tempoMedioChegada">-</div><div class="stat-label">T.M. Chegada Doca</div></div>
-                        <div class="time-stat-card"><div class="stat-number" id="tempoMedioCarregamento">-</div><div class="stat-label">T.M. Carregamento</div></div>
-                        <div class="time-stat-card"><div class="stat-number" id="tempoMedioTotal">-</div><div class="stat-label">T.M. Total Pátio</div></div>
-                    </div>
-
-                    <div class="filters-section">
-                        <div class="filters-grid">
-                            <div class="form-group"><label for="filtroDataInicio">Data Início:</label><input type="date" id="filtroDataInicio" onchange="applyFilters()"></div>
-                            <div class="form-group"><label for="filtroDataFim">Data Fim:</label><input type="date" id="filtroDataFim" onchange="applyFilters()"></div>
-                            <div class="form-group"><label for="filtroStatus">Status:</label><select id="filtroStatus" onchange="applyFilters()"><option value="">Todos</option></select></div>
-                            <div class="form-group"><label for="searchInput">Pesquisar:</label><input type="text" id="searchInput" placeholder="Loja, doca, líder..." onkeyup="applyFilters()"></div>
-                        </div>
-                        <div class="text-right mt-4"><button class="btn btn-primary btn-small" onclick="clearFilters()">Limpar Filtros</button></div>
-                    </div>
-
-                    <div class="table-container bg-white rounded-lg shadow-md mt-6">
-                        <table class="w-full" style="min-width: 1200px;">
-                            <thead>
-                                <tr>
-                                    <th>Data/Hora</th><th>Lojas/Cargas</th><th>Pallets</th><th>Rolls</th><th>Doca</th><th>Líder</th>
-                                    <th>Status</th><th>Veículo</th><th>Ocupação</th><th>Motorista</th><th>Tempos</th><th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="acompanhamentoBody"></tbody>
-                        </table>
-                    </div>
-               </div>
-
-<div id="rastreio" class="sub-tab-content">
-    <div class="stats-grid mb-6">
-        <div class="stat-card">
-            <div class="stat-number" id="veiculosEmRota">0</div>
-            <div class="stat-label">Veículos em Rota</div>
-        </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, #00D4AA, #00B4D8);">
-            <div class="stat-number" id="entregasAndamento">0</div>
-            <div class="stat-label">Entregas em Andamento</div>
-        </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, #F77F00, #FCBF49);">
-            <div class="stat-number" id="proximasEntregas">0</div>
-            <div class="stat-label">Próximas Entregas</div>
-        </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, #7209B7, #A663CC);">
-            <div class="stat-number" id="tempoMedioRota">--:--</div>
-            <div class="stat-label">Tempo Médio em Rota</div>
-        </div>
-    </div>
-
-    <div class="filters-section mb-6">
-        <div class="filters-grid">
-            <div class="form-group">
-                <label for="rastreioFiltroMotorista">Motorista:</label>
-                <select id="rastreioFiltroMotorista" onchange="applyRastreioFilters()">
-                    <option value="">Todos os Motoristas</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="rastreioFiltroStatus">Status:</label>
-                <select id="rastreioFiltroStatus" onchange="applyRastreioFilters()">
-                    <option value="">Todos</option>
-                    <option value="saiu_para_entrega">Em Rota</option>
-                    <option value="em_descarga">Em Descarga</option>
-                    <option value="retornando">Retornando</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Atualização:</label>
-                <div class="flex items-center gap-2">
-                    <span class="text-sm text-gray-600">Auto-refresh</span>
-                    <input type="checkbox" id="autoRefreshRastreio" checked onchange="toggleAutoRefresh()">
-                    <span class="text-xs text-green-600" id="lastUpdateRastreio">Última atualização: --:--</span>
-                </div>
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8" data-aos="fade-up">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Top 5 Produtividade de Motoristas (por Entregas)</h2>
+            <div class="relative" style="height: 250px;">
+                <canvas id="frotaProdutividadeChart"></canvas>
             </div>
         </div>
-    </div>
-
-    <div id="rastreioList" class="space-y-4">
-        <div class="loading">
-            <div class="spinner"></div>
-            Carregando dados de rastreio...
-        </div>
-    </div>
-</div>
-
-<div id="frota" class="sub-tab-content">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Análise de Ociosidade da Frota</h2>
-                    <div class="filters-section">
-                        <div class="filters-grid">
-                            <div class="form-group"><label for="frotaFiltroDataInicio">Data Início:</label><input type="date" id="frotaFiltroDataInicio" onchange="loadFrotaData()"></div>
-                            <div class="form-group"><label for="frotaFiltroDataFim">Data Fim:</label><input type="date" id="frotaFiltroDataFim" onchange="loadFrotaData()"></div>
-                        </div>
-                    </div>
-                    <div class="time-stats-grid">
-                        <div class="time-stat-card"><div class="stat-number" id="totalOciosidade">-</div><div class="stat-label">Ociosidade Média</div></div>
-                        <div class="time-stat-card"><div class="stat-number" id="frotaAtiva">0</div><div class="stat-label">Veículos Ativos Hoje</div></div>
-                        <div class="time-stat-card"><div class="stat-number" id="frotaOciosa">0</div><div class="stat-label">Veículos Ociosos Agora</div></div>
-                    </div>
-                     <div class="table-container bg-white rounded-lg shadow-md mt-6">
-                        <table class="w-full">
-                            <thead><tr><th>Veículo</th><th>Status</th><th>Início Ociosidade</th><th>Tempo Ocioso</th><th>Última Ação</th></tr></thead>
-                            <tbody id="ociosidadeBody"></tbody>
-                        </table>
-                    </div>
+                    
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-12">
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6" data-aos="fade-up">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Ocupação Média da Frota</h2>
+                <div class="relative mx-auto" style="max-width: 250px; height: 150px;">
+                    <canvas id="ocupacaoTotalChart"></canvas>
                 </div>
-            `;
-            
-            document.getElementById('historico').innerHTML = `
-                <h1 class="text-3xl font-bold text-gray-800 mb-6">Histórico de Entregas</h1>
-                <div class="sub-tabs">
-                    <button class="sub-tab active" onclick="showSubTab('historico', 'listaEntregas', this)">Entregas</button>
-                    <button class="sub-tab" onclick="showSubTab('historico', 'indicadores', this)">Indicadores</button>
-                </div>
-
-                <div id="listaEntregas" class="sub-tab-content active">
-                    <div class="filters-section">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Filtros e Pesquisa</h3>
-                        <div class="filters-grid">
-                            <div class="form-group">
-                                <label for="historicoFiltroDataInicio">Data Início:</label>
-                                <input type="date" id="historicoFiltroDataInicio" onchange="applyHistoricoFilters()">
-                            </div>
-                            <div class="form-group">
-                                <label for="historicoFiltroDataFim">Data Fim:</label>
-                                <input type="date" id="historicoFiltroDataFim" onchange="applyHistoricoFilters()">
-                            </div>
-                            <div class="form-group">
-                                <label for="historicoSearchInput">Pesquisar:</label>
-                                <input type="text" id="historicoSearchInput" placeholder="Buscar por loja, placa, motorista..." onkeyup="applyHistoricoFilters()">
-                            </div>
-                        </div>
-                        <div class="text-right mt-4">
-                            <button class="btn btn-primary btn-small" onclick="clearHistoricoFilters()">Limpar Filtros</button>
-                        </div>
-                    </div>
-                    <div id="historicoList" class="loading">
-                        <div class="spinner"></div>
-                        Carregando histórico...
-                    </div>
-                </div>
-
-                <div id="indicadores" class="sub-tab-content">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Indicadores de Desempenho</h2>
-                    <div class="filters-section">
-                         <div class="filters-grid">
-                            <div class="form-group">
-                                <label for="indicadoresFiltroDataInicio">Data Início:</label>
-                                <input type="date" id="indicadoresFiltroDataInicio" onchange="applyHistoricoFilters()">
-                            </div>
-                            <div class="form-group">
-                                <label for="indicadoresFiltroDataFim">Data Fim:</label>
-                                <input type="date" id="indicadoresFiltroDataFim" onchange="applyHistoricoFilters()">
-                            </div>
-                        </div>
-                    </div>
-                    <div id="indicadoresSummary" class="time-stats-grid">
-                        </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-                        <div class="bg-white p-4 rounded-lg shadow-md">
-                            <h3 class="text-lg font-semibold text-center mb-4">Ranking de Lojas por Tempo de Descarga</h3>
-                            <canvas id="lojasRankingChart"></canvas>
-                        </div>
-                        <div class="bg-white p-4 rounded-lg shadow-md">
-                            <h3 class="text-lg font-semibold text-center mb-4">Distribuição de Entregas (Fort x Comper)</h3>
-                            <canvas id="entregasChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('configuracoes').innerHTML = `
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">Configurações</h1>
-    <div id="passwordFormContainer" class="transport-card max-w-md mx-auto">
-        <p class="text-center text-gray-600 mb-4">Acesso restrito. Por favor, insira suas credenciais.</p>
-        <form id="passwordForm">
-            <div class="form-group">
-                <label for="userInput">Usuário:</label>
-                <input type="text" id="userInput" required>
             </div>
-            <div class="form-group">
-                <label for="passwordInput">Senha:</label>
-                <input type="password" id="passwordInput" required>
-            </div>
-            <div class="mt-4"><button type="submit" class="btn btn-primary w-full">Acessar</button></div>
-        </form>
-        <div id="passwordAlert" class="mt-4"></div>
-    </div>
-
-    <div id="configuracoesContent" style="display: none;">
-        <div class="sub-tabs">
-            <button class="sub-tab active" onclick="showSubTab('configuracoes', 'filiais', this)">Filiais</button>
-            <button class="sub-tab" onclick="showSubTab('configuracoes', 'lojas', this)">Lojas</button>
-            <button class="sub-tab" onclick="showSubTab('configuracoes', 'docas', this)">Docas</button>
-            <button class="sub-tab" onclick="showSubTab('configuracoes', 'veiculos', this)">Veículos</button>
-            <button class="sub-tab" onclick="showSubTab('configuracoes', 'motoristasConfig', this)">Motoristas</button>
-            <button class="sub-tab" onclick="showSubTab('configuracoes', 'lideres', this)">Líderes</button>
-            <button class="sub-tab" onclick="showSubTab('configuracoes', 'pontosInteresse', this)">Pontos</button>
-            <button class="sub-tab" onclick="showSubTab('configuracoes', 'acessos', this)">Acessos</button>
-            <button class="sub-tab" onclick="showSubTab('configuracoes', 'sistema', this)">Sistema</button>
-        </div>
-
-        <!-- FILIAIS -->
-        <div id="filiais" class="sub-tab-content active">
-            <div class="transport-card">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold">Gerenciar Filiais</h3>
-                    <button class="btn btn-success" onclick="showAddForm('filial')">+ Nova Filial</button>
-                </div>
-                <div class="table-container bg-white rounded-lg shadow-md">
-                    <table class="w-full">
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Descrição</th>
-                                <th>Endereço CD</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="filiaisConfigBody">
-                            <tr><td colspan="5" class="loading"><div class="spinner"></div>Carregando filiais...</td></tr>
-                        </tbody>
-                    </table>
+            <div class="lg:col-span-3 bg-white rounded-xl shadow-md p-6" data-aos="fade-up">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Desempenho por Loja (Top 5 com maior tempo)</h2>
+                <div class="relative" style="height: 250px;">
+                    <canvas id="lojaDesempenhoChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- LOJAS -->
-        <div id="lojas" class="sub-tab-content">
-            <div class="transport-card">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold">Gerenciar Lojas</h3>
-                    <div class="flex gap-2">
-                        <button class="btn btn-primary" onclick="showAllLojasMap()">Ver no Mapa</button>
-                        <button class="btn btn-success" onclick="showAddForm('loja')">+ Nova Loja</button>
+        <div class="bg-white rounded-xl shadow-md p-6 mb-12" data-aos="fade-up">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">% de Utilização por Frota (Viagens)</h2>
+            <div class="relative mx-auto" style="height: 250px; max-width: 300px;">
+                <canvas id="fleetUtilizationChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-6 mb-12" data-aos="fade-up">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Tempos Médios por Loja</h2>
+            <div class="table-container">
+                <table class="w-full min-w-max">
+                    <thead>
+                        <tr>
+                            <th class="py-3 px-4">Loja</th>
+                            <th class="py-3 px-4 text-center">Total de Entregas</th>
+                            <th class="py-3 px-4 text-center">Total Pallets</th>
+                            <th class="py-3 px-4 text-center">Total Rolls</th>
+                            <th class="py-3 px-4 text-center">Tempo Médio em Loja (HH:mm)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="temposMediosLojaTbody">
+                        <tr><td colspan="5" class="loading"><div class="spinner"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+                    
+        <div class="bg-white rounded-xl shadow-md p-6 mb-12" data-aos="fade-up">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Visão Geral em Tempo Real</h2>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-gray-600">Auto-refresh</span>
+                        <input type="checkbox" id="homeAutoRefresh" checked onchange="toggleHomeAutoRefresh()">
+                        <span class="text-xs text-green-600" id="homeLastUpdate">Última atualização: --:--</span>
+                    </div>
+                    <button class="btn btn-primary btn-small" onclick="showHomeMapFullscreen()">🔍 Ver em Tela Cheia</button>
+                </div>
+            </div>
+            <div class="relative">
+                <div id="homeMap" style="height: 400px; width: 100%; border-radius: 8px; background: #f0f9ff;"></div>
+                <div id="homeMapControls" class="absolute top-4 left-4 bg-white rounded-lg shadow-md p-3 max-w-xs">
+                    <h4 class="font-semibold text-sm mb-2">Legenda</h4>
+                    <div class="text-xs space-y-1">
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-blue-600 rounded"></div><span>CD - Centro de Distribuição</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-orange-500 rounded"></div><span>🚚 Veículos em Trânsito</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-yellow-500 rounded"></div><span>📦 Veículos Descarregando</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-green-500 rounded"></div><span>🔄 Veículos Retornando</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-red-500 rounded"></div><span>🏪 Lojas Fort</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-blue-500 rounded"></div><span>🏪 Lojas Comper</span></div>
                     </div>
                 </div>
-                <div class="table-container bg-white rounded-lg shadow-md">
-                    <table class="w-full">
-                        <thead>
-                            <tr>
-                                <th>Código</th>
-                                <th>Nome</th>
-                                <th>Cidade</th>
-                                <th>QR Code</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="lojasConfigBody">
-                            <tr><td colspan="6" class="loading"><div class="spinner"></div>Carregando lojas...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
             </div>
         </div>
+    `;
 
-        <!-- DOCAS -->
-        <div id="docas" class="sub-tab-content">
-            <div class="transport-card">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold">Gerenciar Docas</h3>
-                    <button class="btn btn-success" onclick="showAddForm('doca')">+ Nova Doca</button>
-                </div>
-                <div class="table-container bg-white rounded-lg shadow-md">
-                    <table class="w-full">
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Capacidade (Pallets)</th>
-                                <th>Código QR</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="docasConfigBody">
-                            <tr><td colspan="5" class="loading"><div class="spinner"></div>Carregando docas...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- VEÍCULOS -->
-        <div id="veiculos" class="sub-tab-content">
-            <div class="transport-card">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold">Gerenciar Frota</h3>
-                    <button class="btn btn-success" onclick="showAddForm('veiculo')">+ Novo Veículo</button>
-                </div>
-                <div class="table-container bg-white rounded-lg shadow-md">
-                    <table class="w-full">
-                        <thead>
-                            <tr>
-                                <th>Placa</th>
-                                <th>Modelo</th>
-                                <th>Tipo</th>
-                                <th>Capacidade (P)</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="veiculosConfigBody">
-                            <tr><td colspan="6" class="loading"><div class="spinner"></div>Carregando veículos...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- MOTORISTAS -->
-        <div id="motoristasConfig" class="sub-tab-content">
-            <div class="transport-card">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold">Gerenciar Motoristas</h3>
-                    <button class="btn btn-success" onclick="showAddForm('motorista')">+ Novo Motorista</button>
-                </div>
-                <div class="table-container bg-white rounded-lg shadow-md">
-                    <table class="w-full">
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Produtivo</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="motoristasConfigBody">
-                            <tr><td colspan="4" class="loading"><div class="spinner"></div>Carregando motoristas...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- LÍDERES -->
-        <div id="lideres" class="sub-tab-content">
-            <div class="transport-card">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold">Gerenciar Líderes</h3>
-                    <button class="btn btn-success" onclick="showAddForm('lider')">+ Novo Líder</button>
-                </div>
-                <div class="table-container bg-white rounded-lg shadow-md">
-                    <table class="w-full">
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Código Funcionário</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="lideresConfigBody">
-                            <tr><td colspan="4" class="loading"><div class="spinner"></div>Carregando líderes...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- PONTOS DE INTERESSE -->
-        <div id="pontosInteresse" class="sub-tab-content">
-            <div class="transport-card">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold">Gerenciar Pontos de Interesse</h3>
-                    <div class="flex gap-2">
-                        <button class="btn btn-primary" onclick="showPontosInteresseMap()">Ver no Mapa</button>
-                        <button class="btn btn-success" onclick="showAddPontoInteresse()">+ Novo Ponto</button>
+    // A partir daqui, as outras views
+    document.getElementById('operacao').innerHTML = `
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Operação</h1>
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8" data-aos="fade-up">
+            <div class="filters-section">
+                <div class="filters-grid">
+                    <div class="form-group">
+                        <label for="operacaoDataInicio">Data Início:</label>
+                        <input type="date" id="operacaoDataInicio" onchange="loadOperacaoData()">
+                    </div>
+                    <div class="form-group">
+                        <label for="operacaoDataFim">Data Fim:</label>
+                        <input type="date" id="operacaoDataFim" onchange="loadOperacaoData()">
+                    </div>
+                    <div class="form-group">
+                        <label for="operacaoSearchInput">Busca Aberta:</label>
+                        <input type="text" id="operacaoSearchInput" placeholder="Buscar por Viagem, Loja..." onkeyup="loadOperacaoData()">
+                    </div>
+                    <div class="form-group">
+                        <label for="operacaoTipoInput">Tipo de Viagem:</label>
+                        <select id="operacaoTipoInput" onchange="loadOperacaoData()"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="operacaoStatusInput">Status:</label>
+                        <select id="operacaoStatusInput" onchange="loadOperacaoData()"></select>
                     </div>
                 </div>
-                <div class="table-container bg-white rounded-lg shadow-md">
-                    <table class="w-full">
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Tipo</th>
-                                <th>Coordenadas</th>
-                                <th>Raio (m)</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pontosInteresseConfigBody">
-                            <tr><td colspan="6" class="loading"><div class="spinner"></div>Carregando pontos...</td></tr>
-                        </tbody>
-                    </table>
+            </div>
+            <div class="table-container mt-6">
+                <table class="w-full min-w-max">
+                    <thead>
+                        <tr>
+                            <th class="py-3 px-4">Viagem</th>
+                            <th class="py-3 px-4">Loja</th>
+                            <th class="py-3 px-4">Saída Pátio</th>
+                            <th class="py-3 px-4">Chegada Loja</th>
+                            <th class="py-3 px-4">Saída Loja</th>
+                            <th class="py-3 px-4">Tempo em Loja</th>
+                            <th class="py-3 px-4">Motorista</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th class="py-3 px-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="operacaoTbody">
+                        <tr><td colspan="9" class="loading"><div class="spinner"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-between items-center mt-6">
+                <p class="text-sm text-gray-600" id="operacaoTotalEntries">Total de 0 viagens encontradas</p>
+                <div class="flex items-center">
+                    <button class="btn btn-secondary btn-small" id="operacaoPrevBtn" onclick="prevPage('operacao')">Anterior</button>
+                    <span class="mx-2 text-sm text-gray-700" id="operacaoCurrentPage">Página 1</span>
+                    <button class="btn btn-secondary btn-small" id="operacaoNextBtn" onclick="nextPage('operacao')">Próxima</button>
                 </div>
             </div>
         </div>
-
-        <!-- ACESSOS -->
-        <div id="acessos" class="sub-tab-content">
-            <div class="transport-card">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold">Gerenciar Acessos</h3>
-                    <button class="btn btn-success" onclick="showAddForm('acesso')">+ Novo Acesso</button>
+    `;
+    document.getElementById('transporte').innerHTML = `
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Transporte</h1>
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8" data-aos="fade-up">
+            <div class="filters-section">
+                <div class="filters-grid">
+                    <div class="form-group">
+                        <label for="transporteDataInicio">Data Início:</label>
+                        <input type="date" id="transporteDataInicio" onchange="loadTransporteData()">
+                    </div>
+                    <div class="form-group">
+                        <label for="transporteDataFim">Data Fim:</label>
+                        <input type="date" id="transporteDataFim" onchange="loadTransporteData()">
+                    </div>
+                    <div class="form-group">
+                        <label for="transporteSearchInput">Busca Aberta:</label>
+                        <input type="text" id="transporteSearchInput" placeholder="Buscar por Placa, Motorista..." onkeyup="loadTransporteData()">
+                    </div>
                 </div>
-                <div class="table-container bg-white rounded-lg shadow-md">
-                    <table class="w-full">
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Tipo de Acesso</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="acessosConfigBody">
-                            <tr><td colspan="3" class="loading"><div class="spinner"></div>Carregando acessos...</td></tr>
-                        </tbody>
-                    </table>
+            </div>
+            <div class="table-container mt-6">
+                <table class="w-full min-w-max">
+                    <thead>
+                        <tr>
+                            <th class="py-3 px-4">Placa</th>
+                            <th class="py-3 px-4">Descrição</th>
+                            <th class="py-3 px-4">Motorista</th>
+                            <th class="py-3 px-4">Última Posição</th>
+                            <th class="py-3 px-4">Tempo Total</th>
+                            <th class="py-3 px-4">Viagens Concluídas</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th class="py-3 px-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transporteTbody">
+                        <tr><td colspan="8" class="loading"><div class="spinner"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-between items-center mt-6">
+                <p class="text-sm text-gray-600" id="transporteTotalEntries">Total de 0 veículos encontrados</p>
+                <div class="flex items-center">
+                    <button class="btn btn-secondary btn-small" id="transportePrevBtn" onclick="prevPage('transporte')">Anterior</button>
+                    <span class="mx-2 text-sm text-gray-700" id="transporteCurrentPage">Página 1</span>
+                    <button class="btn btn-secondary btn-small" id="transporteNextBtn" onclick="nextPage('transporte')">Próxima</button>
                 </div>
             </div>
         </div>
-
-        <!-- SISTEMA -->
-        <div id="sistema" class="sub-tab-content">
-            <div class="transport-card">
-                <h3 class="text-xl font-semibold mb-4">Status do Sistema</h3>
-                <pre id="systemStatus" class="bg-gray-100 p-4 rounded-md text-sm whitespace-pre-wrap"></pre>
+    `;
+    document.getElementById('faturamento').innerHTML = `
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Faturamento</h1>
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8" data-aos="fade-up">
+            <div class="filters-section">
+                <div class="filters-grid">
+                    <div class="form-group">
+                        <label for="faturamentoDataInicio">Data Início:</label>
+                        <input type="date" id="faturamentoDataInicio" onchange="loadFaturamentoData()">
+                    </div>
+                    <div class="form-group">
+                        <label for="faturamentoDataFim">Data Fim:</label>
+                        <input type="date" id="faturamentoDataFim" onchange="loadFaturamentoData()">
+                    </div>
+                    <div class="form-group">
+                        <label for="faturamentoSearchInput">Busca Aberta:</label>
+                        <input type="text" id="faturamentoSearchInput" placeholder="Buscar por Viagem, Loja..." onkeyup="loadFaturamentoData()">
+                    </div>
+                </div>
+            </div>
+            <div class="table-container mt-6">
+                <table class="w-full min-w-max">
+                    <thead>
+                        <tr>
+                            <th class="py-3 px-4">Viagem</th>
+                            <th class="py-3 px-4">Loja</th>
+                            <th class="py-3 px-4">Data</th>
+                            <th class="py-3 px-4">Motorista</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th class="py-3 px-4">Valor (R$)</th>
+                            <th class="py-3 px-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="faturamentoTbody">
+                        <tr><td colspan="7" class="loading"><div class="spinner"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-between items-center mt-6">
+                <p class="text-sm text-gray-600" id="faturamentoTotalEntries">Total de 0 viagens encontradas</p>
+                <div class="flex items-center">
+                    <button class="btn btn-secondary btn-small" id="faturamentoPrevBtn" onclick="prevPage('faturamento')">Anterior</button>
+                    <span class="mx-2 text-sm text-gray-700" id="faturamentoCurrentPage">Página 1</span>
+                    <button class="btn btn-secondary btn-small" id="faturamentoNextBtn" onclick="nextPage('faturamento')">Próxima</button>
+                </div>
             </div>
         </div>
-    </div>
-</div>
-`;
+    `;
+    document.getElementById('motoristas').innerHTML = `
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Motoristas</h1>
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8" data-aos="fade-up">
+            <div class="filters-section">
+                <div class="filters-grid">
+                    <div class="form-group">
+                        <label for="motoristasDataInicio">Data Início:</label>
+                        <input type="date" id="motoristasDataInicio" onchange="loadMotoristasData()">
+                    </div>
+                    <div class="form-group">
+                        <label for="motoristasDataFim">Data Fim:</label>
+                        <input type="date" id="motoristasDataFim" onchange="loadMotoristasData()">
+                    </div>
+                    <div class="form-group">
+                        <label for="motoristasSearchInput">Busca Aberta:</label>
+                        <input type="text" id="motoristasSearchInput" placeholder="Buscar por nome, CPF..." onkeyup="loadMotoristasData()">
+                    </div>
+                </div>
+            </div>
+            <div class="table-container mt-6">
+                <table class="w-full min-w-max">
+                    <thead>
+                        <tr>
+                            <th class="py-3 px-4">Nome</th>
+                            <th class="py-3 px-4">CPF</th>
+                            <th class="py-3 px-4">Telefone</th>
+                            <th class="py-3 px-4">Viagens Concluídas</th>
+                            <th class="py-3 px-4">Última Viagem</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th class="py-3 px-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="motoristasTbody">
+                        <tr><td colspan="7" class="loading"><div class="spinner"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-between items-center mt-6">
+                <p class="text-sm text-gray-600" id="motoristasTotalEntries">Total de 0 motoristas encontrados</p>
+                <div class="flex items-center">
+                    <button class="btn btn-secondary btn-small" id="motoristasPrevBtn" onclick="prevPage('motoristas')">Anterior</button>
+                    <span class="mx-2 text-sm text-gray-700" id="motoristasCurrentPage">Página 1</span>
+                    <button class="btn btn-secondary btn-small" id="motoristasNextBtn" onclick="nextPage('motoristas')">Próxima</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.getElementById('acompanhamento').innerHTML = `
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Acompanhamento</h1>
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8" data-aos="fade-up">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Visão Geral em Tempo Real</h2>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-gray-600">Auto-refresh</span>
+                        <input type="checkbox" id="acompanhamentoAutoRefresh" checked onchange="toggleAcompanhamentoAutoRefresh()">
+                        <span class="text-xs text-green-600" id="acompanhamentoLastUpdate">Última atualização: --:--</span>
+                    </div>
+                    <button class="btn btn-primary btn-small" onclick="showAcompanhamentoMapFullscreen()">🔍 Ver em Tela Cheia</button>
+                </div>
+            </div>
+            <div class="relative">
+                <div id="acompanhamentoMap" style="height: 600px; width: 100%; border-radius: 8px; background: #f0f9ff;"></div>
+                <div id="acompanhamentoMapControls" class="absolute top-4 left-4 bg-white rounded-lg shadow-md p-3 max-w-xs">
+                    <h4 class="font-semibold text-sm mb-2">Legenda</h4>
+                    <div class="text-xs space-y-1">
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-blue-600 rounded"></div><span>CD - Centro de Distribuição</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-orange-500 rounded"></div><span>🚚 Veículos em Trânsito</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-yellow-500 rounded"></div><span>📦 Veículos Descarregando</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-green-500 rounded"></div><span>🔄 Veículos Retornando</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-red-500 rounded"></div><span>🏪 Lojas Fort</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-blue-500 rounded"></div><span>🏪 Lojas Comper</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6" data-aos="fade-up">
+            <div class="filters-section">
+                <div class="filters-grid">
+                    <div class="form-group">
+                        <label for="acompanhamentoSearchInput">Buscar Viagem:</label>
+                        <input type="text" id="acompanhamentoSearchInput" placeholder="Viagem ID, Motorista..." onkeyup="loadAcompanhamentoData()">
+                    </div>
+                    <div class="form-group">
+                        <label for="acompanhamentoTipoInput">Tipo de Viagem:</label>
+                        <select id="acompanhamentoTipoInput" onchange="loadAcompanhamentoData()"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="acompanhamentoStatusInput">Status:</label>
+                        <select id="acompanhamentoStatusInput" onchange="loadAcompanhamentoData()"></select>
+                    </div>
+                </div>
+            </div>
+            <div class="table-container mt-6">
+                <table class="w-full min-w-max">
+                    <thead>
+                        <tr>
+                            <th class="py-3 px-4">Viagem ID</th>
+                            <th class="py-3 px-4">Motorista</th>
+                            <th class="py-3 px-4">Veículo</th>
+                            <th class="py-3 px-4">Tipo</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th class="py-3 px-4">Próxima Loja</th>
+                            <th class="py-3 px-4">Previsão Chegada</th>
+                            <th class="py-3 px-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="acompanhamentoTbody">
+                        <tr><td colspan="8" class="loading"><div class="spinner"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-between items-center mt-6">
+                <p class="text-sm text-gray-600" id="acompanhamentoTotalEntries">Total de 0 viagens em andamento</p>
+                <div class="flex items-center">
+                    <button class="btn btn-secondary btn-small" id="acompanhamentoPrevBtn" onclick="prevPage('acompanhamento')">Anterior</button>
+                    <span class="mx-2 text-sm text-gray-700" id="acompanhamentoCurrentPage">Página 1</span>
+                    <button class="btn btn-secondary btn-small" id="acompanhamentoNextBtn" onclick="nextPage('acompanhamento')">Próxima</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.getElementById('historico').innerHTML = `
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Histórico</h1>
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8" data-aos="fade-up">
+            <div class="filters-section">
+                <div class="filters-grid">
+                    <div class="form-group">
+                        <label for="historicoDataInicio">Data Início:</label>
+                        <input type="date" id="historicoDataInicio" onchange="loadHistoricoData()">
+                    </div>
+                    <div class="form-group">
+                        <label for="historicoDataFim">Data Fim:</label>
+                        <input type="date" id="historicoDataFim" onchange="loadHistoricoData()">
+                    </div>
+                    <div class="form-group">
+                        <label for="historicoSearchInput">Busca Aberta:</label>
+                        <input type="text" id="historicoSearchInput" placeholder="Buscar por Viagem, Loja..." onkeyup="loadHistoricoData()">
+                    </div>
+                    <div class="form-group">
+                        <label for="historicoTipoInput">Tipo de Viagem:</label>
+                        <select id="historicoTipoInput" onchange="loadHistoricoData()"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="historicoStatusInput">Status:</label>
+                        <select id="historicoStatusInput" onchange="loadHistoricoData()"></select>
+                    </div>
+                </div>
+            </div>
+            <div class="table-container mt-6">
+                <table class="w-full min-w-max">
+                    <thead>
+                        <tr>
+                            <th class="py-3 px-4">Viagem</th>
+                            <th class="py-3 px-4">Loja</th>
+                            <th class="py-3 px-4">Data</th>
+                            <th class="py-3 px-4">Motorista</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th class="py-3 px-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historicoTbody">
+                        <tr><td colspan="6" class="loading"><div class="spinner"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-between items-center mt-6">
+                <p class="text-sm text-gray-600" id="historicoTotalEntries">Total de 0 viagens encontradas</p>
+                <div class="flex items-center">
+                    <button class="btn btn-secondary btn-small" id="historicoPrevBtn" onclick="prevPage('historico')">Anterior</button>
+                    <span class="mx-2 text-sm text-gray-700" id="historicoCurrentPage">Página 1</span>
+                    <button class="btn btn-secondary btn-small" id="historicoNextBtn" onclick="nextPage('historico')">Próxima</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.getElementById('configuracoes').innerHTML = `
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Configurações</h1>
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8" data-aos="fade-up">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Gerenciar Lojas</h2>
+            <form id="storeForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label for="storeName">Nome da Loja:</label>
+                    <input type="text" id="storeName" placeholder="Ex: Loja Matriz" required>
+                </div>
+                <div class="form-group">
+                    <label for="storeLatitude">Latitude:</label>
+                    <input type="number" step="any" id="storeLatitude" placeholder="-23.5505" required>
+                </div>
+                <div class="form-group">
+                    <label for="storeLongitude">Longitude:</label>
+                    <input type="number" step="any" id="storeLongitude" placeholder="-46.6333" required>
+                </div>
+                <div class="form-group">
+                    <label for="storeStatus">Status:</label>
+                    <select id="storeStatus" required>
+                        <option value="Ativa">Ativa</option>
+                        <option value="Inativa">Inativa</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary md:col-span-2">Adicionar Loja</button>
+            </form>
+            <div class="table-container mt-6">
+                <table class="w-full min-w-max">
+                    <thead>
+                        <tr>
+                            <th class="py-3 px-4">Nome</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th class="py-3 px-4">Latitude</th>
+                            <th class="py-3 px-4">Longitude</th>
+                            <th class="py-3 px-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="storesTbody">
+                        <tr><td colspan="5" class="loading"><div class="spinner"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    // As outras views serão carregadas dinamicamente
+    
+    // Inicie os gráficos da home
+    initCharts();
 
+    // Carregue os dados da view ativa (inicialmente a home)
+    await loadView('home');
 
-// Adicionar event listeners aos formulários
-document.getElementById('expeditionForm').addEventListener('submit', (e) => { e.preventDefault(); lancarCarga(); });
-document.getElementById('editExpeditionForm').addEventListener('submit', (e) => { e.preventDefault(); saveEditedExpedition(); });
-document.getElementById('passwordForm').addEventListener('submit', (e) => { e.preventDefault(); checkPassword(); });
-document.getElementById('addForm').addEventListener('submit', (e) => { e.preventDefault(); handleSave(); });
-// Event listener para o formulário de autenticação de edição
-document.getElementById('authEditForm').addEventListener('submit', (e) => { 
-    e.preventDefault(); 
-    checkAuthForEdit(); 
-});
+    // Inicialize a funcionalidade de busca e ordenação
+    setupSearchAndSort();
 
+    // Atualiza a navegação
+    updateNavigation();
+    
+    // Initialize Feather icons
+    feather.replace();
+}
             // Carregar dados para os selects
             await loadSelectData();
         }
