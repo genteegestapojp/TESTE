@@ -86,6 +86,101 @@
             <div class="container mx-auto px-6 py-8">
                 
                 <div id="home" class="view-content active"></div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Visão Geral</h1>
+<div class="filters-section" id="homeFilters">
+    <div class="filters-grid">
+        <div class="form-group">
+            <label for="homeDataInicio">Data Início:</label>
+            <input type="date" id="homeDataInicio" onchange="loadHomeData()">
+        </div>
+        <div class="form-group">
+            <label for="homeDataFim">Data Fim:</label>
+            <input type="date" id="homeDataFim" onchange="loadHomeData()">
+        </div>
+        <div class="form-group md:col-span-2">
+            <label for="homeSearchInput">Pesquisar:</label>
+            <input type="text" id="homeSearchInput" placeholder="Buscar por motorista, loja..." onkeyup="loadHomeData()">
+        </div>
+    </div>
+</div>
+
+<div id="dashboardStats" class="dashboard-grid my-6">
+    <div class="stat-card-dash" style="background: linear-gradient(135deg, #00D4AA, #00B4D8);">
+        <div class="stat-number" id="homeViagensConcluidas">0</div>
+        <div class="stat-label">Viagens Concluídas</div>
+    </div>
+    <div class="stat-card-dash" style="background: linear-gradient(135deg, #FFC107, #FF9800);">
+        <div class="stat-number" id="homeEntregasRealizadas">0</div>
+        <div class="stat-label">Entregas Realizadas</div>
+    </div>
+    <div class="stat-card-dash" style="background: linear-gradient(135deg, #2196F3, #1976D2);">
+        <div class="stat-number" id="homeTempoMedioPatio">00:00</div>
+        <div class="stat-label">Tempo Médio Pátio</div>
+    </div>
+    <div class="stat-card-dash" style="background: linear-gradient(135deg, #E91E63, #C2185B);">
+        <div class="stat-number" id="homeOcupacaoMedia">0%</div>
+        <div class="stat-label">Ocupação Média</div>
+    </div>
+    <div class="stat-card-dash" style="background: linear-gradient(135deg, #673AB7, #512DA8);">
+        <div class="stat-number" id="homeTempoMedioLoja">00:00</div>
+        <div class="stat-label">Tempo Médio Loja</div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-gray-800">Mapa de Operações</h3>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="homeAutoRefresh" class="h-4 w-4 text-blue-600 focus:ring-blue-500 rounded-sm">
+                <span class="text-sm text-gray-600">Atualização automática</span>
+                <span class="text-xs text-green-600" id="homeLastUpdate"></span>
+            </div>
+            <button class="btn btn-primary btn-small" onclick="showHomeMapFullscreen()">Tela Cheia</button>
+        </div>
+        <div id="homeMap" style="height: 450px; border-radius: 8px;"></div>
+    </div>
+
+    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col justify-between">
+        <div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Produtividade da Frota (Top 5)</h3>
+            <canvas id="frotaProdutividadeChart"></canvas>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+            <div class="flex flex-col items-center">
+                <h4 class="font-semibold text-gray-700 mb-2">Ocupação Média</h4>
+                <div style="height: 180px; width: 180px;">
+                    <canvas id="ocupacaoTotalChart"></canvas>
+                </div>
+            </div>
+            <div class="flex flex-col items-center">
+                <h4 class="font-semibold text-gray-700 mb-2">Uso da Frota</h4>
+                <div style="height: 180px; width: 180px;">
+                    <canvas id="fleetUtilizationChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white p-6 rounded-lg shadow-md mt-8">
+    <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Ranking de Tempo Médio em Lojas</h3>
+    <canvas id="lojaDesempenhoChart"></canvas>
+    <div class="table-container mt-8">
+        <table class="w-full">
+            <thead>
+                <tr>
+                    <th class="py-3 px-4 text-left">Loja</th>
+                    <th class="py-3 px-4 text-center">Entregas</th>
+                    <th class="py-3 px-4 text-center">Pallets</th>
+                    <th class="py-3 px-4 text-center">Rolls</th>
+                    <th class="py-3 px-4 text-center">Tempo Médio</th>
+                </tr>
+            </thead>
+            <tbody id="temposMediosLojaTbody"></tbody>
+        </table>
+    </div>
+</div>
                 <div id="operacao" class="view-content"></div>
                 <div id="transporte" class="view-content"></div>
                 <div id="faturamento" class="view-content"></div>
