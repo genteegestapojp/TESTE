@@ -1049,334 +1049,189 @@ document.getElementById('authEditForm').addEventListener('submit', (e) => {
             return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
         }
 
- async function loadHomeData() {
-    // Insere o conteúdo HTML da aba "home" antes de tentar acessar os elementos
-    document.getElementById('home').innerHTML = `
-        <h1 class="text-3xl font-bold text-gray-800 mb-6">Home</h1>
-                    
-        <div class="filters-section">
-            <div class="filters-grid">
-                <div class="form-group">
-                    <label for="homeDataInicio">Data Início:</label>
-                    <input type="date" id="homeDataInicio" onchange="loadHomeData()">
-                </div>
-                <div class="form-group">
-                    <label for="homeDataFim">Data Fim:</label>
-                    <input type="date" id="homeDataFim" onchange="loadHomeData()">
-                </div>
-                <div class="form-group">
-                    <label for="homeSearchInput">Busca Aberta:</label>
-                    <input type="text" id="homeSearchInput" placeholder="Buscar por Loja, Motorista..." onkeyup="loadHomeData()">
-                </div>
-            </div>
-        </div>
+async function loadHomeData() {
+            const dataInicioInput = document.getElementById('homeDataInicio');
+            const dataFimInput = document.getElementById('homeDataFim');
+            const searchInput = document.getElementById('homeSearchInput').value.toLowerCase();
 
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
-            <div class="stat-card-dash">
-                <div class="flex items-center">
-                    <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="truck" class="h-6 w-6 text-white"></i></div>
-                    <div class="ml-4">
-                        <h3 class="text-2xl font-bold" id="homeViagensConcluidas">0</h3>
-                        <p class="text-white text-opacity-80">Viagens Concluídas</p>
-                    </div>
-                </div>
-            </div>
-            <div class="stat-card-dash" style="background: var(--secondary-gradient);">
-                <div class="flex items-center">
-                    <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="package" class="h-6 w-6 text-white"></i></div>
-                    <div class="ml-4">
-                        <h3 class="text-2xl font-bold" id="homeEntregasRealizadas">0</h3>
-                        <p class="text-white text-opacity-80">Entregas Realizadas</p>
-                    </div>
-                </div>
-            </div>
-            <div class="stat-card-dash" style="background: var(--accent-gradient);">
-                <div class="flex items-center">
-                    <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="clock" class="h-6 w-6 text-white"></i></div>
-                    <div class="ml-4">
-                        <h3 class="text-2xl font-bold" id="homeTempoMedioPatio">00:00</h3>
-                        <p class="text-white text-opacity-80">Tempo Médio Pátio</p>
-                    </div>
-                </div>
-            </div>
-            <div class="stat-card-dash" style="background: linear-gradient(135deg, #FCBF49, #F77F00);">
-                <div class="flex items-center">
-                    <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="shopping-bag" class="h-6 w-6 text-white"></i></div>
-                    <div class="ml-4">
-                        <h3 class="text-2xl font-bold" id="homeTempoMedioLoja">00:00</h3>
-                        <p class="text-white text-opacity-80">Tempo Médio em Loja</p>
-                    </div>
-                </div>
-            </div>
-            <div class="stat-card-dash" style="background: linear-gradient(135deg, #7209B7, #A663CC);">
-                <div class="flex items-center">
-                    <div class="bg-white bg-opacity-20 p-3 rounded-full"><i data-feather="pie-chart" class="h-6 w-6 text-white"></i></div>
-                    <div class="ml-4">
-                        <h3 class="text-2xl font-bold" id="homeOcupacaoMedia">0%</h3>
-                        <p class="text-white text-opacity-80">Ocupação Média</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-                        
-        <div class="bg-white rounded-xl shadow-md p-6 mb-8" data-aos="fade-up">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Top 5 Produtividade de Motoristas (por Entregas)</h2>
-            <div class="relative" style="height: 250px;">
-                <canvas id="frotaProdutividadeChart"></canvas>
-            </div>
-        </div>
-                    
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-12">
-            <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6" data-aos="fade-up">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Ocupação Média da Frota</h2>
-                <div class="relative mx-auto" style="max-width: 250px; height: 150px;">
-                    <canvas id="ocupacaoTotalChart"></canvas>
-                </div>
-            </div>
-            <div class="lg:col-span-3 bg-white rounded-xl shadow-md p-6" data-aos="fade-up">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">Desempenho por Loja (Top 5 com maior tempo)</h2>
-                <div class="relative" style="height: 250px;">
-                    <canvas id="lojaDesempenhoChart"></canvas>
-                </div>
-            </div>
-        </div>
+            if (!dataInicioInput.value || !dataFimInput.value) {
+                const hoje = new Date().toISOString().split('T')[0];
+                dataInicioInput.value = hoje;
+                dataFimInput.value = hoje;
+            }
 
-        <div class="bg-white rounded-xl shadow-md p-6 mb-12" data-aos="fade-up">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">% de Utilização por Frota (Viagens)</h2>
-            <div class="relative mx-auto" style="height: 250px; max-width: 300px;">
-                <canvas id="fleetUtilizationChart"></canvas>
-            </div>
-        </div>
+            document.getElementById('homeViagensConcluidas').textContent = '...';
+            document.getElementById('homeEntregasRealizadas').textContent = '...';
+            document.getElementById('homeTempoMedioPatio').textContent = '...';
+            document.getElementById('homeOcupacaoMedia').textContent = '...';
+            document.getElementById('homeTempoMedioLoja').textContent = '...';
+            document.getElementById('temposMediosLojaTbody').innerHTML = `<tr><td colspan="5" class="loading"><div class="spinner"></div></td></tr>`;
 
-        <div class="bg-white rounded-xl shadow-md p-6 mb-12" data-aos="fade-up">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Tempos Médios por Loja</h2>
-            <div class="table-container">
-                <table class="w-full min-w-max">
-                    <thead>
-                        <tr>
-                            <th class="py-3 px-4">Loja</th>
-                            <th class="py-3 px-4 text-center">Total de Entregas</th>
-                            <th class="py-3 px-4 text-center">Total Pallets</th>
-                            <th class="py-3 px-4 text-center">Total Rolls</th>
-                            <th class="py-3 px-4 text-center">Tempo Médio em Loja (HH:mm)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="temposMediosLojaTbody">
-                        <tr><td colspan="5" class="loading"><div class="spinner"></div></td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-                    
-        <div class="bg-white rounded-xl shadow-md p-6 mb-12" data-aos="fade-up">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold text-gray-800">Visão Geral em Tempo Real</h2>
-                <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-600">Auto-refresh</span>
-                        <input type="checkbox" id="homeAutoRefresh" checked onchange="toggleHomeAutoRefresh()">
-                        <span class="text-xs text-green-600" id="homeLastUpdate">Última atualização: --:--</span>
-                    </div>
-                    <button class="btn btn-primary btn-small" onclick="showHomeMapFullscreen()">🔍 Ver em Tela Cheia</button>
-                </div>
-            </div>
-            <div class="relative">
-                <div id="homeMap" style="height: 400px; width: 100%; border-radius: 8px; background: #f0f9ff;"></div>
-                <div id="homeMapControls" class="absolute top-4 left-4 bg-white rounded-lg shadow-md p-3 max-w-xs">
-                    <h4 class="font-semibold text-sm mb-2">Legenda</h4>
-                    <div class="text-xs space-y-1">
-                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-blue-600 rounded"></div><span>CD - Centro de Distribuição</span></div>
-                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-orange-500 rounded"></div><span>🚚 Veículos em Trânsito</span></div>
-                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-yellow-500 rounded"></div><span>📦 Veículos Descarregando</span></div>
-                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-green-500 rounded"></div><span>🔄 Veículos Retornando</span></div>
-                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-red-500 rounded"></div><span>🏪 Lojas Fort</span></div>
-                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-blue-500 rounded"></div><span>🏪 Lojas Comper</span></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
+            try {
+                const dataInicio = dataInicioInput.value;
+                const dataFim = dataFimInput.value;
+                let query = `expeditions?status=eq.entregue&data_hora=gte.${dataInicio}T00:00:00&data_hora=lte.${dataFim}T23:59:59&order=data_hora.desc`;
+                
+                const allExpeditionsInPeriod = await supabaseRequest(query);
+                
+                if (!allExpeditionsInPeriod || allExpeditionsInPeriod.length === 0) {
+                     document.getElementById('homeViagensConcluidas').textContent = '0';
+                    document.getElementById('homeEntregasRealizadas').textContent = '0';
+                    document.getElementById('homeTempoMedioPatio').textContent = '00:00';
+                    document.getElementById('homeOcupacaoMedia').textContent = '0%';
+                    document.getElementById('homeTempoMedioLoja').textContent = '00:00';
+                    document.getElementById('temposMediosLojaTbody').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Nenhum dado encontrado para os filtros selecionados.</td></tr>';
+                    destroyChart('ocupacaoTotalChart');
+                    destroyChart('lojaDesempenhoChart');
+                    destroyChart('frotaProdutividadeChart');
+                    destroyChart('fleetUtilizationChart');
+                    return;
+                    initHomeMap(); // Inicializar mapa mesmo sem dados
+                }
+                
+                const expeditionIds = allExpeditionsInPeriod.map(e => e.id);
+                const allItemsInPeriod = await supabaseRequest(`expedition_items?expedition_id=in.(${expeditionIds.join(',')})`);
+                
+                const expToLojaNames = {};
+                allItemsInPeriod.forEach(item => {
+                    if (!expToLojaNames[item.expedition_id]) {
+                        expToLojaNames[item.expedition_id] = [];
+                    }
+                    const loja = lojas.find(l => l.id === item.loja_id);
+                    if (loja) expToLojaNames[item.expedition_id].push(loja.nome);
+                });
 
-    // Agora, os elementos existem, e podemos acessá-los com segurança
-    const dataInicioInput = document.getElementById('homeDataInicio');
-    const dataFimInput = document.getElementById('homeDataFim');
-    const searchInput = document.getElementById('homeSearchInput');
+                let filteredExpeditions = allExpeditionsInPeriod;
+                if (searchInput) {
+                    filteredExpeditions = allExpeditionsInPeriod.filter(exp => {
+                        const motorista = motoristas.find(m => m.id === exp.motorista_id);
+                        const searchableMotorista = motorista ? motorista.nome.toLowerCase() : '';
+                        const searchableLojas = (expToLojaNames[exp.id] || []).join(' ').toLowerCase();
+                        
+                        return searchableMotorista.includes(searchInput) || searchableLojas.includes(searchInput);
+                    });
+                }
+                
+                const filteredExpeditionIds = filteredExpeditions.map(e => e.id);
+                const items = allItemsInPeriod.filter(item => filteredExpeditionIds.includes(item.expedition_id));
 
-    const hoje = new Date().toISOString().split('T')[0];
-    if (dataInicioInput && dataFimInput) {
-        dataInicioInput.value = hoje;
-        dataFimInput.value = hoje;
-    }
+                if (filteredExpeditions.length === 0) {
+                     document.getElementById('homeViagensConcluidas').textContent = '0';
+                    document.getElementById('homeEntregasRealizadas').textContent = '0';
+                    document.getElementById('homeTempoMedioPatio').textContent = '00:00';
+                    document.getElementById('homeOcupacaoMedia').textContent = '0%';
+                    document.getElementById('homeTempoMedioLoja').textContent = '00:00';
+                    document.getElementById('temposMediosLojaTbody').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Nenhum dado encontrado para os filtros selecionados.</td></tr>';
+                    destroyChart('ocupacaoTotalChart');
+                    destroyChart('lojaDesempenhoChart');
+                    destroyChart('frotaProdutividadeChart');
+                    destroyChart('fleetUtilizationChart');
+                    return;
+                    initHomeMap(); // Inicializar mapa mesmo sem dados
+                }
 
-    document.getElementById('homeViagensConcluidas').textContent = '...';
-    document.getElementById('homeEntregasRealizadas').textContent = '...';
-    document.getElementById('homeTempoMedioPatio').textContent = '...';
-    document.getElementById('homeOcupacaoMedia').textContent = '...';
-    document.getElementById('homeTempoMedioLoja').textContent = '...';
-    document.getElementById('temposMediosLojaTbody').innerHTML = `<tr><td colspan="5" class="loading"><div class="spinner"></div></td></tr>`;
 
-    try {
-        const dataInicio = dataInicioInput ? dataInicioInput.value : hoje;
-        const dataFim = dataFimInput ? dataFimInput.value : hoje;
-        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-        let query = `expeditions?status=eq.entregue&data_hora=gte.${dataInicio}T00:00:00&data_hora=lte.${dataFim}T23:59:59&order=data_hora.desc`;
-        
-        const allExpeditionsInPeriod = await supabaseRequest(query);
-        
-        if (!allExpeditionsInPeriod || allExpeditionsInPeriod.length === 0) {
-            document.getElementById('homeViagensConcluidas').textContent = '0';
-            document.getElementById('homeEntregasRealizadas').textContent = '0';
-            document.getElementById('homeTempoMedioPatio').textContent = '00:00';
-            document.getElementById('homeOcupacaoMedia').textContent = '0%';
-            document.getElementById('homeTempoMedioLoja').textContent = '00:00';
-            document.getElementById('temposMediosLojaTbody').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Nenhum dado encontrado para os filtros selecionados.</td></tr>';
-            destroyChart('ocupacaoTotalChart');
-            destroyChart('lojaDesempenhoChart');
-            destroyChart('frotaProdutividadeChart');
-            destroyChart('fleetUtilizationChart');
-            return;
-        }
-        
-        const expeditionIds = allExpeditionsInPeriod.map(e => e.id);
-        const allItemsInPeriod = await supabaseRequest(`expedition_items?expedition_id=in.(${expeditionIds.join(',')})`);
-        
-        const expToLojaNames = {};
-        allItemsInPeriod.forEach(item => {
-            if (!expToLojaNames[item.expedition_id]) {
-                expToLojaNames[item.expedition_id] = [];
-            }
-            const loja = lojas.find(l => l.id === item.loja_id);
-            if (loja) expToLojaNames[item.expedition_id].push(loja.nome);
-        });
+                const totalViagens = filteredExpeditions.length;
+                const totalEntregas = items.length;
 
-        let filteredExpeditions = allExpeditionsInPeriod;
-        if (searchTerm) {
-            filteredExpeditions = allExpeditionsInPeriod.filter(exp => {
-                const motorista = motoristas.find(m => m.id === exp.motorista_id);
-                const searchableMotorista = motorista ? motorista.nome.toLowerCase() : '';
-                const searchableLojas = (expToLojaNames[exp.id] || []).join(' ').toLowerCase();
-                
-                return searchableMotorista.includes(searchTerm) || searchableLojas.includes(searchTerm);
-            });
-        }
-        
-        const filteredExpeditionIds = filteredExpeditions.map(e => e.id);
-        const items = allItemsInPeriod.filter(item => filteredExpeditionIds.includes(item.expedition_id));
+                const temposPatio = filteredExpeditions
+                    .filter(e => e.data_hora && e.data_saida_veiculo)
+                    .map(e => (new Date(e.data_saida_veiculo) - new Date(e.data_hora)) / 60000);
+                const tempoMedioPatio = temposPatio.length > 0 ? temposPatio.reduce((a, b) => a + b, 0) / temposPatio.length : 0;
 
-        if (filteredExpeditions.length === 0) {
-            document.getElementById('homeViagensConcluidas').textContent = '0';
-            document.getElementById('homeEntregasRealizadas').textContent = '0';
-            document.getElementById('homeTempoMedioPatio').textContent = '00:00';
-            document.getElementById('homeOcupacaoMedia').textContent = '0%';
-            document.getElementById('homeTempoMedioLoja').textContent = '00:00';
-            document.getElementById('temposMediosLojaTbody').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Nenhum dado encontrado para os filtros selecionados.</td></tr>';
-            destroyChart('ocupacaoTotalChart');
-            destroyChart('lojaDesempenhoChart');
-            destroyChart('frotaProdutividadeChart');
-            destroyChart('fleetUtilizationChart');
-            return;
-        }
+                const ocupacoes = [];
+                let perlogCount = 0;
+                let jjsCount = 0;
 
-        const totalViagens = filteredExpeditions.length;
-        const totalEntregas = items.length;
+                filteredExpeditions.forEach(exp => {
+                    const veiculo = veiculos.find(v => v.id === exp.veiculo_id);
+                    if (veiculo) {
+                        if (veiculo.tipo === 'PERLOG') perlogCount++;
+                        if (veiculo.tipo === 'JJS') jjsCount++;
+                        
+                        if (veiculo.capacidade_pallets > 0) {
+                            const expItems = items.filter(i => i.expedition_id === exp.id);
+                            const totalPallets = expItems.reduce((sum, item) => sum + (item.pallets || 0), 0);
+                            const totalRolls = expItems.reduce((sum, item) => sum + (item.rolltrainers || 0), 0);
+                            const cargaTotal = totalPallets + (totalRolls / 2);
+                            ocupacoes.push((cargaTotal / veiculo.capacidade_pallets) * 100);
+                        }
+                    }
+                });
+                const ocupacaoMedia = ocupacoes.length > 0 ? ocupacoes.reduce((a, b) => a + b, 0) / ocupacoes.length : 0;
 
-        const temposPatio = filteredExpeditions
-            .filter(e => e.data_hora && e.data_saida_veiculo)
-            .map(e => (new Date(e.data_saida_veiculo) - new Date(e.data_hora)) / 60000);
-        const tempoMedioPatio = temposPatio.length > 0 ? temposPatio.reduce((a, b) => a + b, 0) / temposPatio.length : 0;
+                document.getElementById('homeViagensConcluidas').textContent = totalViagens;
+                document.getElementById('homeEntregasRealizadas').textContent = totalEntregas;
+                document.getElementById('homeTempoMedioPatio').textContent = minutesToHHMM(tempoMedioPatio);
+                document.getElementById('homeOcupacaoMedia').textContent = `${ocupacaoMedia.toFixed(1)}%`;
 
-        const ocupacoes = [];
-        let perlogCount = 0;
-        let jjsCount = 0;
+                const temposLojaGeral = [];
+                const lojasStats = {};
+                const motoristasStats = {};
 
-        filteredExpeditions.forEach(exp => {
-            const veiculo = veiculos.find(v => v.id === exp.veiculo_id);
-            if (veiculo) {
-                if (veiculo.tipo === 'PERLOG') perlogCount++;
-                if (veiculo.tipo === 'JJS') jjsCount++;
-                
-                if (veiculo.capacidade_pallets > 0) {
-                    const expItems = items.filter(i => i.expedition_id === exp.id);
-                    const totalPallets = expItems.reduce((sum, item) => sum + (item.pallets || 0), 0);
-                    const totalRolls = expItems.reduce((sum, item) => sum + (item.rolltrainers || 0), 0);
-                    const cargaTotal = totalPallets + (totalRolls / 2);
-                    ocupacoes.push((cargaTotal / veiculo.capacidade_pallets) * 100);
-                }
-            }
-        });
-        const ocupacaoMedia = ocupacoes.length > 0 ? ocupacoes.reduce((a, b) => a + b, 0) / ocupacoes.length : 0;
+                items.forEach(item => {
+                    if (item.data_inicio_descarga && item.data_fim_descarga) {
+                        const tempo = (new Date(item.data_fim_descarga) - new Date(item.data_inicio_descarga)) / 60000;
+                        temposLojaGeral.push(tempo);
+                        
+                        const lojaId = item.loja_id;
+                        if (!lojasStats[lojaId]) {
+                            const lojaInfo = lojas.find(l => l.id === lojaId);
+                            lojasStats[lojaId] = {
+                                nome: lojaInfo ? `${lojaInfo.codigo} - ${lojaInfo.nome}` : 'Desconhecida',
+                                codigo: lojaInfo ? lojaInfo.codigo : 'N/A',
+                                tempos: [],
+                                entregas: 0,
+                                totalPallets: 0,
+                                totalRolls: 0
+                            };
+                        }
+                        lojasStats[lojaId].tempos.push(tempo);
+                        lojasStats[lojaId].entregas++;
+                        lojasStats[lojaId].totalPallets += item.pallets || 0;
+                        lojasStats[lojaId].totalRolls += item.rolltrainers || 0;
+                    }
+                });
 
-        document.getElementById('homeViagensConcluidas').textContent = totalViagens;
-        document.getElementById('homeEntregasRealizadas').textContent = totalEntregas;
-        document.getElementById('homeTempoMedioPatio').textContent = minutesToHHMM(tempoMedioPatio);
-        document.getElementById('homeOcupacaoMedia').textContent = `${ocupacaoMedia.toFixed(1)}%`;
+                filteredExpeditions.forEach(exp => {
+                    if (exp.motorista_id) {
+                        const motorista = motoristas.find(m => m.id === exp.motorista_id);
+                        if (motorista) {
+                            if (!motoristasStats[exp.motorista_id]) {
+                                motoristasStats[exp.motorista_id] = {
+                                    nome: motorista.nome,
+                                    entregas: 0
+                                };
+                            }
+                            const expItemsCount = items.filter(i => i.expedition_id === exp.id).length;
+                            motoristasStats[exp.motorista_id].entregas += expItemsCount;
+                        }
+                    }
+                });
 
-        const temposLojaGeral = [];
-        const lojasStats = {};
-        const motoristasStats = {};
+                const tempoMedioLoja = temposLojaGeral.length > 0 ? temposLojaGeral.reduce((a, b) => a + b, 0) / temposLojaGeral.length : 0;
+                document.getElementById('homeTempoMedioLoja').textContent = minutesToHHMM(tempoMedioLoja);
 
-        items.forEach(item => {
-            if (item.data_inicio_descarga && item.data_fim_descarga) {
-                const tempo = (new Date(item.data_fim_descarga) - new Date(item.data_inicio_descarga)) / 60000;
-                temposLojaGeral.push(tempo);
-                
-                const lojaId = item.loja_id;
-                if (!lojasStats[lojaId]) {
-                    const lojaInfo = lojas.find(l => l.id === lojaId);
-                    lojasStats[lojaId] = {
-                        nome: lojaInfo ? `${lojaInfo.codigo} - ${lojaInfo.nome}` : 'Desconhecida',
-                        codigo: lojaInfo ? lojaInfo.codigo : 'N/A',
-                        tempos: [],
-                        entregas: 0,
-                        totalPallets: 0,
-                        totalRolls: 0
-                    };
-                }
-                lojasStats[lojaId].tempos.push(tempo);
-                lojasStats[lojaId].entregas++;
-                lojasStats[lojaId].totalPallets += item.pallets || 0;
-                lojasStats[lojaId].totalRolls += item.rolltrainers || 0;
-            }
-        });
+                const lojasData = Object.values(lojasStats).map(loja => ({
+                    ...loja,
+                    tempoMedio: loja.tempos.reduce((a, b) => a + b, 0) / loja.tempos.length
+                })).sort((a, b) => b.tempoMedio - a.tempoMedio);
 
-        filteredExpeditions.forEach(exp => {
-            if (exp.motorista_id) {
-                const motorista = motoristas.find(m => m.id === exp.motorista_id);
-                if (motorista) {
-                    if (!motoristasStats[exp.motorista_id]) {
-                        motoristasStats[exp.motorista_id] = {
-                            nome: motorista.nome,
-                            entregas: 0
-                        };
-                    }
-                    const expItemsCount = items.filter(i => i.expedition_id === exp.id).length;
-                    motoristasStats[exp.motorista_id].entregas += expItemsCount;
-                }
-            }
-        });
+                const motoristasData = Object.values(motoristasStats).sort((a, b) => b.entregas - a.entregas);
 
-        const tempoMedioLoja = temposLojaGeral.length > 0 ? temposLojaGeral.reduce((a, b) => a + b, 0) / temposLojaGeral.length : 0;
-        document.getElementById('homeTempoMedioLoja').textContent = minutesToHHMM(tempoMedioLoja);
+                renderFrotaProdutividadeChart(motoristasData.slice(0, 5));
+                renderOcupacaoTotalChart(ocupacaoMedia);
+                renderLojaDesempenhoChart(lojasData.slice(0, 5));
+                renderFleetUtilizationChart(perlogCount, jjsCount);
+                renderTemposMediosTable(lojasData);
+                // Inicializar/atualizar mapa da home
+await initHomeMap();
 
-        const lojasData = Object.values(lojasStats).map(loja => ({
-            ...loja,
-            tempoMedio: loja.tempos.reduce((a, b) => a + b, 0) / loja.tempos.length
-        })).sort((a, b) => b.tempoMedio - a.tempoMedio);
-
-        const motoristasData = Object.values(motoristasStats).sort((a, b) => b.entregas - a.entregas);
-
-        renderFrotaProdutividadeChart(motoristasData.slice(0, 5));
-        renderOcupacaoTotalChart(ocupacaoMedia);
-        renderLojaDesempenhoChart(lojasData.slice(0, 5));
-        renderFleetUtilizationChart(perlogCount, jjsCount);
-        renderTemposMediosTable(lojasData);
-        await initHomeMap();
-
-    } catch (error) {
-        console.error("Erro ao carregar dados da home:", error);
-        document.getElementById('temposMediosLojaTbody').innerHTML = `<tr><td colspan="5" class="alert alert-error">Erro ao carregar dados: ${error.message}</td></tr>`;
-    }
-}
+            } catch (error) {
+                console.error("Erro ao carregar dados da home:", error);
+                document.getElementById('temposMediosLojaTbody').innerHTML = `<tr><td colspan="5" class="alert alert-error">Erro ao carregar dados: ${error.message}</td></tr>`;
+            }
+        }
         function renderFleetUtilizationChart(perlogCount, jjsCount) {
             const total = perlogCount + jjsCount;
             if (total === 0) {
