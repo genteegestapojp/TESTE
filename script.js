@@ -6991,4 +6991,4 @@ async function imprimirIdentificacao(expeditionId, numeroCarga, liderNome, palle
         document.addEventListener('DOMContentLoaded', async () => {
             await loadFiliais();
         });
-    </script>
+ 
