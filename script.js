@@ -1,117 +1,61 @@
-// --- INÍCIO DO SCRIPT CORRIGIDO ---
+ // --- INÍCIO DO SCRIPT ADAPTADO ---
+        
+        // API REST do Supabase e Headers (do sistema original)
+        const SUPABASE_URL = 'https://owsoweqqttcmuuaohxke.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93c293ZXFxdHRjbXV1YW9oeGtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMjQ5OTAsImV4cCI6MjA3MTgwMDk5MH0.Iee27SUOIkhMFvgDWXrW3C38DUuMr0MyVtR-NjF6FRk';
+        const headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
 
-// API REST do Supabase e Headers
-const SUPABASE_URL = 'https://owsoweqqttcmuuaohxke.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93c293ZXFxdHRjbXV1YW9oeGtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMjQ5OTAsImV4cCI6MjA3MTgwMDk5MH0.Iee27SUOIkhMFvgDWXrW3C38DUuMr0MyVtR-NjF6FRk';
-const headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
-
-// Inicialização segura das variáveis globais
-let lojas = [];
-let docas = [];
-let lideres = [];
-let veiculos = [];
-let motoristas = [];
-let filiais = [];
-let selectedFilial = null;
-let currentUser = null;
-let cargasDisponiveis = [];
-let allExpeditions = [];
-let filteredExpeditions = [];
-let allHistorico = [];
-let filteredHistorico = [];
-let chartInstances = {};
-let html5QrCodeScanner = null;
-let scannerIsRunning = false;
-let activeTimers = {};
-let modalState = { action: null, scannedValue: null, mainId: null, secondaryId: null, expectedCode: null };
-let editLojaLineCounter = 0;
-let rastreioTimer = null;
+        // Variáveis globais (do sistema original)
+        let lojas = [], docas = [], lideres = [], veiculos = [], motoristas = [], filiais = [];
+        let selectedFilial = null;
+        let currentUser = null; // Para controle de acesso
+        let cargasDisponiveis = [];
+        let allExpeditions = [], filteredExpeditions = [];
+        let allHistorico = [], filteredHistorico = [];
+        let chartInstances = {};
+        let html5QrCodeScanner = null;
+        let scannerIsRunning = false;
+        let activeTimers = {};
+        let modalState = { action: null, scannedValue: null, mainId: null, secondaryId: null, expectedCode: null };
+        let editLojaLineCounter = 0;
+        let rastreioTimer = null;
 let rastreioData = [];
-let pontosInteresse = [];
+let pontosInteresse = []; // Pontos fixos no mapa
 let homeMapInstance = null;
 let homeMapTimer = null;
-let mapInstance = null;
-
-// Função de verificação de elemento DOM segura
-function safeGetElement(id) {
-    const element = document.getElementById(id);
-    if (!element) {
-        console.warn(`Elemento não encontrado: ${id}`);
-        return null;
-    }
-    return element;
-}
-
-// Função de verificação de array segura
-function safeArray(arr, defaultValue = []) {
-    return Array.isArray(arr) ? arr : defaultValue;
-}
-
-// Função para aguardar elemento DOM
-function waitForElement(id, timeout = 5000) {
-    return new Promise((resolve, reject) => {
-        const element = document.getElementById(id);
-        if (element) {
-            resolve(element);
-            return;
-        }
-
-        const observer = new MutationObserver(() => {
-            const element = document.getElementById(id);
-            if (element) {
-                observer.disconnect();
-                resolve(element);
+        // Função de requisição ao Supabase (do sistema original, adaptada)
+        async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true) {
+            let url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
+            if (includeFilialFilter && selectedFilial && method === 'GET') {
+                const separator = url.includes('?') ? '&' : '?';
+                url += `${separator}filial=eq.${selectedFilial.nome}`;
             }
-        });
-
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-
-        setTimeout(() => {
-            observer.disconnect();
-            reject(new Error(`Elemento ${id} não encontrado após ${timeout}ms`));
-        }, timeout);
-    });
-}
-
-// Função de requisição melhorada
-async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true) {
-    let url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
-    if (includeFilialFilter && selectedFilial && method === 'GET') {
-        const separator = url.includes('?') ? '&' : '?';
-        url += `${separator}filial=eq.${selectedFilial.nome}`;
-    }
-    const options = { method, headers: { ...headers } };
-    
-    if (data && (method === 'POST' || method === 'PATCH')) {
-        if (includeFilialFilter && selectedFilial) {
-            if (Array.isArray(data)) {
-                data = data.map(item => ({ ...item, filial: selectedFilial.nome }));
-            } else {
-                data = { ...data, filial: selectedFilial.nome };
+            const options = { method, headers: { ...headers } };
+            
+            if (data && (method === 'POST' || method === 'PATCH')) {
+                if (includeFilialFilter && selectedFilial) {
+                    if (Array.isArray(data)) {
+                        data = data.map(item => ({ ...item, filial: selectedFilial.nome }));
+                    } else {
+                        data = { ...data, filial: selectedFilial.nome };
+                    }
+                }
+                options.body = JSON.stringify(data);
+                if (method !== 'DELETE') {
+                    options.headers.Prefer = 'return=representation';
+                }
+            }
+            
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) throw new Error(`Erro ${response.status}: ${await response.text()}`);
+                return method === 'DELETE' ? null : await response.json();
+            } catch (error) {
+                console.error(`Falha na requisição: ${method} ${url}`, error);
+                showNotification(`Erro de comunicação com o servidor: ${error.message}`, 'error');
+                throw error;
             }
         }
-        options.body = JSON.stringify(data);
-        if (method !== 'DELETE') {
-            options.headers.Prefer = 'return=representation';
-        }
-    }
-    
-    try {
-        const response = await fetch(url, options);
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Erro ${response.status}: ${errorText}`);
-        }
-        return method === 'DELETE' ? null : await response.json();
-    } catch (error) {
-        console.error(`Falha na requisição: ${method} ${url}`, error);
-        showNotification(`Erro de comunicação: ${error.message}`, 'error');
-        throw error;
-    }
-}
 
         // NOVO: Função de notificação aprimorada
         function showNotification(message, type = 'info', timeout = 4000) {
