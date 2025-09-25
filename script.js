@@ -7055,3 +7055,12 @@ async function handleInitialLogin(event) {
         console.error(err);
     }
 }
+// NOVA FUNÇÃO
+async function showMainSystem() {
+    // Oculta todas as telas de seleção
+    document.getElementById('initialAuthContainer').style.display = 'none';
+    document.getElementById('filialSelectionContainer').style.display = 'none';
+    // Exibe a tela principal
+    document.getElementById('mainSystem').style.display = 'flex';
+}
+
