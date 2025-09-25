@@ -6558,7 +6558,6 @@ function renderPontosInteresseConfig() {
     `).join('');
 }
 
-// Função para renderizar a tabela de acessos (SUBSTITUÍDA)
 async function renderAcessosConfig() {
     const tbody = document.getElementById('acessosConfigBody');
     if (!tbody) return;
@@ -6572,7 +6571,9 @@ async function renderAcessosConfig() {
     tbody.innerHTML = `<tr><td colspan="3" class="loading"><div class="spinner"></div>Carregando acessos...</td></tr>`;
 
     try {
-        const acessosData = await supabaseRequest('acessos?select=nome,grupo_id!inner(nome)');
+        // CORREÇÃO: Adicionando 'false' no último parâmetro para desativar o filtro de filial.
+        const acessosData = await supabaseRequest('acessos?select=nome,grupo_id!inner(nome)', 'GET', null, false);
+        
         tbody.innerHTML = acessosData.map(acesso => `
             <tr>
                 <td class="font-medium">${acesso.nome}</td>
