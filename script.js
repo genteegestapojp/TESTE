@@ -172,6 +172,12 @@ if (homeMapTimer) {
 
      // Remova a lógica de exibição de telas daqui
 async function selectFilial(filial) {
+    // Verificar se o usuário tem permissão para a filial
+    if (!hasPermission(`acesso_filial_${filial.nome}`)) {
+        showNotification('Você não tem permissão para acessar esta filial.', 'error');
+        return;
+    }
+
     try {
         const fullFilialData = await supabaseRequest(`filiais?nome=eq.${filial.nome}`, 'GET', null, false);
         selectedFilial = fullFilialData[0];
@@ -197,37 +203,6 @@ async function selectFilial(filial) {
     }, 2000);
     showNotification(`Bem-vindo à filial: ${selectedFilial.nome}!`, 'success');
 }
-        // Trocar filial (ADAPTADO)
-        function trocarFilial() {
-            selectedFilial = null;
-            currentUser = null;
-            // Limpar todos os timers ativos
-Object.values(activeTimers).forEach(clearInterval);
-activeTimers = {};
-
-if (rastreioTimer) {
-    clearInterval(rastreioTimer);
-    rastreioTimer = null;
-}
-
-if (homeMapTimer) {
-    clearInterval(homeMapTimer);
-    homeMapTimer = null;
-}
-
-// Limpar mapas
-if (homeMapInstance) {
-    homeMapInstance.remove();
-    homeMapInstance = null;
-}
-
-if (mapInstance) {
-    mapInstance.remove();
-    mapInstance = null;
-}
-            document.getElementById('mainSystem').style.display = 'none';
-            document.getElementById('filialSelectionContainer').style.display = 'block';
-        }
         
         // NOVO: Carrega o conteúdo das abas originais para as divs de view
         async function loadAllTabData() {
@@ -7153,18 +7128,12 @@ async function handleInitialLogin(event) {
             userPermissions = [];
         }
 
-        // Se o usuário não tem permissão para a filial padrão, ele não pode logar.
-        // Esta verificação ainda é válida com a nova lógica
-        if (!hasPermission(`acesso_filial_${selectedFilial.nome}`)) {
-            showNotification('Você não tem permissão para acessar esta filial.', 'error');
-            return;
-        }
-
-        await showMainSystem();
-        await loadAllTabData();
-        await loadPontosInteresse();
-        showView('home', document.querySelector('.nav-item'));
-
+        // NOVO: Redireciona para a tela de seleção de filial.
+        // A validação de permissão para a filial agora ocorre na função selectFilial().
+        document.getElementById('initialAuthContainer').style.display = 'none';
+        document.getElementById('filialSelectionContainer').style.display = 'block';
+        loadFiliais(); 
+        
         showNotification(`Bem-vindo, ${currentUser.nome}!`, 'success');
 
     } catch (err) {
