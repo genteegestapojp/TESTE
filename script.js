@@ -153,8 +153,8 @@ if (homeMapTimer) {
             }
         }
 
-      async function selectFilial(filial) {
-    // Busca a filial completa para garantir que temos as coordenadas
+     // Remova a lógica de exibição de telas daqui
+async function selectFilial(filial) {
     try {
         const fullFilialData = await supabaseRequest(`filiais?nome=eq.${filial.nome}`, 'GET', null, false);
         selectedFilial = fullFilialData[0];
@@ -165,26 +165,19 @@ if (homeMapTimer) {
     
     document.getElementById('sidebarFilial').textContent = selectedFilial.nome;
     
-    // Esconde a seleção e mostra o sistema principal
-    document.getElementById('filialSelectionContainer').style.display = 'none';
-    document.getElementById('mainSystem').style.display = 'flex';
+    // NOVO: Chama a função que gerencia a transição de telas
+    await showMainSystem();
     
-    // Carrega todos os dados e conteúdos das abas
     await loadAllTabData();
-    
-    // Carregar pontos de interesse
     await loadPontosInteresse();
-    
-    // Inicia na view do home
     showView('home', document.querySelector('.nav-item'));
-    // Aguardar um pouco e então ativar o auto-refresh
-setTimeout(() => {
-    const homeAutoRefreshCheckbox = document.getElementById('homeAutoRefresh');
-    if (homeAutoRefreshCheckbox) {
-        homeAutoRefreshCheckbox.checked = true;
-        toggleHomeAutoRefresh();
-    }
-}, 2000);
+    setTimeout(() => {
+        const homeAutoRefreshCheckbox = document.getElementById('homeAutoRefresh');
+        if (homeAutoRefreshCheckbox) {
+            homeAutoRefreshCheckbox.checked = true;
+            toggleHomeAutoRefresh();
+        }
+    }, 2000);
     showNotification(`Bem-vindo à filial: ${selectedFilial.nome}!`, 'success');
 }
         // Trocar filial (ADAPTADO)
