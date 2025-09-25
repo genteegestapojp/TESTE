@@ -7126,7 +7126,7 @@ async function handleInitialLogin(event) {
         const endpoint = `acessos?select=nome,grupo_id&nome=eq.${nome}&senha=eq.${senha}`;
         const result = await supabaseRequest(endpoint, 'GET', null, false);
 
-        if (!result || result.length === 0) {
+        if (!result || result.length === 0 || !result[0]) {
             alertContainer.innerHTML = '<div class="alert alert-error">Usuário ou senha incorretos.</div>';
             return;
         }
@@ -7136,17 +7136,25 @@ async function handleInitialLogin(event) {
             nome: user.nome,
             grupoId: user.grupo_id
         };
-        
+
         // Determinar se é um usuário Master e carregar permissões
-        const grupo = await supabaseRequest(`grupos_acesso?id=eq.${user.grupo_id}`);
-        if (grupo && grupo.length > 0 && grupo[0].nome === 'MASTER') {
-            masterUserPermission = true;
+        // Proteção: verifica se o grupoId existe antes de fazer a requisição
+        if (user.grupo_id) {
+            const grupo = await supabaseRequest(`grupos_acesso?id=eq.${user.grupo_id}`);
+            if (grupo && grupo.length > 0 && grupo[0].nome === 'MASTER') {
+                masterUserPermission = true;
+            } else {
+                const permissoes = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${user.grupo_id}`);
+                userPermissions = permissoes.map(p => p.permissao);
+            }
         } else {
-            const permissoes = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${user.grupo_id}`);
-            userPermissions = permissoes.map(p => p.permissao);
+            // Se o usuário não tem um grupo, não tem permissões
+            masterUserPermission = false;
+            userPermissions = [];
         }
 
         // Se o usuário não tem permissão para a filial padrão, ele não pode logar.
+        // Esta verificação ainda é válida com a nova lógica
         if (!hasPermission(`acesso_filial_${selectedFilial.nome}`)) {
             showNotification('Você não tem permissão para acessar esta filial.', 'error');
             return;
