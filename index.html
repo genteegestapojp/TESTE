@@ -65,43 +65,43 @@
                 <p class="text-sm text-gray-300 mt-2">Filial: <span class="font-medium" id="sidebarFilial">N/A</span></p>
             </div>
             <nav class="p-4">
-                <a href="#home" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer active" onclick="showView('home', this)">
-                    <i data-feather="home" class="h-5 w-5 mr-3"></i>
-                    <span>Home</span>
-                </a>
-                <a href="#operacao" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer" onclick="showView('operacao', this)">
-                    <i data-feather="activity" class="h-5 w-5 mr-3"></i>
-                    <span>Operação</span>
-                </a>
-                <a href="#transporte" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer" onclick="showView('transporte', this)">
-                    <i data-feather="truck" class="h-5 w-5 mr-3"></i>
-                    <span>Transporte</span>
-                </a>
-                <a href="#faturamento" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer" onclick="showView('faturamento', this)">
-                    <i data-feather="dollar-sign" class="h-5 w-5 mr-3"></i>
-                    <span>Faturamento</span>
-                </a>
-                <a href="#motoristas" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer" onclick="showView('motoristas', this)">
-                    <i data-feather="users" class="h-5 w-5 mr-3"></i>
-                    <span>Motoristas</span>
-                </a>
-                <a href="#acompanhamento" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer" onclick="showView('acompanhamento', this)">
-                    <i data-feather="clock" class="h-5 w-5 mr-3"></i>
-                    <span>Acompanhamento</span>
-                </a>
-                <a href="#historico" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer" onclick="showView('historico', this)">
-                    <i data-feather="archive" class="h-5 w-5 mr-3"></i>
-                    <span>Histórico</span>
-                </a>
-                <a href="#configuracoes" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer" onclick="showView('configuracoes', this)">
-                    <i data-feather="settings" class="h-5 w-5 mr-3"></i>
-                    <span>Configurações</span>
-                </a>
-                <div id="trocarFilialLink" class="nav-item p-3 rounded-lg mt-4 flex items-center text-blue-400 cursor-pointer" onclick="trocarFilial()">
-    <i data-feather="repeat" class="h-5 w-5 mr-3"></i>
-    <span>Trocar Filial</span>
-</div>
-            </nav>
+    <a href="#home" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer active" onclick="showView('home', this)" data-permission="acesso_home">
+        <i data-feather="home" class="h-5 w-5 mr-3"></i>
+        <span>Home</span>
+    </a>
+    <a href="#operacao" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer" onclick="showView('operacao', this)" data-permission="acesso_operacao">
+        <i data-feather="activity" class="h-5 w-5 mr-3"></i>
+        <span>Operação</span>
+    </a>
+    <a href="#transporte" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer" onclick="showView('transporte', this)" data-permission="acesso_transporte">
+        <i data-feather="truck" class="h-5 w-5 mr-3"></i>
+        <span>Transporte</span>
+    </a>
+    <a href="#faturamento" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer" onclick="showView('faturamento', this)" data-permission="acesso_faturamento">
+        <i data-feather="dollar-sign" class="h-5 w-5 mr-3"></i>
+        <span>Faturamento</span>
+    </a>
+    <a href="#motoristas" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer" onclick="showView('motoristas', this)" data-permission="acesso_motoristas">
+        <i data-feather="users" class="h-5 w-5 mr-3"></i>
+        <span>Motoristas</span>
+    </a>
+    <a href="#acompanhamento" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer" onclick="showView('acompanhamento', this)" data-permission="acesso_acompanhamento">
+        <i data-feather="clock" class="h-5 w-5 mr-3"></i>
+        <span>Acompanhamento</span>
+    </a>
+    <a href="#historico" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer" onclick="showView('historico', this)" data-permission="acesso_historico">
+        <i data-feather="archive" class="h-5 w-5 mr-3"></i>
+        <span>Histórico</span>
+    </a>
+    <a href="#configuracoes" class="nav-item p-3 rounded-lg mb-2 flex items-center cursor-pointer" onclick="showView('configuracoes', this)" data-permission="acesso_configuracoes">
+        <i data-feather="settings" class="h-5 w-5 mr-3"></i>
+        <span>Configurações</span>
+    </a>
+    <div id="trocarFilialLink" class="nav-item p-3 rounded-lg mt-4 flex items-center text-blue-400 cursor-pointer" onclick="trocarFilial()">
+        <i data-feather="repeat" class="h-5 w-5 mr-3"></i>
+        <span>Trocar Filial</span>
+    </div>
+</nav>
         </aside>
 
         <main class="flex-1 overflow-auto bg-gray-100 main-content">
