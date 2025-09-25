@@ -153,8 +153,7 @@ if (homeMapTimer) {
             }
         }
 
-        // Selecionar filial (ADAPTADO)
-        async function selectFilial(filial) {
+      async function selectFilial(filial) {
     // Busca a filial completa para garantir que temos as coordenadas
     try {
         const fullFilialData = await supabaseRequest(`filiais?nome=eq.${filial.nome}`, 'GET', null, false);
@@ -7008,6 +7007,58 @@ document.addEventListener('DOMContentLoaded', async () => {
             easing: 'ease-out-cubic'
         });
     }
-    await loadFiliais();
+    document.getElementById('initialLoginForm').addEventListener('submit', handleInitialLogin);
 });
- 
+
+// NOVO: Função para lidar com o login inicial
+async function handleInitialLogin(event) {
+    event.preventDefault();
+    const nome = document.getElementById('initialUser').value.trim();
+    const senha = document.getElementById('initialPassword').value;
+    const alertContainer = document.getElementById('initialLoginAlert');
+
+    if (!nome || !senha) {
+        alertContainer.innerHTML = '<div class="alert alert-error">Usuário e senha são obrigatórios.</div>';
+        return;
+    }
+    alertContainer.innerHTML = '<div class="loading">Autenticando...</div>';
+
+    try {
+        const endpoint = `acessos?select=nome,tipo_acesso&nome=eq.${nome}&senha=eq.${senha}`;
+        const result = await supabaseRequest(endpoint, 'GET', null, false);
+
+        if (!result || result.length === 0) {
+            alertContainer.innerHTML = '<div class="alert alert-error">Usuário ou senha incorretos.</div>';
+            return;
+        }
+
+        const user = result[0];
+        currentUser = {
+            nome: user.nome,
+            tipo_acesso: user.tipo_acesso
+        };
+
+        if (user.tipo_acesso === 'ALL') {
+            // Se o usuário tem acesso a todas as filiais, mostra a tela de seleção
+            await loadFiliais();
+            document.getElementById('initialAuthContainer').style.display = 'none';
+            document.getElementById('filialSelectionContainer').style.display = 'block';
+        } else {
+            // Se o usuário tem acesso a uma única filial, busca os dados da filial e a seleciona
+            const filialData = await supabaseRequest(`filiais?nome=eq.${user.tipo_acesso}`, 'GET', null, false);
+            if (filialData && filialData.length > 0) {
+                await selectFilial(filialData[0]);
+                document.getElementById('initialAuthContainer').style.display = 'none';
+                document.getElementById('filialSelectionContainer').style.display = 'none';
+                document.getElementById('mainSystem').style.display = 'flex';
+            } else {
+                alertContainer.innerHTML = '<div class="alert alert-error">Filial não encontrada ou inativa. Contate o administrador.</div>';
+            }
+        }
+        showNotification(`Bem-vindo, ${currentUser.nome}!`, 'success');
+
+    } catch (err) {
+        alertContainer.innerHTML = '<div class="alert alert-error">Erro ao verificar credenciais.</div>';
+        console.error(err);
+    }
+}
