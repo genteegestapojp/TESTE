@@ -23,6 +23,16 @@ let rastreioData = [];
 let pontosInteresse = []; // Pontos fixos no mapa
 let homeMapInstance = null;
 let homeMapTimer = null;
+// Variáveis e lógicas de permissão (ADICIONADO)
+let userPermissions = [];
+let masterUserPermission = false;
+
+function hasPermission(permission) {
+    if (masterUserPermission) {
+        return true;
+    }
+    return userPermissions.includes(permission);
+}
         // Função de requisição ao Supabase (do sistema original, adaptada)
         async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true) {
             let url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
@@ -95,16 +105,22 @@ let homeMapTimer = null;
             }, timeout);
         }
 
-        // NOVA: Função de navegação
-        function showView(viewId, element) 
-        {
-            document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
+       // NOVA FUNÇÃO de navegação (SUBSTITUÍDA)
+function showView(viewId, element) {
+    // Verificar permissão
+    const permission = element.dataset.permission;
+    if (permission && !hasPermission(permission)) {
+        showNotification('Você não tem permissão para acessar esta aba.', 'error');
+        return;
+    }
 
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            if(element) element.classList.add('active');
+    document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
+    document.getElementById(viewId).classList.add('active');
 
-           // Limpa timers antigos ao trocar de view para não sobrecarregar
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    if(element) element.classList.add('active');
+
+   // Limpa timers antigos ao trocar de view para não sobrecarregar
 Object.values(activeTimers).forEach(clearInterval);
 activeTimers = {};
 
@@ -120,20 +136,19 @@ if (homeMapTimer) {
     homeMapTimer = null;
 }
 
-            // Carrega os dados da view selecionada
-            switch(viewId) {
-                case 'home': loadHomeData(); break;
-                case 'transporte': loadTransportList(); break;
-                case 'faturamento': loadFaturamento(); break;
-                case 'motoristas': loadMotoristaTab(); break;
-                case 'acompanhamento': loadAcompanhamento(); break;
-                case 'historico': loadHistorico(); break;
-                case 'configuracoes': loadConfiguracoes(); break;
-                case 'operacao': loadOperacao(); break;
-            }
-            feather.replace(); // Redesenha os ícones
-        }
-
+    // Carrega os dados da view selecionada
+    switch(viewId) {
+        case 'home': loadHomeData(); break;
+        case 'transporte': loadTransportList(); break;
+        case 'faturamento': loadFaturamento(); break;
+        case 'motoristas': loadMotoristaTab(); break;
+        case 'acompanhamento': loadAcompanhamento(); break;
+        case 'historico': loadHistorico(); break;
+        case 'configuracoes': loadConfiguracoes(); break;
+        case 'operacao': loadOperacao(); break;
+    }
+    feather.replace(); // Redesenha os ícones
+}
         // Carregar filiais (do sistema original)
         async function loadFiliais() {
             try {
@@ -2426,9 +2441,52 @@ function clearHistoricoFaturamentoFilters() {
     
     loadHistoricoFaturamento();
 }
-       function showSubTab(tabName, subTabName, element) {
+
+      // Nova função para sub-abas (SUBSTITUÍDA)
+function showSubTab(tabName, subTabName, element) {
+    // Verificar permissão da sub-aba
+    const permissionMap = {
+        'operacao': {
+            'lancamento': 'acesso_operacao_lancamento',
+            'identificacao': 'acesso_operacao_identificacao'
+        },
+        'faturamento': {
+            'faturamentoAtivo': 'acesso_faturamento_ativo',
+            'historicoFaturamento': 'acesso_faturamento_historico'
+        },
+        'motoristas': {
+            'statusFrota': 'acesso_motoristas_status',
+            'relatorioMotoristas': 'acesso_motoristas_relatorio'
+        },
+        'acompanhamento': {
+            'expedicoesEmAndamento': 'acesso_acompanhamento_expedicoes',
+            'rastreio': 'acesso_acompanhamento_rastreio',
+            'frota': 'acesso_acompanhamento_frota'
+        },
+        'historico': {
+            'listaEntregas': 'acesso_historico_entregas',
+            'indicadores': 'acesso_historico_indicadores'
+        },
+        'configuracoes': {
+            'filiais': 'acesso_configuracoes_filiais',
+            'lojas': 'acesso_configuracoes_lojas',
+            'docas': 'acesso_configuracoes_docas',
+            'veiculos': 'acesso_configuracoes_veiculos',
+            'motoristasConfig': 'acesso_configuracoes_motoristas',
+            'lideres': 'acesso_configuracoes_lideres',
+            'pontosInteresse': 'acesso_configuracoes_pontos',
+            'acessos': 'acesso_configuracoes_acessos',
+            'sistema': 'acesso_configuracoes_sistema'
+        }
+    };
+    
+    if (permissionMap[tabName] && permissionMap[tabName][subTabName] && !hasPermission(permissionMap[tabName][subTabName])) {
+        showNotification('Você não tem permissão para acessar esta seção.', 'error');
+        return;
+    }
+
     const tabContent = document.getElementById(tabName);
-    if (!tabContent) return; 
+    if (!tabContent) return;
     
     tabContent.querySelectorAll('.sub-tab').forEach(tab => tab.classList.remove('active'));
     tabContent.querySelectorAll('.sub-tab-content').forEach(content => content.classList.remove('active'));
@@ -2436,7 +2494,6 @@ function clearHistoricoFaturamentoFilters() {
     if(element) element.classList.add('active');
     document.getElementById(subTabName).classList.add('active');
     
-    // Lógica para carregar dados específicos da sub-aba
     if (tabName === 'acompanhamento') {
         if (subTabName === 'frota') {
             loadFrotaData();
@@ -2447,42 +2504,42 @@ function clearHistoricoFaturamentoFilters() {
             }
         }
     } else if (tabName === 'historico' && subTabName === 'indicadores') {
-    applyHistoricoFilters();
-} else if (tabName === 'faturamento' && subTabName === 'historicoFaturamento') {
-    loadHistoricoFaturamento();
-} else if (tabName === 'configuracoes') {
-    if (subTabName === 'filiais') {
-        renderFiliaisConfig();
-    } else if (subTabName === 'lojas') {
-        renderLojasConfig();
-    } else if (subTabName === 'docas') {
-        renderDocasConfig();
-    } else if (subTabName === 'veiculos') {
-        renderVeiculosConfig(); 
-    } else if (subTabName === 'motoristasConfig') {
-    renderMotoristasConfig();
-    } else if (subTabName === 'lideres') {
-        renderLideresConfig();
-    } else if (subTabName === 'pontosInteresse') {
-        loadPontosInteresse();
-        renderPontosInteresseConfig();
-    } else if (subTabName === 'acessos') {
-        renderAcessosConfig();
-    } else if (subTabName === 'sistema') {
-        updateSystemStatus();
-    }
+        applyHistoricoFilters();
+    } else if (tabName === 'faturamento' && subTabName === 'historicoFaturamento') {
+        loadHistoricoFaturamento();
+    } else if (tabName === 'configuracoes') {
+        if (subTabName === 'filiais') {
+            renderFiliaisConfig();
+        } else if (subTabName === 'lojas') {
+            renderLojasConfig();
+        } else if (subTabName === 'docas') {
+            renderDocasConfig();
+        } else if (subTabName === 'veiculos') {
+            renderVeiculosConfig();
+        } else if (subTabName === 'motoristasConfig') {
+            renderMotoristasConfig();
+        } else if (subTabName === 'lideres') {
+            renderLideresConfig();
+        } else if (subTabName === 'pontosInteresse') {
+            loadPontosInteresse();
+            renderPontosInteresseConfig();
+        } else if (subTabName === 'acessos') {
+            renderAcessosConfig();
+        } else if (subTabName === 'sistema') {
+            updateSystemStatus();
+        }
     } else if (tabName === 'operacao') {
-    if (subTabName === 'identificacao') {
-        loadIdentificacaoExpedicoes();
-    }
-} else if (tabName === 'motoristas' && subTabName === 'relatorioMotoristas') {
+        if (subTabName === 'identificacao') {
+            loadIdentificacaoExpedicoes();
+        }
+    } else if (tabName === 'motoristas' && subTabName === 'relatorioMotoristas') {
         generateMotoristaReports();
     }
     feather.replace();
 }
 
         async function loadMotoristaTab() {
-            showSubTab('motoristas', 'statusFrota', document.querySelector('#motoristas .sub-tab'));
+            ('motoristas', 'statusFrota', document.querySelector('#motoristas .sub-tab'));
             await renderMotoristasStatusList();
             
             // Definir datas padrão para o relatório (últimos 30 dias)
@@ -4146,16 +4203,58 @@ async function checkAuthForEdit() {
     }
 }
 
-      // Função principal que verifica autenticação antes de permitir edição
+      // Função para abrir modal de edição (SUBSTITUÍDA)
 async function openEditModal(expeditionId) {
-    // Verifica se já está autenticado (reutiliza autenticação das configurações)
-    if (currentUser && (currentUser.tipo_acesso === 'ALL' || currentUser.tipo_acesso === selectedFilial.nome)) {
-        // Já autenticado, abre diretamente
-        openEditModalDirectly(expeditionId);
-    } else {
-        // Não autenticado, pede credenciais - PASSA O ID DIRETAMENTE
-        showAuthEditModal(expeditionId);
+    if (!hasPermission('editar_expedicao')) {
+        showNotification('Você não tem permissão para editar expedições.', 'error');
+        return;
     }
+
+    let expedition = allExpeditions ? allExpeditions.find(e => e.id === expeditionId) : null;
+
+    if (!expedition) {
+        try {
+            const expeditions = await supabaseRequest(`expeditions?id=eq.${expeditionId}`);
+            const items = await supabaseRequest(`expedition_items?expedition_id=eq.${expeditionId}`);
+
+            if (expeditions && expeditions.length > 0) {
+                expedition = expeditions[0];
+                expedition.items = items || [];
+            }
+        } catch (error) {
+            console.error('Erro ao buscar expedição:', error);
+        }
+    }
+
+    if (!expedition) {
+        showNotification('Expedição não encontrada', 'error');
+        return;
+    }
+
+    if (expedition.status === 'saiu_para_entrega' || expedition.status === 'entregue') {
+        showNotification('Esta expedição não pode mais ser editada pois já saiu para entrega.', 'error');
+        return;
+    }
+
+    document.getElementById('editExpeditionId').value = expeditionId;
+
+    populateEditSelects();
+
+    document.getElementById('editMotorista').value = expedition.motorista_id || '';
+    document.getElementById('editVeiculo').value = expedition.veiculo_id || '';
+    document.getElementById('editDoca').value = expedition.doca_id || '';
+    document.getElementById('editLider').value = expedition.lider_id || '';
+    document.getElementById('editObservacoes').value = expedition.observacoes || '';
+
+    const lojasContainer = document.getElementById('editLojasContainer');
+    lojasContainer.innerHTML = '<h4 class="font-semibold text-gray-700">Lojas e Quantidades</h4>';
+    editLojaLineCounter = 0;
+
+    if (expedition.items && expedition.items.length > 0) {
+        expedition.items.forEach(item => addEditLojaLine(item));
+    }
+
+    document.getElementById('editExpeditionModal').style.display = 'flex';
 }
 // Função que abre o modal de edição sem verificação
 async function openEditModalDirectly(expeditionId) {
@@ -4411,29 +4510,27 @@ function populateEditSelects() {
         
        // CÓDIGO CORRIGIDO
 
+// Função para excluir expedição (SUBSTITUÍDA)
 async function deleteExpedition(expeditionId) {
-    // Verifica autenticação antes de permitir exclusão
-    if (!currentUser || (currentUser.tipo_acesso !== 'ALL' && currentUser.tipo_acesso !== selectedFilial.nome)) {
-        showNotification('É necessário autenticação para excluir expedições. Faça login nas configurações primeiro.', 'error');
+    if (!hasPermission('excluir_expedicao')) {
+        showNotification('Você não tem permissão para excluir expedições.', 'error');
         return;
     }
-const expeditionToDel = allExpeditions.find(e => e.id === expeditionId);
-if (!expeditionToDel) {
-    showNotification('Erro: Expedição não encontrada para exclusão.', 'error');
-    return;
-}
 
-// Verificar se a expedição pode ser excluída
-if (expeditionToDel.status === 'saiu_para_entrega' || expeditionToDel.status === 'entregue') {
-    showNotification('Esta expedição não pode ser excluída pois já saiu para entrega.', 'error');
-    return;
-}
+    const expeditionToDel = allExpeditions.find(e => e.id === expeditionId);
+    if (!expeditionToDel) {
+        showNotification('Erro: Expedição não encontrada para exclusão.', 'error');
+        return;
+    }
+
+    if (expeditionToDel.status === 'saiu_para_entrega' || expeditionToDel.status === 'entregue') {
+        showNotification('Esta expedição não pode ser excluída pois já saiu para entrega.', 'error');
+        return;
+    }
+
     const confirmed = await showYesNoModal('Deseja realmente excluir esta expedição? Esta ação não pode ser desfeita e liberará os recursos alocados.');
     if (confirmed) {
         try {
-            // ... resto da função permanece igual
-           
-
             const updatePromises = [];
 
             if (expeditionToDel.doca_id) {
@@ -4453,13 +4550,13 @@ if (expeditionToDel.status === 'saiu_para_entrega' || expeditionToDel.status ===
                     supabaseRequest(`motoristas?id=eq.${expeditionToDel.motorista_id}`, 'PATCH', { status: 'disponivel' }, false)
                 );
             }
-            
+
             await Promise.all(updatePromises);
             await supabaseRequest(`expedition_items?expedition_id=eq.${expeditionId}`, 'DELETE', null, false);
             await supabaseRequest(`expeditions?id=eq.${expeditionId}`, 'DELETE', null, false);
-            
+
             showNotification('Expedição excluída e recursos liberados com sucesso!', 'success');
-            
+
             await loadSelectData();
             loadAcompanhamento();
 
@@ -6484,17 +6581,25 @@ function renderPontosInteresseConfig() {
     `).join('');
 }
 
+// Função para renderizar a tabela de acessos (SUBSTITUÍDA)
 async function renderAcessosConfig() {
     const tbody = document.getElementById('acessosConfigBody');
     if (!tbody) return;
+
+    // Apenas usuários master podem gerenciar acessos
+    if (!masterUserPermission) {
+        tbody.innerHTML = '<tr><td colspan="3" class="alert alert-error">Acesso negado.</td></tr>';
+        return;
+    }
+
     tbody.innerHTML = `<tr><td colspan="3" class="loading"><div class="spinner"></div>Carregando acessos...</td></tr>`;
-    
+
     try {
-        const acessosData = await supabaseRequest('acessos?order=nome', 'GET', null, false);
+        const acessosData = await supabaseRequest('acessos?select=nome,grupo_id!inner(nome)');
         tbody.innerHTML = acessosData.map(acesso => `
             <tr>
                 <td class="font-medium">${acesso.nome}</td>
-                <td><span class="status-badge ${acesso.tipo_acesso === 'ALL' ? 'status-disponivel' : 'status-em_uso'}">${acesso.tipo_acesso}</span></td>
+                <td><span class="status-badge ${acesso.grupo_id.nome === 'MASTER' ? 'status-disponivel' : 'status-em_uso'}">${acesso.grupo_id.nome}</span></td>
                 <td>
                     <div class="flex gap-1">
                         <button class="btn btn-warning btn-small" onclick="editAcesso('${acesso.nome}')">Editar</button>
@@ -6507,7 +6612,6 @@ async function renderAcessosConfig() {
         tbody.innerHTML = `<tr><td colspan="3" class="alert alert-error">Erro ao carregar acessos: ${error.message}</td></tr>`;
     }
 }
-// Função para mostrar detalhes da expedição
 // Função para mostrar detalhes da expedição
 async function showDetalhesExpedicao(expeditionId) {
     const modal = document.getElementById('detalhesExpedicaoModal');
@@ -7003,7 +7107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('initialLoginForm').addEventListener('submit', handleInitialLogin);
 });
 
-// NOVO: Função para lidar com o login inicial
+// NOVA FUNÇÃO para lidar com o login inicial (SUBSTITUÍDA)
 async function handleInitialLogin(event) {
     event.preventDefault();
     const nome = document.getElementById('initialUser').value.trim();
@@ -7017,7 +7121,7 @@ async function handleInitialLogin(event) {
     alertContainer.innerHTML = '<div class="loading">Autenticando...</div>';
 
     try {
-        const endpoint = `acessos?select=nome,tipo_acesso&nome=eq.${nome}&senha=eq.${senha}`;
+        const endpoint = `acessos?select=nome,grupo_id&nome=eq.${nome}&senha=eq.${senha}`;
         const result = await supabaseRequest(endpoint, 'GET', null, false);
 
         if (!result || result.length === 0) {
@@ -7028,26 +7132,29 @@ async function handleInitialLogin(event) {
         const user = result[0];
         currentUser = {
             nome: user.nome,
-            tipo_acesso: user.tipo_acesso
+            grupoId: user.grupo_id
         };
-
-        if (user.tipo_acesso === 'ALL') {
-            // Se o usuário tem acesso a todas as filiais, mostra a tela de seleção
-            await loadFiliais();
-            document.getElementById('initialAuthContainer').style.display = 'none';
-            document.getElementById('filialSelectionContainer').style.display = 'block';
+        
+        // Determinar se é um usuário Master e carregar permissões
+        const grupo = await supabaseRequest(`grupos_acesso?id=eq.${user.grupo_id}`);
+        if (grupo && grupo.length > 0 && grupo[0].nome === 'MASTER') {
+            masterUserPermission = true;
         } else {
-            // Se o usuário tem acesso a uma única filial, busca os dados da filial e a seleciona
-            const filialData = await supabaseRequest(`filiais?nome=eq.${user.tipo_acesso}`, 'GET', null, false);
-            if (filialData && filialData.length > 0) {
-                await selectFilial(filialData[0]);
-                document.getElementById('initialAuthContainer').style.display = 'none';
-                document.getElementById('filialSelectionContainer').style.display = 'none';
-                document.getElementById('mainSystem').style.display = 'flex';
-            } else {
-                alertContainer.innerHTML = '<div class="alert alert-error">Filial não encontrada ou inativa. Contate o administrador.</div>';
-            }
+            const permissoes = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${user.grupo_id}`);
+            userPermissions = permissoes.map(p => p.permissao);
         }
+
+        // Se o usuário não tem permissão para a filial padrão, ele não pode logar.
+        if (!hasPermission(`acesso_filial_${selectedFilial.nome}`)) {
+            showNotification('Você não tem permissão para acessar esta filial.', 'error');
+            return;
+        }
+
+        await showMainSystem();
+        await loadAllTabData();
+        await loadPontosInteresse();
+        showView('home', document.querySelector('.nav-item'));
+
         showNotification(`Bem-vindo, ${currentUser.nome}!`, 'success');
 
     } catch (err) {
