@@ -7151,5 +7151,11 @@ async function showMainSystem() {
     document.getElementById('mainSystem').style.display = 'flex';
 }
 
-
+// Função para permitir ao usuário trocar de filial
+function trocarFilial() {
+    selectedFilial = null;
+    document.getElementById('mainSystem').style.display = 'none';
+    document.getElementById('filialSelectionContainer').style.display = 'block';
+    loadFiliais();
+}
 
