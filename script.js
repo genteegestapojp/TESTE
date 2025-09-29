@@ -76,27 +76,17 @@ function hasPermission(permission) {
     // Caso contrário, verifica se a permissão existe no array do usuário.
     return userPermissions.includes(permission);
 }
-      // SUBSTITUIR A VERSÃO EXISTENTE DE supabaseRequest
+  // Cerca da linha 106 do script.js
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
     let url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
-    if (includeFilialFilter && selectedFilial && method === 'GET') {
-        const separator = url.includes('?') ? '&' : '?';
-        url += `${separator}filial=eq.${selectedFilial.nome}`;
-    }
+    // ... (código para filtro de filial em GET) ...
     const options = { method, headers: { ...headers } };
     
     if (data && (method === 'POST' || method === 'PATCH')) {
-        // Lógica de filtro de filial (mantida)
-        if (includeFilialFilter && selectedFilial) {
-            if (Array.isArray(data)) {
-                data = data.map(item => ({ ...item, filial: selectedFilial.nome }));
-            } else {
-                data = { ...data, filial: selectedFilial.nome };
-            }
-        }
+        // ... (código para filtro de filial no data) ...
         options.body = JSON.stringify(data);
         
-        // NOVO: Adiciona o cabeçalho de Upsert (merge-duplicates) para POSTs se upsert=true
+        // CORREÇÃO: Adiciona o cabeçalho de Upsert (merge-duplicates)
         if (method === 'POST' && upsert) {
              options.headers.Prefer = 'return=representation,resolution=merge-duplicates';
         } else if (method !== 'DELETE') {
@@ -105,13 +95,9 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
     }
     
     try {
-        const response = await fetch(url, options);
-        if (!response.ok) throw new Error(`Erro ${response.status}: ${await response.text()}`);
-        return method === 'DELETE' ? null : await response.json();
+        // ... (código de fetch) ...
     } catch (error) {
-        console.error(`Falha na requisição: ${method} ${url}`, error);
-        showNotification(`Erro de comunicação com o servidor: ${error.message}`, 'error');
-        throw error;
+        // ... (código de erro) ...
     }
 }
         // NOVO: Função de notificação aprimorada
@@ -7561,7 +7547,7 @@ async function saveGroupPermissions(grupoId, checkboxes, alert) {
 
     // 2. Inserir/Atualizar permissões selecionadas usando Upsert em lote
     if (permissionsToSave.length > 0) {
-        // O parâmetro 'true' no final ativa o modo Upsert (merge-duplicates)
+        // O parâmetro 'true' no final ATIVA O MODO UPSERT
         await supabaseRequest('permissoes_grupo', 'POST', permissionsToSave, false, true);
     }
 }
