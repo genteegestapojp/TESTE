@@ -204,7 +204,6 @@
         </div>
     </div>
 
-    <!-- Mapa em Tempo Real (ADICIONAL - Opcional) -->
     <div class="bg-white rounded-xl shadow-md p-6 mb-12" data-aos="fade-up">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-semibold text-gray-800">Rastreamento em Tempo Real</h2>
@@ -389,6 +388,23 @@
                 <button type="button" class="btn btn-danger flex-1" onclick="closeOrdemCarregamentoModal()">Cancelar</button>
             </div>
             <input type="hidden" id="ordemExpeditionId">
+        </div>
+    </div>
+
+    <div id="permissionsModal" class="modal-overlay">
+        <div class="modal-content" style="width: 90vw; max-width: 800px; max-height: 90vh; overflow-y: auto;">
+            <h3 class="text-xl font-semibold mb-2" id="permissionsModalTitle">Gerenciar Permissões</h3>
+            <p class="text-gray-600 mb-4" id="permissionsModalSubtitle"></p>
+            <div id="permissionsList" class="space-y-4">
+                <div class="loading"><div class="spinner"></div>Carregando permissões do sistema...</div>
+            </div>
+            <div id="permissionsAlert" class="mt-4"></div>
+            <div class="flex gap-4 mt-6">
+                <button type="button" class="btn btn-success flex-1" onclick="savePermissions()">Salvar Permissões</button>
+                <button type="button" class="btn btn-danger flex-1" onclick="closePermissionsModal()">Cancelar</button>
+            </div>
+            <input type="hidden" id="permissionsTargetId">
+            <input type="hidden" id="permissionsTargetType">
         </div>
     </div>
 
