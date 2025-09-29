@@ -26,14 +26,78 @@ let homeMapTimer = null;
 // Variáveis e lógicas de permissão (ADICIONADO)
 let userPermissions = [];
 let masterUserPermission = false;
+// NOVO: Variáveis para Grupos e Permissões de Filial
+let grupos = []; 
+let permissoes_filial = []; 
+let acessosCache = []; // NOVO CACHE para armazenar os usuários
+// NOVO: Lista completa de Permissões
+const allPermissions = {
+    // Permissões de Acesso às abas
+    'acesso_home': 'Acesso à Home/Dashboard',
+    'acesso_operacao': 'Acesso à Operação',
+    'acesso_transporte': 'Acesso ao Transporte',
+    'acesso_faturamento': 'Acesso ao Faturamento',
+    'acesso_motoristas': 'Acesso à Motoristas',
+    'acesso_acompanhamento': 'Acesso ao Acompanhamento',
+    'acesso_historico': 'Acesso ao Histórico',
+    'acesso_configuracoes': 'Acesso às Configurações',
+    
+    // Permissões de Ação na Operação/Expedição
+    'iniciar_expedicao': 'Permite Iniciar Expedição (Chegada na Doca)',
+    'editar_expedicao': 'Permite Editar Expedição em Andamento',
+    'finalizar_expedicao': 'Permite Finalizar Expedição',
+    'excluir_expedicao': 'Permite Excluir Expedição (Antes da Saída)',
 
-function hasPermission(permission) {
-    // Se for usuário master, sempre retorna true.
+    // Permissões de Ação nas Configurações
+    'crud_filiais': 'Criar/Editar/Deletar Filiais',
+    'crud_lojas': 'Criar/Editar/Deletar Lojas',
+    'crud_docas': 'Criar/Editar/Deletar Docas',
+    'crud_veiculos': 'Criar/Editar/Deletar Veículos',
+    'crud_motoristas': 'Criar/Editar/Deletar Motoristas',
+    'crud_lideres': 'Criar/Editar/Deletar Líderes',
+    'crud_pontos': 'Criar/Editar/Deletar Pontos de Interesse',
+    'crud_grupos': 'Criar/Editar/Deletar Grupos de Acesso',
+    'crud_acessos': 'Criar/Editar/Deletar Usuários/Acessos',
+    'crud_permissoes_filial': 'Criar/Editar/Deletar Permissões de Filial por Usuário',
+};
+
+
+// NOVO CÓDIGO (SUBSTITUIÇÃO):
+/**
+ * Verifica se o usuário tem permissão para uma determinada ação.
+ * @param {string} permissionKey A chave da permissão (ex: 'acesso_operacao').
+ * @returns {boolean}
+ */
+function hasPermission(permissionKey) {
+    // 1. Verificar se é Master (masterUserPermission é definida no login)
     if (masterUserPermission) {
         return true;
     }
-    // Caso contrário, verifica se a permissão existe no array do usuário.
-    return userPermissions.includes(permission);
+    // 2. Verificar se a permissão existe no array do usuário.
+    return userPermissions.includes(permissionKey);
+}
+
+/**
+ * Verifica se o usuário tem acesso a uma filial específica (Lógica de Exceção).
+ * @param {string} filialNome O nome da filial (ex: 'CD01').
+ * @returns {boolean}
+ */
+function canAccessFilial(filialNome) {
+    if (!currentUser) return false;
+
+    // 1. Se for Master, sempre tem acesso.
+    if (masterUserPermission) return true;
+
+    // 2. Buscar a exceção de permissão de filial para o usuário atual
+    const filialException = permissoes_filial.find(p => p.userId === currentUser.nome);
+
+    if (filialException && filialException.filiaisAcessiveis.length > 0) {
+        // Se há exceção, o acesso é restrito apenas às filiais listadas
+        return filialException.filiaisAcessiveis.includes(filialNome);
+    }
+    
+    // 3. Se não há exceção, o acesso é liberado para todas as filiais ativas.
+    return true; 
 }
         // Função de requisição ao Supabase (do sistema original, adaptada)
         async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true) {
@@ -170,10 +234,10 @@ if (homeMapTimer) {
             }
         }
 
-     // Remova a lógica de exibição de telas daqui
+    // NOVO CÓDIGO (SUBSTITUIÇÃO):
 async function selectFilial(filial) {
-    // Verificar se o usuário tem permissão para a filial
-    if (!hasPermission(`acesso_filial_${filial.nome}`)) {
+    // Verificar se o usuário tem permissão para a filial usando a nova lógica de exceção
+    if (!canAccessFilial(filial.nome)) {
         showNotification('Você não tem permissão para acessar esta filial.', 'error');
         return;
     }
@@ -2419,9 +2483,10 @@ function clearHistoricoFaturamentoFilters() {
     loadHistoricoFaturamento();
 }
 
-      // Nova função para sub-abas (SUBSTITUÍDA)
+ // NOVO CÓDIGO (SUBSTITUIÇÃO):
+// Nova função para sub-abas (ATUALIZADA)
 function showSubTab(tabName, subTabName, element) {
-    // Verificar permissão da sub-aba
+    // Verificar permissão da sub-aba (usando as chaves de permissão do objeto allPermissions)
     const permissionMap = {
         'operacao': {
             'lancamento': 'acesso_operacao_lancamento',
@@ -2445,19 +2510,24 @@ function showSubTab(tabName, subTabName, element) {
             'indicadores': 'acesso_historico_indicadores'
         },
         'configuracoes': {
-            'filiais': 'acesso_configuracoes_filiais',
-            'lojas': 'acesso_configuracoes_lojas',
-            'docas': 'acesso_configuracoes_docas',
-            'veiculos': 'acesso_configuracoes_veiculos',
-            'motoristasConfig': 'acesso_configuracoes_motoristas',
-            'lideres': 'acesso_configuracoes_lideres',
-            'pontosInteresse': 'acesso_configuracoes_pontos',
-            'acessos': 'acesso_configuracoes_acessos',
-            'sistema': 'acesso_configuracoes_sistema'
+            // NOVAS CHAVES DE PERMISSÃO PARA GRUPOS E FILIAIS
+            'grupos': 'crud_grupos',
+            'permissoesFilial': 'crud_permissoes_filial',
+            'filiais': 'crud_filiais',
+            'lojas': 'crud_lojas',
+            'docas': 'crud_docas',
+            'veiculos': 'crud_veiculos',
+            'motoristasConfig': 'crud_motoristas',
+            'lideres': 'crud_lideres',
+            'pontosInteresse': 'crud_pontos',
+            'acessos': 'crud_acessos',
+            'sistema': 'acesso_configuracoes' 
         }
     };
     
-    if (permissionMap[tabName] && permissionMap[tabName][subTabName] && !hasPermission(permissionMap[tabName][subTabName])) {
+    // Checagem de permissão
+    const requiredPermission = permissionMap[tabName]?.[subTabName];
+    if (requiredPermission && !hasPermission(requiredPermission)) {
         showNotification('Você não tem permissão para acessar esta seção.', 'error');
         return;
     }
@@ -2469,23 +2539,22 @@ function showSubTab(tabName, subTabName, element) {
     tabContent.querySelectorAll('.sub-tab-content').forEach(content => content.classList.remove('active'));
 
     if(element) element.classList.add('active');
-    document.getElementById(subTabName).classList.add('active');
     
-    if (tabName === 'acompanhamento') {
-        if (subTabName === 'frota') {
-            loadFrotaData();
-        } else if (subTabName === 'rastreio') {
-            loadRastreioData();
-            if (document.getElementById('autoRefreshRastreio')?.checked) {
-                toggleAutoRefresh();
-            }
-        }
-    } else if (tabName === 'historico' && subTabName === 'indicadores') {
-        applyHistoricoFilters();
-    } else if (tabName === 'faturamento' && subTabName === 'historicoFaturamento') {
-        loadHistoricoFaturamento();
-    } else if (tabName === 'configuracoes') {
-        if (subTabName === 'filiais') {
+    const subTabElement = document.getElementById(subTabName);
+    if (subTabElement) {
+        subTabElement.classList.add('active');
+    }
+
+
+    // Carrega dados específicos da sub-aba de CONFIGURAÇÕES
+    if (tabName === 'configuracoes') {
+        if (subTabName === 'grupos') {
+            renderGruposConfig();
+        } else if (subTabName === 'acessos') {
+            renderAcessosConfig();
+        } else if (subTabName === 'permissoesFilial') {
+            renderPermissoesFilialConfig();
+        } else if (subTabName === 'filiais') {
             renderFiliaisConfig();
         } else if (subTabName === 'lojas') {
             renderLojasConfig();
@@ -2500,11 +2569,24 @@ function showSubTab(tabName, subTabName, element) {
         } else if (subTabName === 'pontosInteresse') {
             loadPontosInteresse();
             renderPontosInteresseConfig();
-        } else if (subTabName === 'acessos') {
-            renderAcessosConfig();
         } else if (subTabName === 'sistema') {
             updateSystemStatus();
         }
+    } 
+    // ... (restante da lógica para outras abas (acompanhamento, historico, etc.) mantida) ...
+    else if (tabName === 'acompanhamento') {
+        if (subTabName === 'frota') {
+            loadFrotaData();
+        } else if (subTabName === 'rastreio') {
+            loadRastreioData();
+            if (document.getElementById('autoRefreshRastreio')?.checked) {
+                toggleAutoRefresh();
+            }
+        }
+    } else if (tabName === 'historico' && subTabName === 'indicadores') {
+        applyHistoricoFilters();
+    } else if (tabName === 'faturamento' && subTabName === 'historicoFaturamento') {
+        loadHistoricoFaturamento();
     } else if (tabName === 'operacao') {
         if (subTabName === 'identificacao') {
             loadIdentificacaoExpedicoes();
@@ -2512,6 +2594,7 @@ function showSubTab(tabName, subTabName, element) {
     } else if (tabName === 'motoristas' && subTabName === 'relatorioMotoristas') {
         generateMotoristaReports();
     }
+
     feather.replace();
 }
 
@@ -4545,19 +4628,28 @@ async function deleteExpedition(expeditionId) {
         
         // --- FUNCIONALIDADES DA ABA CONFIGURAÇÕES ---
 
-        function loadConfiguracoes() {
-            if (currentUser) {
-                document.getElementById('passwordFormContainer').style.display = 'none';
-                document.getElementById('configuracoesContent').style.display = 'block';
-                showSubTab('configuracoes', 'filiais', document.querySelector('#configuracoes .sub-tab'));
-                updateSystemStatus();
-            } else {
-                document.getElementById('passwordFormContainer').style.display = 'block';
-                document.getElementById('configuracoesContent').style.display = 'none';
-                document.getElementById('passwordInput').value = '';
-                document.getElementById('userInput').value = '';
-            }
-        }
+      // NOVO CÓDIGO (SUBSTITUIÇÃO):
+function loadConfiguracoes() {
+    if (currentUser && masterUserPermission) { // Acesso à Configurações só para Master
+        document.getElementById('passwordFormContainer').style.display = 'none';
+        document.getElementById('configuracoesContent').style.display = 'block';
+        // Carrega todos os dados das sub-abas de configuração
+        loadConfigData();
+        showSubTab('configuracoes', 'grupos', document.querySelector('#configuracoes .sub-tabs .sub-tab'));
+    } else if (currentUser) {
+        // Se estiver logado, mas não for Master, usa o formulário de senha para Master
+        document.getElementById('passwordFormContainer').style.display = 'block';
+        document.getElementById('configuracoesContent').style.display = 'none';
+        document.getElementById('passwordInput').value = '';
+        document.getElementById('userInput').value = '';
+        showNotification('Acesso a Configurações restrito para Administrador Global.', 'error');
+    } else {
+        document.getElementById('passwordFormContainer').style.display = 'block';
+        document.getElementById('configuracoesContent').style.display = 'none';
+        document.getElementById('passwordInput').value = '';
+        document.getElementById('userInput').value = '';
+    }
+}
 
         async function checkPassword() {
             const nome = document.getElementById('userInput').value.trim();
@@ -4596,6 +4688,42 @@ async function deleteExpedition(expeditionId) {
             }
         }
 
+// CÓDIGO A SER INSERIDO (Após a função checkPassword, Linha 2520):
+
+// NOVO: Função para carregar grupos e exceções de filial
+async function loadConfigPermissoesData() {
+    try {
+        const [gruposData, permissoesFilialData, acessosData] = await Promise.all([
+            supabaseRequest('grupos_acesso?select=id,nome&order=nome', 'GET', null, false),
+            supabaseRequest('permissoes_filial?order=userId', 'GET', null, false),
+            supabaseRequest('acessos?select=nome,status,grupo_id!inner(id,nome)&order=nome', 'GET', null, false)
+        ]);
+        
+        grupos = gruposData || [];
+        permissoes_filial = permissoesFilialData || [];
+        acessosCache = acessosData || [];
+
+    } catch (error) {
+        console.error("Erro ao carregar dados de grupos e permissões:", error);
+    }
+}
+
+// NOVO: Função para renderizar as novas sub-abas de configuração
+async function loadConfigData() {
+    await loadConfigPermissoesData();
+    renderGruposConfig();
+    renderPermissoesFilialConfig();
+    renderAcessosConfig();
+    updateSystemStatus();
+    renderFiliaisConfig();
+    renderLojasConfig();
+    renderDocasConfig();
+    renderVeiculosConfig();
+    renderMotoristasConfig();
+    renderLideresConfig();
+    renderPontosInteresseConfig();
+}
+// ... (FUNÇÕES CRUD DE GRUPOS E PERMISSÕES DE FILIAL - Veja Passo 5)
         function showAlert(containerId, message, type) {
             const container = document.getElementById(containerId);
             container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
@@ -4666,14 +4794,45 @@ async function deleteExpedition(expeditionId) {
             <div class="form-group"><label>Produtivo (Matrícula):</label><input type="text" id="add_produtivo" required></div>
             <div class="form-group"><label>Status:</label><select id="add_status" required><option value="disponivel">Disponível</option><option value="em_viagem">Em Viagem</option><option value="folga">Folga</option></select></div>
         `;
-    } else if (type === 'acesso') {
-        title.textContent = `Adicionar Novo Acesso`;
+    // NOVO CÓDIGO (SUBSTITUIÇÃO E INSERÇÃO):
+// Encontre a função showAddForm(type) (Linha 2529) e adicione o bloco 'grupo' e substitua o bloco 'acesso':
+    if (type === 'grupo') {
+        const isEdit = !!id;
+        let grupo = null;
+        if (isEdit) {
+            grupo = grupos.find(g => g.id == id);
+            if (!grupo) { showNotification('Grupo não encontrado.', 'error'); return; }
+        }
+        
+        title.textContent = `${isEdit ? 'Editar' : 'Adicionar Novo'} Grupo`;
         formHtml = `
-            <div class="form-group"><label>Nome de Usuário:</label><input type="text" id="add_nome" required></div>
-            <div class="form-group"><label>Senha:</label><input type="password" id="add_senha" required></div>
-            <div class="form-group"><label>Tipo de Acesso:</label><select id="add_tipo_acesso" required><option value="ALL">ALL (Master)</option><option value="${selectedFilial.nome}">${selectedFilial.nome}</option></select></div>
+            ${isEdit ? `<input type="hidden" id="edit_grupo_id" value="${grupo.id}">` : ''}
+            <div class="form-group"><label>Nome do Grupo:</label><input type="text" id="add_nome" value="${grupo?.nome || ''}" required></div>
+        `;
+    } else if (type === 'acesso') { // Bloco 'acesso' atualizado
+        const acesso = id ? acessosCache.find(a => a.nome === id) : null;
+        const currentGroupId = acesso?.grupo_id?.id || '';
+        
+        const grupoOptions = grupos.map(g => 
+            `<option value="${g.id}" ${currentGroupId == g.id ? 'selected' : ''}>${g.nome}</option>`
+        ).join('');
+        
+        title.textContent = `${id ? 'Editar' : 'Adicionar Novo'} Acesso`;
+        formHtml = `
+            ${id ? `<input type="hidden" id="edit_acesso_nome" value="${acesso.nome}">` : ''}
+            <div class="form-group"><label>Nome de Usuário:</label><input type="text" id="add_nome" value="${acesso?.nome || ''}" ${id ? 'readonly' : ''} required></div>
+            <div class="form-group"><label>${id ? 'Nova Senha (deixe em branco para manter a atual):' : 'Senha:'}</label><input type="password" id="add_senha" ${id ? '' : 'required'}></div>
+            <div class="form-group"><label>Grupo de Acesso:</label><select id="add_grupo_id" required>
+                <option value="">Selecione o Grupo</option>
+                ${grupoOptions}
+            </select></div>
+            <div class="form-group"><label>Status:</label><select id="add_status" required>
+                <option value="Ativo" ${acesso?.status === 'Ativo' ? 'selected' : ''}>Ativo</option>
+                <option value="Inativo" ${acesso?.status === 'Inativo' ? 'selected' : ''}>Inativo</option>
+            </select></div>
         `;
     } else if (type === 'pontoInteresse') {
+// ... (Restante da função showAddForm)
         title.textContent = 'Adicionar Ponto de Interesse';
         formHtml = `
             <div class="form-group md:col-span-2">
@@ -4718,7 +4877,9 @@ async function deleteExpedition(expeditionId) {
             const title = document.getElementById('addFormTitle').textContent;
             let success = false;
             try {
+               
                 if (title.includes('Filial')) success = await saveFilial();
+                else if (title.includes('Grupo')) success = await saveGrupo(); // NOVO
                 else if (title.includes('Loja')) success = await saveLoja();
                 else if (title.includes('Doca')) success = await saveDoca();
                 else if (title.includes('Líder')) success = await saveLider();
@@ -4882,30 +5043,88 @@ else if (title.includes('Ponto de Interesse')) success = await savePontoInteress
     renderMotoristasConfig();
     return true;
 }
-       async function saveAcesso() {
+      // NOVO CÓDIGO (SUBSTITUIÇÃO):
+async function saveAcesso() {
     const isEdit = !!document.getElementById('edit_acesso_nome');
     const nomeOriginal = isEdit ? document.getElementById('edit_acesso_nome').value : null;
     
+    const nomeUsuario = document.getElementById('add_nome').value;
+    const grupoId = document.getElementById('add_grupo_id').value;
+    const senha = document.getElementById('add_senha').value;
+    const status = document.getElementById('add_status').value;
+    
+    if (!grupoId) {
+         showAlert('addFormAlert', 'O Grupo de Acesso é obrigatório!', 'error');
+         return false;
+    }
+
     const data = { 
-        nome: document.getElementById('add_nome').value, 
-        tipo_acesso: document.getElementById('add_tipo_acesso').value 
+        nome: nomeUsuario, 
+        grupo_id: grupoId,
+        status: status
     };
     
-    const senha = document.getElementById('add_senha').value;
+    // Atualiza a senha apenas se não for edição OU se a nova senha foi preenchida
     if (!isEdit || senha.trim()) {
-        data.senha = senha || document.getElementById('add_nome').value; // usar nome como senha padrão se vazio
+        data.senha = senha || nomeUsuario; // Usa nome como senha padrão se vazio
     }
     
-    if (isEdit) {
-        await supabaseRequest(`acessos?nome=eq.${nomeOriginal}`, 'PATCH', data, false);
-        showNotification('Acesso atualizado com sucesso!', 'success');
-    } else {
-        await supabaseRequest('acessos', 'POST', data, false);
-        showNotification('Acesso cadastrado com sucesso!', 'success');
+    try {
+        if (isEdit) {
+            await supabaseRequest(`acessos?nome=eq.${nomeOriginal}`, 'PATCH', data, false);
+            showNotification('Acesso atualizado com sucesso!', 'success');
+        } else {
+            // Verifica se o usuário já existe
+            const existing = await supabaseRequest(`acessos?select=nome&nome=eq.${nomeUsuario}`, 'GET', null, false);
+            if (existing && existing.length > 0) {
+                 throw new Error('Usuário já existe. Escolha outro nome.');
+            }
+            await supabaseRequest('acessos', 'POST', data, false);
+            showNotification('Acesso cadastrado com sucesso!', 'success');
+        }
+    } catch (error) {
+         showAlert('addFormAlert', `Erro ao salvar acesso: ${error.message}`, 'error');
+         return false;
     }
+    
+    await loadConfigPermissoesData();
     renderAcessosConfig();
     return true;
 }
+
+// NOVO: Função para salvar grupo
+async function saveGrupo() {
+    const isEdit = !!document.getElementById('edit_grupo_id');
+    const grupoId = isEdit ? document.getElementById('edit_grupo_id').value : null;
+    const nome = document.getElementById('add_nome').value.trim();
+
+    if (!nome) {
+        showAlert('addFormAlert', 'O nome do grupo é obrigatório.', 'error');
+        return false;
+    }
+
+    try {
+        const data = { nome: nome };
+        
+        if (isEdit) {
+            await supabaseRequest(`grupos_acesso?id=eq.${grupoId}`, 'PATCH', data, false);
+            showNotification(`Grupo "${nome}" atualizado.`, 'success');
+        } else {
+            await supabaseRequest('grupos_acesso', 'POST', data, false);
+            showNotification(`Grupo "${nome}" criado. Configure as permissões a seguir.`, 'success');
+        }
+        
+        hideAddForm();
+        await loadConfigPermissoesData();
+        renderGruposConfig();
+        return true;
+    } catch (error) {
+        showAlert('addFormAlert', `Erro ao salvar grupo: ${error.message}`, 'error');
+        return false;
+    }
+}
+
+         
         async function renderVeiculosConfig() {
     const tbody = document.getElementById('veiculosConfigBody');
     if (!tbody) return;
@@ -5049,17 +5268,20 @@ async function deleteMotorista(motoristaId) {
     }
 }
         
-        function updateSystemStatus() {
-            const statusEl = document.getElementById('systemStatus');
-            if(statusEl) {
-                statusEl.textContent = `
+       // NOVO CÓDIGO (SUBSTITUIÇÃO):
+function updateSystemStatus() {
+    const statusEl = document.getElementById('systemStatus');
+    const grupo = grupos.find(g => g.id == currentUser.grupoId);
+    if(statusEl) {
+        statusEl.textContent = `
         Filial Ativa: ${selectedFilial.nome}
         Usuário Logado: ${currentUser.nome}
-        Tipo de Acesso: ${currentUser.tipo_acesso}
-        Cache: ${lojas.length} lojas, ${docas.length} docas, ${lideres.length} líderes
-                `;
-            }
-        }
+        Grupo de Acesso: ${grupo?.nome || 'N/A'}
+        É Administrador Global: ${masterUserPermission ? 'SIM' : 'NÃO'}
+        Cache: ${lojas.length} lojas, ${docas.length} docas, ${lideres.length} líderes, ${grupos.length} grupos, ${acessosCache.length} acessos
+        `;
+    }
+}
  // Variável global para o mapa
         let mapInstance = null;
         let markersLayer = null;
@@ -5956,6 +6178,266 @@ async function deleteAcesso(nomeUsuario) {
     }
 }
 
+// CÓDIGO A SER INSERIDO (Após a função deleteAcesso, Linha 2795):
+
+// ==========================================================
+// FUNÇÕES PARA GRUPOS & PERMISSÕES
+// ==========================================================
+
+function renderGruposConfig() {
+    const tbody = document.getElementById('gruposConfigBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    
+    if (grupos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-500">Nenhum grupo de acesso cadastrado.</td></tr>';
+        return;
+    }
+
+    grupos.forEach(grupo => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td class="py-3 px-4">${grupo.id}</td>
+            <td class="py-3 px-4">${grupo.nome}</td>
+            <td class="py-3 px-4">
+                <button class="btn btn-primary btn-small" onclick="editGrupo('${grupo.id}')">Editar</button>
+                <button class="btn btn-warning btn-small ml-2" onclick="showPermissoesGrupo('${grupo.id}')">Permissões</button>
+                <button class="btn btn-danger btn-small ml-2" onclick="deleteGrupo('${grupo.id}')" ${grupo.nome === 'Administrador Global' ? 'disabled' : ''}>Excluir</button>
+            </td>
+        `;
+    });
+}
+
+function editGrupo(id) {
+    // Reutiliza a função showAddForm, que será ajustada para lidar com grupos
+    showAddForm('grupo', id);
+}
+
+async function deleteGrupo(grupoId) {
+    const grupo = grupos.find(g => g.id == grupoId);
+    if (grupo.nome === 'Administrador Global') {
+        showNotification('O grupo Administrador Global não pode ser excluído.', 'error');
+        return;
+    }
+    
+    const confirmed = await showYesNoModal(`Tem certeza que deseja excluir o grupo "${grupo.nome}"? Usuários associados a ele ficarão sem acesso.`);
+    if (confirmed) {
+        try {
+            // Deletar permissões do grupo primeiro
+            await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}`, 'DELETE', null, false);
+            // Deletar o grupo
+            await supabaseRequest(`grupos_acesso?id=eq.${grupoId}`, 'DELETE', null, false);
+            
+            showNotification(`Grupo "${grupo.nome}" excluído com sucesso!`, 'success');
+            await loadConfigPermissoesData();
+            renderGruposConfig();
+            renderAcessosConfig(); // Atualiza a lista de usuários
+        } catch (error) {
+            showNotification(`Erro ao excluir grupo: ${error.message}`, 'error');
+        }
+    }
+}
+
+async function showPermissoesGrupo(grupoId) {
+    // Buscar o grupo com as permissões atuais (JOIN)
+    const grupoPermissoes = await supabaseRequest(`grupos_acesso?id=eq.${grupoId}&select=nome,permissoes_grupo(permissao)`);
+    const grupo = grupoPermissoes[0];
+    
+    if (!grupo) return;
+
+    const permissoesAtuais = grupo.permissoes_grupo.map(p => p.permissao);
+
+    let content = `<h3 class="text-xl font-semibold mb-4">Permissões para: ${grupo.nome}</h3><form id="permissoesForm">`;
+
+    content += `
+        <input type="hidden" id="grupoPermissaoId" value="${grupoId}">
+        <div class="table-container max-h-96 overflow-y-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr>
+                        <th class="py-2 px-4">Permissão</th>
+                        <th class="py-2 px-4 text-center">Acesso</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    // Criar checkboxes para todas as permissões
+    for (const key in allPermissions) {
+        const description = allPermissions[key];
+        const isChecked = permissoesAtuais.includes(key) ? 'checked' : '';
+        
+        content += `
+            <tr>
+                <td class="py-2 px-4">${description} (<code class="text-xs text-gray-500">${key}</code>)</td>
+                <td class="py-2 px-4 text-center">
+                    <input type="checkbox" id="perm_${key}" name="${key}" class="perm-checkbox" ${isChecked}>
+                </td>
+            </tr>
+        `;
+    }
+
+    content += `
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-4 flex justify-end gap-2">
+            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+            <button type="button" class="btn btn-success" onclick="savePermissoesGrupo()">Salvar Permissões</button>
+        </div>
+    </form>`;
+
+    showModal(`Configurar Permissões`, content, 'max-w-xl');
+}
+
+async function savePermissoesGrupo() {
+    const grupoId = document.getElementById('grupoPermissaoId').value;
+    const checkboxes = document.querySelectorAll('#permissoesForm .perm-checkbox');
+    const permissoesSelecionadas = [];
+    
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            permissoesSelecionadas.push(checkbox.name);
+        }
+    });
+
+    try {
+        // 1. Deletar todas as permissões antigas do grupo
+        await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}`, 'DELETE', null, false);
+        
+        // 2. Inserir as novas permissões
+        if (permissoesSelecionadas.length > 0) {
+            const inserts = permissoesSelecionadas.map(p => ({ grupo_id: grupoId, permissao: p }));
+            await supabaseRequest('permissoes_grupo', 'POST', inserts, false);
+        }
+
+        showNotification('Permissões salvas com sucesso!', 'success');
+        closeModal();
+        await loadConfigPermissoesData(); // Recarrega o cache de grupos
+    } catch (error) {
+        showNotification(`Erro ao salvar permissões: ${error.message}`, 'error');
+    }
+}
+
+
+// ==========================================================
+// FUNÇÕES PARA PERMISSÕES DE FILIAL POR USUÁRIO (EXCEÇÃO)
+// ==========================================================
+
+function renderPermissoesFilialConfig() {
+    const tbody = document.getElementById('permissoesFilialConfigBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    
+    if (acessosCache.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-500">Nenhum usuário cadastrado.</td></tr>';
+        return;
+    }
+
+    acessosCache.forEach(user => {
+        const exception = permissoes_filial.find(p => p.userId === user.nome);
+        
+        let filiaisDisplay = 'Nenhuma exceção definida. Acesso conforme Grupo de Permissão.';
+        if (exception && exception.filiaisAcessiveis.length > 0) {
+            filiaisDisplay = exception.filiaisAcessiveis.join(', ');
+        }
+
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td class="py-3 px-4">${user.nome}</td>
+            <td class="py-3 px-4">${filiaisDisplay}</td>
+            <td class="py-3 px-4">
+                <button class="btn btn-warning btn-small" onclick="editPermissoesFilial('${user.nome}')">Definir Exceção</button>
+                ${exception ? `<button class="btn btn-danger btn-small ml-2" onclick="clearPermissoesFilial('${user.nome}')">Limpar Exceção</button>` : ''}
+            </td>
+        `;
+    });
+}
+
+function editPermissoesFilial(username) {
+    const user = acessosCache.find(u => u.nome === username);
+    const exception = permissoes_filial.find(p => p.userId === username);
+    
+    if (!user) return;
+
+    // Criar uma lista de checkboxes para todas as filiais
+    let filialCheckboxes = '';
+    filiais.forEach(filial => { // Usa o cache global 'filiais' (carregado via loadSelectData)
+        const isChecked = exception && exception.filiaisAcessiveis.includes(filial.nome) ? 'checked' : '';
+        filialCheckboxes += `
+            <div class="flex items-center mb-2">
+                <input type="checkbox" id="filial_${filial.nome}" name="filialNome" value="${filial.nome}" class="mr-2" ${isChecked}>
+                <label for="filial_${filial.nome}">${filial.nome} - ${filial.descricao}</label>
+            </div>
+        `;
+    });
+
+    const content = `
+        <form id="filialPermissoesForm" onsubmit="event.preventDefault(); savePermissoesFilial('${username}')">
+            <h3 class="text-xl font-semibold mb-4">Exceção de Filial para: ${user.nome}</h3>
+            <p class="mb-4 text-sm text-red-600">
+                **Atenção:** Se você selecionar uma ou mais filiais, o usuário SÓ poderá acessar as filiais marcadas. Se não marcar nenhuma e salvar, a exceção será apagada e o acesso será por grupo.
+            </p>
+            <div class="form-group max-h-60 overflow-y-auto border p-3 rounded-md">
+                <label class="font-medium">Filiais Acessíveis:</label>
+                ${filialCheckboxes}
+            </div>
+            <div class="mt-4 flex justify-end gap-2">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button type="submit" class="btn btn-success">Salvar Exceção</button>
+            </div>
+        </form>
+    `;
+    showModal(`Configurar Filiais`, content, 'max-w-md');
+}
+
+async function savePermissoesFilial(username) {
+    const checkboxes = document.querySelectorAll('#filialPermissoesForm input[name="filialNome"]:checked');
+    const filiaisSelecionadas = Array.from(checkboxes).map(cb => cb.value);
+
+    try {
+        // 1. Deletar a exceção antiga (se existir)
+        await supabaseRequest(`permissoes_filial?userId=eq.${username}`, 'DELETE', null, false);
+
+        if (filiaisSelecionadas.length > 0) {
+            // 2. Inserir a nova exceção
+            const payload = {
+                userId: username,
+                filiaisAcessiveis: filiaisSelecionadas
+            };
+            await supabaseRequest('permissoes_filial', 'POST', payload, false);
+            showAlert('configuracoesContent', 'success', `Exceção de filial para ${username} salva com ${filiaisSelecionadas.length} filiais.`);
+        } else {
+            showAlert('configuracoesContent', 'success', `Exceção de filial para ${username} removida.`);
+        }
+        
+        closeModal();
+        await loadConfigPermissoesData(); // Recarrega o cache
+        renderPermissoesFilialConfig();
+    } catch (error) {
+        showNotification(`Erro ao salvar exceção: ${error.message}`, 'error');
+    }
+}
+
+async function clearPermissoesFilial(username) {
+    const confirmed = await showYesNoModal(`Tem certeza que deseja remover a exceção de filial para o usuário ${username}? O acesso dele voltará a ser controlado pelo Grupo de Acesso.`);
+    if (confirmed) {
+        try {
+            await supabaseRequest(`permissoes_filial?userId=eq.${username}`, 'DELETE', null, false);
+            
+            showNotification(`Exceção de filial para ${username} removida com sucesso.`, 'success');
+            await loadConfigPermissoesData();
+            renderPermissoesFilialConfig();
+        } catch (error) {
+            showNotification(`Erro ao limpar exceção: ${error.message}`, 'error');
+        }
+    }
+}
+
+
+// ... (Restante do código) ...
 async function editLoja(lojaId) {
     const loja = lojas.find(l => l.id === lojaId);
     if (!loja) {
@@ -6558,34 +7040,42 @@ function renderPontosInteresseConfig() {
     `).join('');
 }
 
+// NOVO CÓDIGO (SUBSTITUIÇÃO):
 async function renderAcessosConfig() {
     const tbody = document.getElementById('acessosConfigBody');
     if (!tbody) return;
 
-    // Apenas usuários master podem gerenciar acessos
+    // Apenas Administrador Global pode gerenciar acessos
     if (!masterUserPermission) {
-        tbody.innerHTML = '<tr><td colspan="3" class="alert alert-error">Acesso negado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" class="alert alert-error">Acesso negado. Permissão de Administrador Global é necessária.</td></tr>';
         return;
     }
 
     tbody.innerHTML = `<tr><td colspan="3" class="loading"><div class="spinner"></div>Carregando acessos...</td></tr>`;
 
     try {
-        // CORREÇÃO: Adicionando 'false' no último parâmetro para desativar o filtro de filial.
-        const acessosData = await supabaseRequest('acessos?select=nome,grupo_id!inner(nome)', 'GET', null, false);
-        
-        tbody.innerHTML = acessosData.map(acesso => `
-            <tr>
-                <td class="font-medium">${acesso.nome}</td>
-                <td><span class="status-badge ${acesso.grupo_id.nome === 'MASTER' ? 'status-disponivel' : 'status-em_uso'}">${acesso.grupo_id.nome}</span></td>
-                <td>
-                    <div class="flex gap-1">
-                        <button class="btn btn-warning btn-small" onclick="editAcesso('${acesso.nome}')">Editar</button>
-                        <button class="btn btn-danger btn-small" onclick="deleteAcesso('${acesso.nome}')">Excluir</button>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
+        // Usa o cache (carregado em loadConfigPermissoesData)
+        if (acessosCache.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-500">Nenhum usuário cadastrado.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = acessosCache.map(acesso => {
+            const grupoNome = acesso.grupo_id?.nome || 'Sem Grupo';
+            const statusBadge = `<span class="status-badge ${acesso.status === 'Ativo' ? 'status-disponivel' : 'status-cancelado'}">${acesso.status}</span>`;
+            return `
+                <tr>
+                    <td class="font-medium">${acesso.nome} (${statusBadge})</td>
+                    <td><span class="status-badge ${grupoNome === 'Administrador Global' ? 'status-em_uso' : 'status-aguardando_faturamento'}">${grupoNome}</span></td>
+                    <td>
+                        <div class="flex gap-1">
+                            <button class="btn btn-warning btn-small" onclick="editAcesso('${acesso.nome}')">Editar</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteAcesso('${acesso.nome}')">Excluir</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     } catch (error) {
         tbody.innerHTML = `<tr><td colspan="3" class="alert alert-error">Erro ao carregar acessos: ${error.message}</td></tr>`;
     }
@@ -7085,7 +7575,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('initialLoginForm').addEventListener('submit', handleInitialLogin);
 });
 
-// NOVA FUNÇÃO para lidar com o login inicial (SUBSTITUÍDA)
+// NOVO CÓDIGO (SUBSTITUIÇÃO):
+// NOVA FUNÇÃO para lidar com o login inicial
 async function handleInitialLogin(event) {
     event.preventDefault();
     const nome = document.getElementById('initialUser').value.trim();
@@ -7099,38 +7590,36 @@ async function handleInitialLogin(event) {
     alertContainer.innerHTML = '<div class="loading">Autenticando...</div>';
 
     try {
-        const endpoint = `acessos?select=nome,grupo_id&nome=eq.${nome}&senha=eq.${senha}`;
+        // 1. Busca o usuário e faz JOIN com a tabela de grupos e permissões
+        // Acessos com JOIN em grupos e permissões de grupo
+        const endpoint = `acessos?select=nome,status,grupo_id(id,nome,permissoes_grupo(permissao))&nome=eq.${nome}&senha=eq.${senha}`;
         const result = await supabaseRequest(endpoint, 'GET', null, false);
 
-        if (!result || result.length === 0 || !result[0]) {
-            alertContainer.innerHTML = '<div class="alert alert-error">Usuário ou senha incorretos.</div>';
+        if (!result || result.length === 0 || !result[0] || result[0].status !== 'Ativo') {
+            alertContainer.innerHTML = '<div class="alert alert-error">Usuário ou senha incorretos ou inativos.</div>';
             return;
         }
 
         const user = result[0];
         currentUser = {
             nome: user.nome,
-            grupoId: user.grupo_id
+            grupoId: user.grupo_id.id // Salva o ID do grupo
         };
 
-        // Determinar se é um usuário Master e carregar permissões
-        // Proteção: verifica se o grupoId existe antes de fazer a requisição
-        if (user.grupo_id) {
-            const grupo = await supabaseRequest(`grupos_acesso?id=eq.${user.grupo_id}`);
-            if (grupo && grupo.length > 0 && grupo[0].nome === 'MASTER') {
-                masterUserPermission = true;
-            } else {
-                const permissoes = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${user.grupo_id}`);
-                userPermissions = permissoes.map(p => p.permissao);
-            }
+        // 2. Define o status Master e carrega as permissões
+        masterUserPermission = user.grupo_id.nome === 'Administrador Global';
+        
+        // A lista de permissões vem do JOIN com o grupo
+        if (user.grupo_id.permissoes_grupo) {
+             userPermissions = user.grupo_id.permissoes_grupo.map(p => p.permissao);
         } else {
-            // Se o usuário não tem um grupo, não tem permissões
-            masterUserPermission = false;
-            userPermissions = [];
+             userPermissions = [];
         }
 
-        // NOVO: Redireciona para a tela de seleção de filial.
-        // A validação de permissão para a filial agora ocorre na função selectFilial().
+        // 3. Carrega as exceções de filial e grupos (necessário para o filtro na próxima tela)
+        await loadConfigPermissoesData();
+        
+        // 4. Redireciona para a tela de seleção de filial.
         document.getElementById('initialAuthContainer').style.display = 'none';
         document.getElementById('filialSelectionContainer').style.display = 'block';
         loadFiliais(); 
@@ -7142,6 +7631,8 @@ async function handleInitialLogin(event) {
         console.error(err);
     }
 }
+
+
 // NOVA FUNÇÃO
 async function showMainSystem() {
     // Oculta todas as telas de seleção
