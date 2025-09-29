@@ -7374,6 +7374,7 @@ function closePermissionsModal() {
     document.getElementById('permissionsModal').style.display = 'none';
 }
 
+// SUBSTITUIR A VERSÃO EXISTENTE DE managePermissionsModal
 async function managePermissionsModal(targetId, targetName, targetType) {
     const modal = document.getElementById('permissionsModal');
     const title = document.getElementById('permissionsModalTitle');
@@ -7388,9 +7389,13 @@ async function managePermissionsModal(targetId, targetName, targetType) {
     modal.style.display = 'flex';
 
     try {
-        // 1. Buscar todas as permissões do sistema
+        // 1. Buscar todas as permissões do sistema (sem filtro de filial)
         const allPermissions = await supabaseRequest('permissoes_sistema?ativa=eq.true&order=categoria,nome', 'GET', null, false);
-        // 2. Buscar permissões atuais (do grupo ou individuais)
+        
+        // 2. Buscar TODAS as filiais ativas
+        const allFiliais = await supabaseRequest('filiais?ativo=eq.true&order=nome', 'GET', null, false);
+        
+        // 3. Buscar permissões atuais (do grupo ou individuais)
         let currentPermissions = [];
         let groupPermissions = [];
 
@@ -7398,7 +7403,6 @@ async function managePermissionsModal(targetId, targetName, targetType) {
             const result = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${targetId}&select=permissao`, 'GET', null, false);
             currentPermissions = result ? result.map(p => p.permissao) : [];
         } else { // 'usuario'
-            // Se for usuário, precisamos das permissões do grupo para mostrar o status herdado
             const userAccess = await supabaseRequest(`acessos?id=eq.${targetId}&select=grupo_id`, 'GET', null, false);
             const grupoId = userAccess[0]?.grupo_id;
             if (grupoId) {
@@ -7413,6 +7417,55 @@ async function managePermissionsModal(targetId, targetName, targetType) {
 
         let html = '';
         let currentCategory = '';
+        
+        // ====================================================================
+        // A) RENDERIZAR PERMISSÕES DE ACESSO À FILIAL
+        // ====================================================================
+        html += `<h4 class="font-bold text-lg text-gray-700 mt-4 mb-2 border-b pb-1">Acessos de Filial</h4>`;
+        
+        allFiliais.forEach(filial => {
+            const permissionCode = `acesso_filial_${filial.nome}`;
+            const permissao = {
+                codigo: permissionCode,
+                nome: `Filial ${filial.nome} (${filial.descricao})`,
+                descricao: `Permissão de login na Filial ${filial.nome}`
+            };
+
+            let isChecked = false;
+            let statusHerdado = '';
+
+            if (targetType === 'grupo') {
+                isChecked = currentPermissions.includes(permissao.codigo);
+            } else { // 'usuario' (Lógica de Sobrescrita)
+                const individualOverride = currentPermissions.find(cp => cp.permissao_codigo === permissao.codigo);
+                const isGroupPermitted = groupPermissions.includes(permissao.codigo);
+                
+                if (individualOverride) {
+                    isChecked = individualOverride.tem_permissao;
+                    statusHerdado = isGroupPermitted ? ' (Herdado: ✅ | Sobrescrito: ' : ' (Herdado: ❌ | Sobrescrito: ';
+                    statusHerdado += isChecked ? '✅)' : '❌)';
+                } else {
+                    isChecked = isGroupPermitted;
+                    statusHerdado = isGroupPermitted ? ' (Herdado do Grupo: ✅)' : ' (Herdado do Grupo: ❌)';
+                }
+            }
+
+            html += `
+                <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md">
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" data-permission-code="${permissao.codigo}" class="h-5 w-5 rounded border-gray-300 text-blue-600" ${isChecked ? 'checked' : ''}>
+                        <span class="text-sm font-medium text-gray-700">${permissao.nome}</span>
+                        <span class="text-xs text-gray-500 ml-2" title="${permissao.descricao}">${permissao.descricao}</span>
+                    </label>
+                    <span class="text-xs text-gray-500">${statusHerdado}</span>
+                </div>
+            `;
+        });
+        
+        // ====================================================================
+        // B) RENDERIZAR OUTRAS PERMISSÕES DO SISTEMA
+        // ====================================================================
+
         allPermissions.forEach(p => {
             if (p.categoria !== currentCategory) {
                 currentCategory = p.categoria;
@@ -7424,14 +7477,14 @@ async function managePermissionsModal(targetId, targetName, targetType) {
             
             if (targetType === 'grupo') {
                 isChecked = currentPermissions.includes(p.codigo);
-            } else { // 'usuario'
+            } else { // 'usuario' (Lógica de Sobrescrita)
                 const individualOverride = currentPermissions.find(cp => cp.permissao_codigo === p.codigo);
                 const isGroupPermitted = groupPermissions.includes(p.codigo);
                 
                 if (individualOverride) {
                     // Sobrescrita explícita
                     isChecked = individualOverride.tem_permissao;
-                    statusHerdado = isGroupPermitted ? ' (Herdado do Grupo: ✅ | Sobrescrito: ' : ' (Herdado do Grupo: ❌ | Sobrescrito: ';
+                    statusHerdado = isGroupPermitted ? ' (Herdado: ✅ | Sobrescrito: ' : ' (Herdado: ❌ | Sobrescrito: ';
                     statusHerdado += isChecked ? '✅)' : '❌)';
                 } else {
                     // Sem sobrescrita, usa a permissão do grupo
