@@ -6720,7 +6720,7 @@ async function renderAcessosConfig() {
                     <td>
                         <div class="flex gap-1">
                             <button class="btn btn-primary btn-small" onclick="managePermissionsModal('${grupo.id}', '${grupo.nome}', 'grupo')">Permissões</button>
-                            <button class="btn btn-warning btn-small" onclick="showAddGroupForm(${JSON.stringify(grupo).replace(/"/g, '&quot;')})">Editar</button>
+                            <button class="btn btn-warning btn-small" onclick="showAddGroupForm(${JSON.stringify(grupo).replace(/"/g, '"')})">Editar</button>
                             <button class="btn btn-danger btn-small" onclick="deleteGroup('${grupo.id}')">Excluir</button>
                         </div>
                     </td>
@@ -6728,12 +6728,17 @@ async function renderAcessosConfig() {
             `;
         });
         
-       // SUBSTITUIÇÃO: Tenta usar a sintaxe de foreign key do nome da coluna (grupo_id)
-const acessosData = await supabaseRequest('acessos?select=id,nome,grupos_acesso(nome)&order=nome', 'GET', null, false);
+        // 2. Carregar Usuários Individuais
+        // 💡 AJUSTE CRUCIAL: Alterado para 'grupo_id(nome)' (o nome da coluna FK) para garantir que o resultado aninhado seja acessível via 'acesso.grupo_id.nome'.
+        const acessosData = await supabaseRequest('acessos?select=id,nome,grupo_id(nome)&order=nome', 'GET', null, false);
         let acessosHtml = '<tr><td colspan="3" class="font-bold text-center bg-gray-200">USUÁRIOS INDIVIDUAIS</td></tr>';
 
         acessosData.forEach(acesso => {
-            const grupoNome = acesso.grupo_id ? acesso.grupo_id.nome : 'SEM GRUPO';
+            // 💡 ACESSO SEGURO: Verifica se o campo grupo_id é um objeto com o nome.
+            const grupoNome = acesso.grupo_id && typeof acesso.grupo_id === 'object' && acesso.grupo_id.nome 
+                             ? acesso.grupo_id.nome 
+                             : 'SEM GRUPO';
+
             acessosHtml += `
                 <tr class="hover:bg-gray-50">
                     <td class="font-medium">${acesso.nome}</td>
@@ -6755,7 +6760,6 @@ const acessosData = await supabaseRequest('acessos?select=id,nome,grupos_acesso(
         tbody.innerHTML = `<tr><td colspan="3" class="alert alert-error">Erro ao carregar acessos: ${error.message}</td></tr>`;
     }
 }
-
 
 // Função para mostrar detalhes da expedição
 async function showDetalhesExpedicao(expeditionId) {
