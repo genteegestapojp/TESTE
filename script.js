@@ -76,40 +76,44 @@ function hasPermission(permission) {
     // Caso contrário, verifica se a permissão existe no array do usuário.
     return userPermissions.includes(permission);
 }
-        // Função de requisição ao Supabase (do sistema original, adaptada)
-        async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true) {
-            let url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
-            if (includeFilialFilter && selectedFilial && method === 'GET') {
-                const separator = url.includes('?') ? '&' : '?';
-                url += `${separator}filial=eq.${selectedFilial.nome}`;
-            }
-            const options = { method, headers: { ...headers } };
-            
-            if (data && (method === 'POST' || method === 'PATCH')) {
-                if (includeFilialFilter && selectedFilial) {
-                    if (Array.isArray(data)) {
-                        data = data.map(item => ({ ...item, filial: selectedFilial.nome }));
-                    } else {
-                        data = { ...data, filial: selectedFilial.nome };
-                    }
-                }
-                options.body = JSON.stringify(data);
-                if (method !== 'DELETE') {
-                    options.headers.Prefer = 'return=representation';
-                }
-            }
-            
-            try {
-                const response = await fetch(url, options);
-                if (!response.ok) throw new Error(`Erro ${response.status}: ${await response.text()}`);
-                return method === 'DELETE' ? null : await response.json();
-            } catch (error) {
-                console.error(`Falha na requisição: ${method} ${url}`, error);
-                showNotification(`Erro de comunicação com o servidor: ${error.message}`, 'error');
-                throw error;
+      // SUBSTITUIR A VERSÃO EXISTENTE DE supabaseRequest
+async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
+    let url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
+    if (includeFilialFilter && selectedFilial && method === 'GET') {
+        const separator = url.includes('?') ? '&' : '?';
+        url += `${separator}filial=eq.${selectedFilial.nome}`;
+    }
+    const options = { method, headers: { ...headers } };
+    
+    if (data && (method === 'POST' || method === 'PATCH')) {
+        // Lógica de filtro de filial (mantida)
+        if (includeFilialFilter && selectedFilial) {
+            if (Array.isArray(data)) {
+                data = data.map(item => ({ ...item, filial: selectedFilial.nome }));
+            } else {
+                data = { ...data, filial: selectedFilial.nome };
             }
         }
-
+        options.body = JSON.stringify(data);
+        
+        // NOVO: Adiciona o cabeçalho de Upsert (merge-duplicates) para POSTs se upsert=true
+        if (method === 'POST' && upsert) {
+             options.headers.Prefer = 'return=representation,resolution=merge-duplicates';
+        } else if (method !== 'DELETE') {
+            options.headers.Prefer = 'return=representation';
+        }
+    }
+    
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) throw new Error(`Erro ${response.status}: ${await response.text()}`);
+        return method === 'DELETE' ? null : await response.json();
+    } catch (error) {
+        console.error(`Falha na requisição: ${method} ${url}`, error);
+        showNotification(`Erro de comunicação com o servidor: ${error.message}`, 'error');
+        throw error;
+    }
+}
         // NOVO: Função de notificação aprimorada
         function showNotification(message, type = 'info', timeout = 4000) {
             const container = document.getElementById('notificationContainer');
@@ -7534,40 +7538,32 @@ async function savePermissions() {
     }
 }
 
+// SUBSTITUIR A VERSÃO EXISTENTE DE saveGroupPermissions
 async function saveGroupPermissions(grupoId, checkboxes, alert) {
-    const permissionsToAdd = [];
+    const permissionsToSave = [];
     const permissionsToRemove = [];
     
+    // Coleta as permissões que devem ser mantidas/adicionadas
     checkboxes.forEach(cb => {
         const code = cb.dataset.permissionCode;
         if (cb.checked) {
-            permissionsToAdd.push({ grupo_id: grupoId, permissao: code });
+            permissionsToSave.push({ grupo_id: grupoId, permissao: code });
         } else {
             permissionsToRemove.push(code);
         }
     });
 
-    // 1. Deletar permissões não selecionadas (limpeza)
+    // 1. Deletar permissões que foram desmarcadas
     if (permissionsToRemove.length > 0) {
-        const deletePromises = permissionsToRemove.map(code => 
-            supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&permissao=eq.${code}`, 'DELETE', null, false)
-        );
-        await Promise.all(deletePromises);
+        // Deleta em lote por ID e Código de Permissão
+        await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&permissao=in.(${permissionsToRemove.join(',')})`, 'DELETE', null, false);
     }
 
-    // 2. Inserir/Atualizar permissões selecionadas (usa a função upsert)
-    // Atenção: Supabase não permite INSERT/UPDATE em lote simples para a API REST. 
-    // Faremos um POST para cada uma, confiando na constraint `unique (grupo_id, permissao)` para evitar duplicatas.
-    const insertPromises = permissionsToAdd.map(p => 
-        supabaseRequest('permissoes_grupo', 'POST', p, false)
-            .catch(err => {
-                // Se o erro for de duplicata, é ignorado (permissão já existe)
-                if (!err.message.includes('duplicate key value')) {
-                    throw err; 
-                }
-            })
-    );
-    await Promise.all(insertPromises);
+    // 2. Inserir/Atualizar permissões selecionadas usando Upsert em lote
+    if (permissionsToSave.length > 0) {
+        // O parâmetro 'true' no final ativa o modo Upsert (merge-duplicates)
+        await supabaseRequest('permissoes_grupo', 'POST', permissionsToSave, false, true);
+    }
 }
 
 async function saveUserPermissionsOverride(userId, checkboxes, alert) {
