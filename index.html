@@ -246,7 +246,298 @@
                 <div id="motoristas" class="view-content"></div>
                 <div id="acompanhamento" class="view-content"></div>
                 <div id="historico" class="view-content"></div>
-                <div id="configuracoes" class="view-content"></div>
+               <div id="configuracoes" class="view-content">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Configurações</h1>
+    <div id="passwordFormContainer" class="transport-card max-w-md mx-auto">
+        <p class="text-center text-gray-600 mb-4">Acesso restrito. Por favor, insira suas credenciais.</p>
+        <form id="passwordForm">
+            <div class="form-group">
+                <label for="userInput">Usuário:</label>
+                <input type="text" id="userInput" required>
+            </div>
+            <div class="form-group">
+                <label for="passwordInput">Senha:</label>
+                <input type="password" id="passwordInput" required>
+            </div>
+            <div class="mt-4"><button type="submit" class="btn btn-primary w-full">Acessar</button></div>
+        </form>
+        <div id="passwordAlert" class="mt-4"></div>
+    </div>
+
+    <div id="configuracoesContent" style="display: none;">
+        <div class="sub-tabs">
+            <button class="sub-tab active" onclick="showSubTab('configuracoes', 'grupos', this)">Grupos & Permissões</button>
+            <button class="sub-tab" onclick="showSubTab('configuracoes', 'acessos', this)">Acessos</button>
+            <button class="sub-tab" onclick="showSubTab('configuracoes', 'permissoesFilial', this)">Filiais por Usuário</button>
+            <button class="sub-tab" onclick="showSubTab('configuracoes', 'filiais', this)">Filiais</button>
+            <button class="sub-tab" onclick="showSubTab('configuracoes', 'lojas', this)">Lojas</button>
+            <button class="sub-tab" onclick="showSubTab('configuracoes', 'docas', this)">Docas</button>
+            <button class="sub-tab" onclick="showSubTab('configuracoes', 'veiculos', this)">Veículos</button>
+            <button class="sub-tab" onclick="showSubTab('configuracoes', 'motoristasConfig', this)">Motoristas</button>
+            <button class="sub-tab" onclick="showSubTab('configuracoes', 'lideres', this)">Líderes</button>
+            <button class="sub-tab" onclick="showSubTab('configuracoes', 'pontosInteresse', this)">Pontos</button>
+            <button class="sub-tab" onclick="showSubTab('configuracoes', 'sistema', this)">Sistema</button>
+        </div>
+
+        <div id="grupos" class="sub-tab-content active">
+            <div class="transport-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Gerenciar Grupos de Acesso</h3>
+                    <button class="btn btn-success" onclick="showAddForm('grupo')">+ Novo Grupo</button>
+                </div>
+                <div class="table-container bg-white rounded-lg shadow-md">
+                    <table class="w-full">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome do Grupo</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gruposConfigBody">
+                            <tr><td colspan="3" class="loading"><div class="spinner"></div>Carregando grupos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="acessos" class="sub-tab-content">
+            <div class="transport-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Gerenciar Acessos</h3>
+                    <button class="btn btn-success" onclick="showAddForm('acesso')">+ Novo Acesso</button>
+                </div>
+                <div class="table-container bg-white rounded-lg shadow-md">
+                    <table class="w-full">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Grupo de Acesso</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="acessosConfigBody">
+                            <tr><td colspan="3" class="loading"><div class="spinner"></div>Carregando acessos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="permissoesFilial" class="sub-tab-content">
+            <div class="transport-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Gerenciar Permissão de Filial por Usuário (Exceção)</h3>
+                </div>
+                <p class="text-sm text-gray-500 mb-4">Isso define exceções. Se o usuário estiver configurado aqui, ele SÓ poderá acessar as filiais listadas, independentemente do grupo de acesso.</p>
+                <div class="table-container bg-white rounded-lg shadow-md">
+                    <table class="w-full">
+                        <thead>
+                            <tr>
+                                <th>Usuário</th>
+                                <th>Filiais (IDs) Acessíveis</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="permissoesFilialConfigBody">
+                            <tr><td colspan="3" class="loading"><div class="spinner"></div>Carregando permissões...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div id="filiais" class="sub-tab-content">
+            <div class="transport-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Gerenciar Filiais</h3>
+                    <button class="btn btn-success" onclick="showAddForm('filial')">+ Nova Filial</button>
+                </div>
+                <div class="table-container bg-white rounded-lg shadow-md">
+                    <table class="w-full">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Descrição</th>
+                                <th>Endereço CD</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="filiaisConfigBody">
+                            <tr><td colspan="5" class="loading"><div class="spinner"></div>Carregando filiais...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="lojas" class="sub-tab-content">
+            <div class="transport-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Gerenciar Lojas</h3>
+                    <div class="flex gap-2">
+                        <button class="btn btn-primary" onclick="showAllLojasMap()">Ver no Mapa</button>
+                        <button class="btn btn-success" onclick="showAddForm('loja')">+ Nova Loja</button>
+                    </div>
+                </div>
+                <div class="table-container bg-white rounded-lg shadow-md">
+                    <table class="w-full">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nome</th>
+                                <th>Cidade</th>
+                                <th>QR Code</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lojasConfigBody">
+                            <tr><td colspan="6" class="loading"><div class="spinner"></div>Carregando lojas...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="docas" class="sub-tab-content">
+            <div class="transport-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Gerenciar Docas</h3>
+                    <button class="btn btn-success" onclick="showAddForm('doca')">+ Nova Doca</button>
+                </div>
+                <div class="table-container bg-white rounded-lg shadow-md">
+                    <table class="w-full">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Capacidade (Pallets)</th>
+                                <th>Código QR</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="docasConfigBody">
+                            <tr><td colspan="5" class="loading"><div class="spinner"></div>Carregando docas...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="veiculos" class="sub-tab-content">
+            <div class="transport-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Gerenciar Frota</h3>
+                    <button class="btn btn-success" onclick="showAddForm('veiculo')">+ Novo Veículo</button>
+                </div>
+                <div class="table-container bg-white rounded-lg shadow-md">
+                    <table class="w-full">
+                        <thead>
+                            <tr>
+                                <th>Placa</th>
+                                <th>Modelo</th>
+                                <th>Tipo</th>
+                                <th>Capacidade (P)</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="veiculosConfigBody">
+                            <tr><td colspan="6" class="loading"><div class="spinner"></div>Carregando veículos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="motoristasConfig" class="sub-tab-content">
+            <div class="transport-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Gerenciar Motoristas</h3>
+                    <button class="btn btn-success" onclick="showAddForm('motorista')">+ Novo Motorista</button>
+                </div>
+                <div class="table-container bg-white rounded-lg shadow-md">
+                    <table class="w-full">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Produtivo</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="motoristasConfigBody">
+                            <tr><td colspan="4" class="loading"><div class="spinner"></div>Carregando motoristas...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="lideres" class="sub-tab-content">
+            <div class="transport-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Gerenciar Líderes</h3>
+                    <button class="btn btn-success" onclick="showAddForm('lider')">+ Novo Líder</button>
+                </div>
+                <div class="table-container bg-white rounded-lg shadow-md">
+                    <table class="w-full">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Código Funcionário</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lideresConfigBody">
+                            <tr><td colspan="4" class="loading"><div class="spinner"></div>Carregando líderes...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="pontosInteresse" class="sub-tab-content">
+            <div class="transport-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Gerenciar Pontos de Interesse</h3>
+                    <div class="flex gap-2">
+                        <button class="btn btn-primary" onclick="showPontosInteresseMap()">Ver no Mapa</button>
+                        <button class="btn btn-success" onclick="showAddPontoInteresse()">+ Novo Ponto</button>
+                    </div>
+                </div>
+                <div class="table-container bg-white rounded-lg shadow-md">
+                    <table class="w-full">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Tipo</th>
+                                <th>Coordenadas</th>
+                                <th>Raio (m)</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pontosInteresseConfigBody">
+                            <tr><td colspan="6" class="loading"><div class="spinner"></div>Carregando pontos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="sistema" class="sub-tab-content">
+            <div class="transport-card">
+                <h3 class="text-xl font-semibold mb-4">Status do Sistema</h3>
+                <pre id="systemStatus" class="bg-gray-100 p-4 rounded-md text-sm whitespace-pre-wrap"></pre>
+            </div>
+        </div>
+    </div>
+</div>
 
             </div>
         </main>
