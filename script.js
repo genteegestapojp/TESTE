@@ -76,7 +76,7 @@ function hasPermission(permission) {
     // Caso contrário, verifica se a permissão existe no array do usuário.
     return userPermissions.includes(permission);
 }
- // SUBSTITUA A VERSÃO EXISTENTE DE supabaseRequest (Cerca da linha 106)
+// SUBSTITUA A VERSÃO EXISTENTE DE supabaseRequest (Cerca da linha 106)
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
     let url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
     
@@ -103,6 +103,7 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
         // NOVO: Adiciona o cabeçalho de Upsert (merge-duplicates) para POSTs se upsert=true
         if (method === 'POST' && upsert) {
              // Esta linha diz ao Supabase para fundir duplicatas em vez de dar erro
+             // 💡 Esta é a linha CRUCIAL que previne o erro 409 de duplicação.
              options.headers.Prefer = 'return=representation,resolution=merge-duplicates';
         } else if (method !== 'DELETE') {
             // Header padrão para retornar os dados atualizados/inseridos
@@ -7569,7 +7570,7 @@ async function saveGroupPermissions(grupoId, checkboxes, alert) {
 
     // 2. Inserir/Atualizar permissões selecionadas usando Upsert em lote
     if (permissionsToSave.length > 0) {
-        // O parâmetro 'true' no final ATIVA O MODO UPSERT
+        // 💡 Uso da flag 'true' para ativar o Upsert na supabaseRequest.
         await supabaseRequest('permissoes_grupo', 'POST', permissionsToSave, false, true);
     }
 }
