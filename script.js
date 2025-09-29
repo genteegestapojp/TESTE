@@ -6694,8 +6694,8 @@ async function renderAcessosConfig() {
             `;
         });
         
-        // 2. Carregar Usuários (acessos)
-        const acessosData = await supabaseRequest('acessos?select=id,nome,grupo_id!grupos_acesso(nome)&order=nome', 'GET', null, false);
+       // SUBSTITUIÇÃO: Tenta usar a sintaxe de foreign key do nome da coluna (grupo_id)
+const acessosData = await supabaseRequest('acessos?select=id,nome,grupos_acesso(nome)&order=nome', 'GET', null, false);
         let acessosHtml = '<tr><td colspan="3" class="font-bold text-center bg-gray-200">USUÁRIOS INDIVIDUAIS</td></tr>';
 
         acessosData.forEach(acesso => {
