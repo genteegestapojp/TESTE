@@ -192,24 +192,45 @@ if (homeMapTimer) {
     }
     feather.replace(); // Redesenha os ícones
 }
-        // Carregar filiais (do sistema original)
-        async function loadFiliais() {
-            try {
-                const filiaisData = await supabaseRequest('filiais?select=nome,descricao,ativo&ativo=eq.true&order=nome', 'GET', null, false);
-                const grid = document.getElementById('filiaisGrid');
-                grid.innerHTML = '';
-                filiaisData.forEach(filial => {
-                    const card = document.createElement('div');
-                    card.className = 'filial-card';
-                    card.onclick = () => selectFilial(filial);
-                    card.innerHTML = `<h3>${filial.nome}</h3><p>${filial.descricao || 'Descrição não informada'}</p>`;
-                    grid.appendChild(card);
-                });
-                filiais = filiaisData;
-            } catch (error) {
-                document.getElementById('filiaisGrid').innerHTML = `<p class="text-red-500">Erro ao carregar filiais.</p>`;
-            }
-        }
+
+
+
+// NOVO: Função para determinar e aplicar o acesso à filial
+async function determineFilialAccess() {
+    // 1. Identificar todas as filiais permitidas para o usuário
+    const allowedFiliais = filiais.filter(f => hasPermission(`acesso_filial_${f.nome}`));
+
+    if (allowedFiliais.length === 1) {
+        // Redirecionamento Automático: Apenas uma filial permitida
+        showNotification(`Acesso único à filial ${allowedFiliais[0].nome}. Redirecionando...`, 'info', 1500);
+        await selectFilial(allowedFiliais[0]); // Pula a tela de seleção e vai direto
+    } else if (allowedFiliais.length > 1) {
+        // Múltiplas filiais: Exibe a tela de seleção, mas apenas com as permitidas
+        document.getElementById('initialAuthContainer').style.display = 'none';
+        document.getElementById('filialSelectionContainer').style.display = 'block';
+        renderFiliaisSelection(allowedFiliais);
+    } else {
+        // Nenhuma filial permitida
+        document.getElementById('initialLoginAlert').innerHTML = '<div class="alert alert-error">Você não possui permissão para acessar nenhuma filial. Contate o administrador.</div>';
+        document.getElementById('initialAuthContainer').style.display = 'block';
+    }
+}
+
+
+       // SUBSTITUIR A VERSÃO EXISTENTE DE loadFiliais
+async function loadFiliais() {
+    try {
+        // 1. Carrega TODAS as filiais ativas para cache
+        const filiaisData = await supabaseRequest('filiais?select=nome,descricao,ativo,latitude_cd,longitude_cd&ativo=eq.true&order=nome', 'GET', null, false);
+        filiais = filiaisData || [];
+        
+        // 2. Determina quais filiais o usuário pode acessar e decide se redireciona
+        await determineFilialAccess();
+        
+    } catch (error) {
+        document.getElementById('filiaisGrid').innerHTML = `<p class="text-red-500">Erro ao carregar dados de filiais.</p>`;
+    }
+}
 
      // Remova a lógica de exibição de telas daqui
 async function selectFilial(filial) {
@@ -7524,4 +7545,19 @@ async function saveUserPermissionsOverride(userId, checkboxes, alert) {
     );
     
     await Promise.all(upsertPromises);
+}
+
+
+// NOVO: Função para renderizar as filiais permitidas na tela de seleção
+function renderFiliaisSelection(allowedFiliais) {
+    const grid = document.getElementById('filiaisGrid');
+    grid.innerHTML = '';
+    
+    allowedFiliais.forEach(filial => {
+        const card = document.createElement('div');
+        card.className = 'filial-card';
+        card.onclick = () => selectFilial(filial);
+        card.innerHTML = `<h3>${filial.nome}</h3><p>${filial.descricao || 'Descrição não informada'}</p>`;
+        grid.appendChild(card);
+    });
 }
