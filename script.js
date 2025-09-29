@@ -76,28 +76,50 @@ function hasPermission(permission) {
     // Caso contrário, verifica se a permissão existe no array do usuário.
     return userPermissions.includes(permission);
 }
-  // Cerca da linha 106 do script.js
+ // SUBSTITUA A VERSÃO EXISTENTE DE supabaseRequest (Cerca da linha 106)
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
     let url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
-    // ... (código para filtro de filial em GET) ...
+    
+    // 1. Lógica de Filtro de Filial para GET
+    if (includeFilialFilter && selectedFilial && method === 'GET') {
+        const separator = url.includes('?') ? '&' : '?';
+        url += `${separator}filial=eq.${selectedFilial.nome}`;
+    }
+    
     const options = { method, headers: { ...headers } };
     
+    // 2. Lógica de Corpo (Body) e Headers para POST/PATCH
     if (data && (method === 'POST' || method === 'PATCH')) {
-        // ... (código para filtro de filial no data) ...
+        // Inclui o filtro de filial no corpo da requisição
+        if (includeFilialFilter && selectedFilial) {
+            if (Array.isArray(data)) {
+                data = data.map(item => ({ ...item, filial: selectedFilial.nome }));
+            } else {
+                data = { ...data, filial: selectedFilial.nome };
+            }
+        }
         options.body = JSON.stringify(data);
         
-        // CORREÇÃO: Adiciona o cabeçalho de Upsert (merge-duplicates)
+        // NOVO: Adiciona o cabeçalho de Upsert (merge-duplicates) para POSTs se upsert=true
         if (method === 'POST' && upsert) {
+             // Esta linha diz ao Supabase para fundir duplicatas em vez de dar erro
              options.headers.Prefer = 'return=representation,resolution=merge-duplicates';
         } else if (method !== 'DELETE') {
+            // Header padrão para retornar os dados atualizados/inseridos
             options.headers.Prefer = 'return=representation';
         }
     }
     
+    // 3. Execução da Requisição
     try {
-        // ... (código de fetch) ...
+        const response = await fetch(url, options);
+        // O Supabase retorna 409, mas o corpo da requisição pode ter o erro detalhado
+        if (!response.ok) throw new Error(`Erro ${response.status}: ${await response.text()}`);
+        return method === 'DELETE' ? null : await response.json();
     } catch (error) {
-        // ... (código de erro) ...
+        console.error(`Falha na requisição: ${method} ${url}`, error);
+        showNotification(`Erro de comunicação com o servidor: ${error.message}`, 'error');
+        throw error;
     }
 }
         // NOVO: Função de notificação aprimorada
