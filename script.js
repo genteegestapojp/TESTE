@@ -7269,20 +7269,21 @@ async function handleInitialLogin(event) {
             grupoId: user.grupo_id
         };
 
-        // NOVO: Carregar as permissões do usuário
+        // 1. Carregar as permissões do usuário (Grupo + Individual)
         await loadUserPermissions(currentUser.id, currentUser.grupoId);
         
-        // NOVO: Se o usuário é Master, ele também deve ter acesso_filial a todas as filiais
+        // 2. Se o usuário é Master, ele ganha acesso a todas as filiais
         if (masterUserPermission) {
+            // Buscamos todas as filiais ATIVAS no banco
             const todasFiliais = await supabaseRequest('filiais?select=nome&ativo=eq.true', 'GET', null, false);
+            // Adiciona a permissão explícita para o Master
             todasFiliais.forEach(f => userPermissions.push(`acesso_filial_${f.nome}`));
         }
 
-        // Redireciona para a tela de seleção de filial.
-        document.getElementById('initialAuthContainer').style.display = 'none';
-        document.getElementById('filialSelectionContainer').style.display = 'block';
-        loadFiliais(); 
-        
+        // 3. Carrega as filiais ativas e determina o acesso/redirecionamento
+        // loadFiliais() agora chama determineFilialAccess(), que decide se redireciona direto ou mostra a seleção.
+        await loadFiliais(); 
+
         showNotification(`Bem-vindo, ${currentUser.nome}!`, 'success');
 
     } catch (err) {
@@ -7290,6 +7291,7 @@ async function handleInitialLogin(event) {
         console.error(err);
     }
 }
+
 // NOVA FUNÇÃO
 async function showMainSystem() {
     // Oculta todas as telas de seleção
