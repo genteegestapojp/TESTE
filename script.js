@@ -6671,9 +6671,9 @@ async function calculateSimulatedRoute(startLat, startLng, endLat, endLng) {
     };
 }
 // --- NOVO: FUNÇÃO PARA CALCULAR ROTA REAL VIA API OSRM ---
+// SUBSTITUIR A VERSÃO EXISTENTE DE getRouteFromAPI
 async function getRouteFromAPI(waypoints) {
     if (!waypoints || waypoints.length < 2) {
-        console.error('Pelo menos dois waypoints são necessários para calcular a rota.');
         return null;
     }
 
@@ -6682,9 +6682,17 @@ async function getRouteFromAPI(waypoints) {
 
     try {
         const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Erro na API de roteamento: ${response.statusText}`);
+        
+        if (response.status === 429) {
+            console.error('ERRO 429: Limite de requisições à API de Roteamento atingido. Tente novamente mais tarde.');
+            showNotification('Erro: Limite de requisições de rota excedido. O mapa pode não carregar.', 'error', 5000);
+            return null;
         }
+        
+        if (!response.ok) {
+            throw new Error(`Erro ${response.status}: Falha na API de roteamento.`);
+        }
+        
         const data = await response.json();
         
         if (data.routes && data.routes.length > 0) {
@@ -6698,15 +6706,10 @@ async function getRouteFromAPI(waypoints) {
         return null;
     } catch (error) {
         console.error('Falha ao obter rota da API:', error);
-        return null;
+        return null; // Retorna null para que o JS continue processando
     }
 }
-// NOVO: Funções para o Modal de Ordem de Carregamento
 
-/**
- * Abre o modal para ordenar as lojas de uma nova expedição.
- * @param {string} expeditionId - O ID da expedição recém-criada.
- */
 async function openOrdemCarregamentoModal(expeditionId) {
     const modal = document.getElementById('ordemCarregamentoModal');
     const list = document.getElementById('ordemLojasList');
@@ -7870,7 +7873,15 @@ function filterNavigationMenu() {
     let firstPermittedViewId = null;
 
     navItems.forEach(item => {
-        const viewId = item.getAttribute('href').substring(1);
+        const href = item.getAttribute('href');
+        
+        // 🚨 FIX CRÍTICO: Garante que o item de navegação possui um href válido.
+        if (!href || href.length <= 1) {
+             item.style.display = 'none'; // Esconde o item inválido para segurança
+             return;
+        }
+        
+        const viewId = href.substring(1);
         const htmlPermission = item.dataset.permission; // Ex: 'acesso_faturamento'
         
         let isPermitted = true;
