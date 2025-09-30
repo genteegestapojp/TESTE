@@ -261,7 +261,9 @@ async function loadFiliais() {
     }
 }
 
-     // Remova a lógica de exibição de telas daqui
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js (Aprox. linha 3590, dependendo das edições)
+
+// SUBSTITUIR A VERSÃO EXISTENTE DE selectFilial
 async function selectFilial(filial) {
     // Verificar permissão para a filial
     if (!hasPermission(`acesso_filial_${filial.nome}`)) {
@@ -270,6 +272,7 @@ async function selectFilial(filial) {
     }
 
     try {
+        // Busca os dados completos da filial (sem filtro de filial na busca)
         const fullFilialData = await supabaseRequest(`filiais?nome=eq.${filial.nome}`, 'GET', null, false);
         selectedFilial = fullFilialData[0];
     } catch (error) {
@@ -279,24 +282,40 @@ async function selectFilial(filial) {
     
     document.getElementById('sidebarFilial').textContent = selectedFilial.nome;
     
-    // NOVO: Chama a função que gerencia a transição de telas
+    // 1. Inicia a transição para a tela principal
     await showMainSystem();
     
+    // 2. Carrega todos os dados estáticos e dinâmicos (abas)
     await loadAllTabData();
     await loadPontosInteresse();
-    showView('home', document.querySelector('.nav-item'));
-    setTimeout(() => {
-        const homeAutoRefreshCheckbox = document.getElementById('homeAutoRefresh');
-        if (homeAutoRefreshCheckbox) {
-            homeAutoRefreshCheckbox.checked = true;
-            toggleHomeAutoRefresh();
+
+    // 🚨 AJUSTE PRINCIPAL: Filtra as abas de navegação e determina qual a primeira a ser mostrada 🚨
+    const firstPermittedViewId = filterNavigationMenu(); 
+
+    if (firstPermittedViewId) {
+        // Mostra a primeira aba permitida
+        const firstNavItem = document.querySelector(`.nav-item[href="#${firstPermittedViewId}"]`);
+        showView(firstPermittedViewId, firstNavItem);
+        
+        // Configura o refresh automático da Home (se for a primeira aba permitida)
+        if (firstPermittedViewId === 'home') {
+             setTimeout(() => {
+                const homeAutoRefreshCheckbox = document.getElementById('homeAutoRefresh');
+                if (homeAutoRefreshCheckbox) {
+                    homeAutoRefreshCheckbox.checked = true;
+                    toggleHomeAutoRefresh();
+                }
+            }, 2000);
         }
-    }, 2000);
+        
+    } else {
+        // Se não houver nenhuma permissão de aba (erro de acesso final)
+        document.getElementById('home').classList.add('active'); // Garante que a div está visível
+        document.getElementById('home').innerHTML = '<div class="alert alert-error">Seu grupo de acesso não possui permissão para visualizar nenhuma aba. Contate o administrador.</div>';
+    }
+    
     showNotification(`Bem-vindo à filial: ${selectedFilial.nome}!`, 'success');
 }
-        
-        // NOVO: Carrega o conteúdo das abas originais para as divs de view
-        // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
 // SUBSTITUA a função loadAllTabData() completa:
 
@@ -7725,4 +7744,28 @@ function renderFiliaisSelection(allowedFiliais) {
         card.innerHTML = `<h3>${filial.nome}</h3><p>${filial.descricao || 'Descrição não informada'}</p>`;
         grid.appendChild(card);
     });
+}
+
+
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+function filterNavigationMenu() {
+    const navItems = document.querySelectorAll('.nav-item');
+    let firstPermittedViewId = null;
+
+    navItems.forEach(item => {
+        const permission = item.dataset.permission;
+        
+        // Se houver permissão definida E o usuário NÃO tiver essa permissão, esconde.
+        if (permission && !hasPermission(permission)) {
+            item.style.display = 'none';
+        } else {
+            // Garante que itens permitidos sejam exibidos (no caso de um teste anterior ter escondido)
+            item.style.display = 'flex'; 
+            if (!firstPermittedViewId) {
+                firstPermittedViewId = item.getAttribute('href').substring(1);
+            }
+        }
+    });
+    return firstPermittedViewId;
 }
