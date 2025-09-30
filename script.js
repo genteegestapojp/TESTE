@@ -29,19 +29,25 @@ let masterUserPermission = false;
 let gruposAcesso = [];
 
 
-// SUBSTITUIR A VERSÃO EXISTENTE DE loadUserPermissions (Com as correções anteriores)
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// SUBSTITUIR A VERSÃO EXISTENTE DE loadUserPermissions
 async function loadUserPermissions(userId, grupoId) {
     masterUserPermission = false;
     let finalPermissionsSet = new Set();
     
-    // 1. CHECAGEM DE GRUPO
+    // 1. CHECAGEM DE GRUPO E CARREGAMENTO DE PERMISSÕES
     if (grupoId) {
          try {
              // Carrega o nome do grupo e todas as permissões do grupo em paralelo
+             // O último 'false' garante que o filtro de filial NÃO seja aplicado (Correto para permissões)
              const [grupo, permissoesGrupo] = await Promise.all([
                  supabaseRequest(`grupos_acesso?id=eq.${grupoId}&select=nome`, 'GET', null, false),
                  supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false)
              ]);
+             
+             // LOG PARA DIAGNÓSTICO
+             console.log("Permissões do Grupo lidas do BD (Bruto):", permissoesGrupo);
 
              // MASTER BYPASS: Se for MASTER, define o bypass e retorna
              if (grupo && grupo.length > 0 && grupo[0].nome === 'MASTER') {
@@ -53,25 +59,26 @@ async function loadUserPermissions(userId, grupoId) {
                  return; 
              }
 
-             // CARREGA PERMISSÕES DE GRUPOS NORMAIS
+             // CARREGA PERMISSÕES DE GRUPOS NORMAIS E SANEIA
              if (permissoesGrupo && Array.isArray(permissoesGrupo)) {
+                 // Saneamento: remove espaços e transforma em minúsculas
                  permissoesGrupo.forEach(p => finalPermissionsSet.add(p.permissao.trim().toLowerCase()));
              }
          } catch (e) {
-             console.error("ERRO CRÍTICO: Falha ao carregar permissoes_grupo ou grupo_acesso.", e);
+             console.error("ERRO CRÍTICO: Falha ao carregar permissoes_grupo ou grupo_acesso. Possível falha de RLS.", e);
          }
     }
     
-    // 🚨 FIX CRÍTICO 1: Adiciona acesso_home implicitamente para garantir que a navegação não fique vazia 🚨
+    // 🚨 FIX CRÍTICO: Adiciona acesso_home implicitamente para garantir a navegação.
+    // O problema da tela vazia é resolvido por esta injeção.
     if (!masterUserPermission) {
         finalPermissionsSet.add('acesso_home');
     }
     
-    // 2. IMPLICAR PERMISSÕES PAI A PARTIR DE SUB-PERMISSÕES (FIX PARA TABS)
-    // Se o usuário tem acesso a uma sub-aba, ele deve ter implicitamente acesso à aba principal.
+    // 2. IMPLICAR PERMISSÕES PAI A PARTIR DE SUB-PERMISSÕES
+    // Garante que se tem 'acesso_faturamento_ativo', também terá 'acesso_faturamento'.
     const explicitPermissions = Array.from(finalPermissionsSet);
     explicitPermissions.forEach(p => {
-        // Ex: 'acesso_operacao_lancamento' -> 'acesso_operacao'
         const parts = p.split('_');
         if (parts.length > 2 && parts[0] === 'acesso') {
             finalPermissionsSet.add(`${parts[0]}_${parts[1]}`);
@@ -81,7 +88,6 @@ async function loadUserPermissions(userId, grupoId) {
     // 3. Checagem do Master por Permissão
     if (finalPermissionsSet.has('gerenciar_permissoes')) {
          masterUserPermission = true;
-         // Adiciona todas as filiais
          try {
              const todasFiliais = await supabaseRequest('filiais?select=nome&ativo=eq.true', 'GET', null, false);
              todasFiliais.forEach(f => finalPermissionsSet.add(`acesso_filial_${f.nome}`));
@@ -91,8 +97,10 @@ async function loadUserPermissions(userId, grupoId) {
     }
     
     userPermissions = Array.from(finalPermissionsSet);
+    
+    // LOG FINAL
+    console.log("Permissões FINAIS (Saneadas e Implícitas):", userPermissions);
 }
-
 
 function hasPermission(permission) {
     if (masterUserPermission) {
