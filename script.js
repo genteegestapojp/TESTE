@@ -4362,9 +4362,12 @@ async function checkAuthForEdit() {
     }
 }
 
-      // Função para abrir modal de edição (SUBSTITUÍDA)
+   // SUBSTITUIR A FUNÇÃO openEditModal COMPLETA
 async function openEditModal(expeditionId) {
-    if (!hasPermission('editar_expedicao')) {
+    const isMaster = masterUserPermission;
+    
+    // 1. Verificar Permissão Principal (apenas se não for Master)
+    if (!isMaster && !hasPermission('editar_expedicao')) {
         showNotification('Você não tem permissão para editar expedições.', 'error');
         return;
     }
@@ -4390,11 +4393,20 @@ async function openEditModal(expeditionId) {
         return;
     }
 
-    if (expedition.status === 'saiu_para_entrega' || expedition.status === 'entregue') {
-        showNotification('Esta expedição não pode mais ser editada pois já saiu para entrega.', 'error');
+    // 2. Aplicar Restrição de Status (SÓ PARA USUÁRIOS NORMAIS)
+    if (!isMaster && (expedition.status === 'saiu_para_entrega' || expedition.status === 'entregue')) {
+        showNotification('Esta expedição não pode mais ser editada, pois já saiu para entrega.', 'error');
+        return;
+    }
+    
+    // 3. Se não é Master, e o status é avançado, pedimos autenticação para garantir
+    if (!isMaster && (expedition.status === 'faturado' || expedition.status === 'faturamento_iniciado')) {
+        showNotification('Acesso a esta expedição requer autenticação adicional.', 'info');
+        showAuthEditModal(expeditionId);
         return;
     }
 
+    // 4. Fluxo de Edição Normal
     document.getElementById('editExpeditionId').value = expeditionId;
 
     populateEditSelects();
@@ -4415,6 +4427,8 @@ async function openEditModal(expeditionId) {
 
     document.getElementById('editExpeditionModal').style.display = 'flex';
 }
+
+
 // Função que abre o modal de edição sem verificação
 async function openEditModalDirectly(expeditionId) {
     // Primeiro, garante que temos os dados carregados
@@ -4689,9 +4703,12 @@ async function saveEditedExpedition() {
         
        // CÓDIGO CORRIGIDO
 
-// Função para excluir expedição (SUBSTITUÍDA)
+// SUBSTITUIR A FUNÇÃO deleteExpedition COMPLETA
 async function deleteExpedition(expeditionId) {
-    if (!hasPermission('excluir_expedicao')) {
+    const isMaster = masterUserPermission;
+
+    // 1. Verificar Permissão Principal
+    if (!isMaster && !hasPermission('excluir_expedicao')) {
         showNotification('Você não tem permissão para excluir expedições.', 'error');
         return;
     }
@@ -4702,8 +4719,9 @@ async function deleteExpedition(expeditionId) {
         return;
     }
 
-    if (expeditionToDel.status === 'saiu_para_entrega' || expeditionToDel.status === 'entregue') {
-        showNotification('Esta expedição não pode ser excluída pois já saiu para entrega.', 'error');
+    // 2. Aplicar Restrição de Status (SÓ PARA USUÁRIOS NORMAIS)
+    if (!isMaster && (expeditionToDel.status === 'saiu_para_entrega' || expeditionToDel.status === 'entregue')) {
+        showNotification('Esta expedição não pode ser excluída, pois já saiu para entrega.', 'error');
         return;
     }
 
@@ -4712,6 +4730,7 @@ async function deleteExpedition(expeditionId) {
         try {
             const updatePromises = [];
 
+            // 3. Liberar Recursos Alocados
             if (expeditionToDel.doca_id) {
                 updatePromises.push(
                     supabaseRequest(`docas?id=eq.${expeditionToDel.doca_id}`, 'PATCH', { status: 'disponivel' })
