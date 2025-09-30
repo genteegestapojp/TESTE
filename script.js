@@ -4508,31 +4508,38 @@ function populateEditSelects() {
             document.getElementById('editExpeditionModal').style.display = 'none';
         }
 
-        function addEditLojaLine(item = null) {
-            editLojaLineCounter++;
-            const container = document.getElementById('editLojasContainer');
-            const newLine = document.createElement('div');
-            newLine.className = 'grid grid-cols-1 md:grid-cols-4 gap-4 items-end';
-            newLine.dataset.editIndex = editLojaLineCounter;
-            
-            newLine.innerHTML = `
-                <div class="form-group md:col-span-2"><label>Loja:</label><select class="edit-loja-select w-full">${lojas.map(l => `<option value="${l.id}">${l.codigo} - ${l.nome}</option>`).join('')}</select></div>
-                <div class="form-group"><label>Pallets:</label><input type="number" class="edit-pallets-input w-full" min="0"></div>
-                <div><button type="button" class="btn btn-danger btn-small w-full" onclick="removeEditLojaLine(${editLojaLineCounter})">Remover</button></div>
-            `;
-            container.appendChild(newLine);
-            
-            if(item) {
-                newLine.querySelector('.edit-loja-select').value = item.loja_id;
-                newLine.querySelector('.edit-pallets-input').value = item.pallets;
-            }
-        }
+       // Função para adicionar uma nova linha de loja no modal de edição
+function addEditLojaLine(item = null) {
+    editLojaLineCounter++;
+    const container = document.getElementById('editLojasContainer');
+    const newLine = document.createElement('div');
+    // Ajustado para 5 colunas (Loja, Pallets, RollTrainers, Remover)
+    newLine.className = 'grid grid-cols-1 md:grid-cols-5 gap-4 items-end';
+    newLine.dataset.editIndex = editLojaLineCounter;
+    
+    // Inclui campo RollTrainers (com a classe 'edit-rolls-input')
+    newLine.innerHTML = `
+        <div class="form-group md:col-span-2"><label>Loja:</label><select class="edit-loja-select w-full">${lojas.map(l => `<option value="${l.id}">${l.codigo} - ${l.nome}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Pallets:</label><input type="number" class="edit-pallets-input w-full" min="0"></div>
+        <div class="form-group"><label>RollTrainers:</label><input type="number" class="edit-rolls-input w-full" min="0"></div>
+        <div><button type="button" class="btn btn-danger btn-small w-full" onclick="removeEditLojaLine(${editLojaLineCounter})">Remover</button></div>
+    `;
+    container.appendChild(newLine);
+    
+    if(item) {
+        newLine.querySelector('.edit-loja-select').value = item.loja_id;
+        newLine.querySelector('.edit-pallets-input').value = item.pallets;
+        // Preenche o campo RollTrainers com o valor existente
+        newLine.querySelector('.edit-rolls-input').value = item.rolltrainers || 0; 
+    }
+}
         
         function removeEditLojaLine(index) {
             document.querySelector(`[data-edit-index="${index}"]`)?.remove();
         }
 
-        async function saveEditedExpedition() {
+     // SUBSTITUIR A FUNÇÃO saveEditedExpedition COMPLETA
+async function saveEditedExpedition() {
   const expeditionId = document.getElementById('editExpeditionId').value;
   const newVeiculo = document.getElementById('editVeiculo').value;
   const newMotorista = document.getElementById('editMotorista').value;
@@ -4544,7 +4551,7 @@ function populateEditSelects() {
   const newItemsData = Array.from(document.querySelectorAll('#editLojasContainer .grid')).map(row => ({
     loja_id: row.querySelector('.edit-loja-select').value,
     pallets: parseInt(row.querySelector('.edit-pallets-input').value) || 0,
-    rolltrainers: 0 // Assumindo que rolltrainers não são editáveis nesta tela
+    rolltrainers: parseInt(row.querySelector('.edit-rolls-input').value) || 0 // NOVO: Coleta RollTrainers
   }));
 
   try {
@@ -4628,14 +4635,27 @@ function populateEditSelects() {
     // Itens a serem adicionados ou atualizados
     for (const newItem of newItemsData) {
       const existingItem = originalItems.find(originalItem => originalItem.loja_id === newItem.loja_id);
+      
       if (existingItem) {
-        // Se já existe, atualiza
+        // Se já existe, verifica e atualiza
+        const payload = {};
+        let needsUpdate = false;
+
         if (existingItem.pallets !== newItem.pallets) {
-          updatePromises.push(
-            supabaseRequest(`expedition_items?id=eq.${existingItem.id}`, 'PATCH', {
-              pallets: newItem.pallets
-            }, false)
-          );
+          payload.pallets = newItem.pallets;
+          needsUpdate = true;
+        }
+
+        // NOVO: Verifica RollTrainers
+        if (existingItem.rolltrainers !== newItem.rolltrainers) {
+          payload.rolltrainers = newItem.rolltrainers;
+          needsUpdate = true;
+        }
+        
+        if (needsUpdate) {
+            updatePromises.push(
+                supabaseRequest(`expedition_items?id=eq.${existingItem.id}`, 'PATCH', payload, false)
+            );
         }
       } else {
         // Se não existe, adiciona
