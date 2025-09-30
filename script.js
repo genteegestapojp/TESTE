@@ -7593,11 +7593,7 @@ function closePermissionsModal() {
     document.getElementById('permissionsModal').style.display = 'none';
 }
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
 // SUBSTITUIR A VERSÃO EXISTENTE DE managePermissionsModal
 async function managePermissionsModal(targetId, targetName, targetType) {
@@ -7609,29 +7605,59 @@ async function managePermissionsModal(targetId, targetName, targetType) {
     document.getElementById('permissionsTargetId').value = targetId;
     document.getElementById('permissionsTargetType').value = targetType;
     title.textContent = `Gerenciar Permissões`;
-    // Usuários agora são apenas para visualização de permissões de grupo.
     subtitle.textContent = targetType === 'grupo' ? `Configurando o Grupo: ${targetName}` : `Visualizando Permissões (Apenas Grupo): ${targetName}`;
     list.innerHTML = `<div class="loading"><div class="spinner"></div>Carregando permissões...</div>`;
     modal.style.display = 'flex';
 
     try {
-        // 1. Buscar todas as permissões do sistema e filiais
-        const allPermissions = await supabaseRequest('permissoes_sistema?ativa=eq.true&order=categoria,nome', 'GET', null, false);
+        // 1. Buscar todas as permissões base do sistema e filiais
+        const allPermissionsBase = await supabaseRequest('permissoes_sistema?ativa=eq.true&order=categoria,nome', 'GET', null, false);
         const allFiliais = await supabaseRequest('filiais?ativo=eq.true&order=nome', 'GET', null, false);
         
+        // 🚨 FIX CRÍTICO: ADICIONAR PERMISSÕES DE SUB-ABA MANUALMENTE 🚨
+        let allPermissions = [...allPermissionsBase];
+        
+        // Mapeia todas as permissões de sub-aba do hardcoded map
+        for (const viewId in subTabPermissionMap) {
+            for (const subTabId in subTabPermissionMap[viewId]) {
+                const code = subTabPermissionMap[viewId][subTabId];
+                const name = subTabId.replace(/([A-Z])/g, ' $1').toLowerCase(); // Transforma 'faturamentoAtivo' em 'faturamento ativo'
+                const viewNome = viewId.charAt(0).toUpperCase() + viewId.slice(1);
+                
+                // Cria um objeto no formato esperado pela renderização
+                allPermissions.push({
+                    codigo: code,
+                    nome: `Visualizar ${name}`,
+                    descricao: `Acesso à sub-aba ${name} na aba ${viewNome}`,
+                    categoria: 'Sub-Aba' // Nova categoria para organização
+                });
+            }
+        }
+        
+        // Classifica novamente a lista completa por categoria e nome
+        allPermissions.sort((a, b) => {
+            if (a.categoria !== b.categoria) {
+                // Prioriza as categorias Filial e Sub-Aba no topo
+                const order = { 'Acessos de Filial': 1, 'Sub-Aba': 2, 'Aba': 3, 'Ação': 4 };
+                return (order[a.categoria] || 99) - (order[b.categoria] || 99);
+            }
+            return a.nome.localeCompare(b.nome);
+        });
+        
+        // Fim do bloco de construção da lista mestra
+        // ====================================================================
+
         let currentPermissions = [];
-        let isReadOnly = targetType !== 'grupo'; // Usuários (não grupos) são apenas para visualização
+        let isReadOnly = targetType !== 'grupo'; 
 
         if (targetType === 'grupo') {
-            // Lógica para carregar permissões do grupo que está sendo editado
             const result = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${targetId}&select=permissao`, 'GET', null, false);
             currentPermissions = result ? result.map(p => p.permissao) : [];
-        } else { // 'usuario'
-            // 🚨 AJUSTE: Carrega permissões do grupo associado para VISUALIZAÇÃO 🚨
+        } else {
             const userAccess = await supabaseRequest(`acessos?id=eq.${targetId}&select=grupo_id`, 'GET', null, false);
             const grupoId = userAccess[0]?.grupo_id;
 
-            if (grupoId) { // Só carrega permissão se houver grupo
+            if (grupoId) {
                 const result = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
                 currentPermissions = result ? result.map(p => p.permissao) : [];
             }
@@ -7640,7 +7666,6 @@ async function managePermissionsModal(targetId, targetName, targetType) {
         let html = '';
         let currentCategory = '';
         
-        // Esconde o botão de salvar se for apenas visualização
         const saveButton = document.querySelector('#permissionsModal .btn-success');
         if (saveButton) saveButton.style.display = isReadOnly ? 'none' : 'block';
         
@@ -7668,13 +7693,16 @@ async function managePermissionsModal(targetId, targetName, targetType) {
         });
         
         // ====================================================================
-        // B) RENDERIZAR OUTRAS PERMISSÕES DO SISTEMA
+        // B) RENDERIZAR OUTRAS PERMISSÕES DO SISTEMA (ABAS, SUB-ABAS, AÇÕES)
         // ====================================================================
 
         allPermissions.forEach(p => {
             if (p.categoria !== currentCategory) {
                 currentCategory = p.categoria;
-                html += `<h4 class="font-bold text-lg text-gray-700 mt-4 mb-2 border-b pb-1">${p.categoria}</h4>`;
+                // Evita repetir a categoria "Acessos de Filial"
+                if (currentCategory !== 'Acessos de Filial') {
+                    html += `<h4 class="font-bold text-lg text-gray-700 mt-4 mb-2 border-b pb-1">${p.categoria}</h4>`;
+                }
             }
             
             const isChecked = currentPermissions.includes(p.codigo);
@@ -7698,7 +7726,6 @@ async function managePermissionsModal(targetId, targetName, targetType) {
         console.error(error);
     }
 }
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
 // SUBSTITUIR A VERSÃO EXISTENTE DE savePermissions
 async function savePermissions() {
