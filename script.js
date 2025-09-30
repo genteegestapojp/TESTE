@@ -7777,22 +7777,34 @@ function filterNavigationMenu() {
 
     navItems.forEach(item => {
         const viewId = item.getAttribute('href').substring(1);
-        const permission = item.dataset.permission;
+        const htmlPermission = item.dataset.permission; // Ex: 'acesso_faturamento'
         
         let isPermitted = true;
 
-        if (permission && !hasPermission(permission)) {
-            // Regra 1: A permissão principal não está no array (master ou acesso_tab)
-            isPermitted = false;
-        } else if (subTabViewIds.has(viewId)) {
-            // 🚨 FIX REQ 1A: Se é uma aba com sub-abas, verifique se alguma sub-aba é acessível.
-            const permittedSubTabs = getPermittedSubTabs(viewId);
-            if (permittedSubTabs.length === 0) {
-                // Se o usuário tem permissão para a aba principal, mas nenhuma sub-aba, HIDE!
-                isPermitted = false;
+        if (htmlPermission) {
+            // 1. Checa a permissão principal (incluindo o mapeamento 'view_')
+            let isPrincipalPermitted = hasPermission(htmlPermission);
+            
+            if (!isPrincipalPermitted) {
+                // Tenta checar a permissão mapeada do BD ('acesso_' -> 'view_')
+                const mappedPermission = htmlPermission.replace('acesso_', 'view_');
+                if (hasPermission(mappedPermission)) {
+                    isPrincipalPermitted = true;
+                }
             }
-        }
+            
+            isPermitted = isPrincipalPermitted;
 
+            // 2. Se for uma aba com sub-abas, aplica o filtro de sub-abas (só se a principal já estiver OK)
+            if (isPermitted && subTabViewIds.has(viewId)) {
+                const permittedSubTabs = getPermittedSubTabs(viewId);
+                if (permittedSubTabs.length === 0) {
+                    // Requisito: Esconder aba principal se não houver sub-abas permitidas
+                    isPermitted = false;
+                }
+            }
+        } 
+        
         if (!isPermitted) {
             item.style.display = 'none';
         } else {
@@ -7804,7 +7816,6 @@ function filterNavigationMenu() {
     });
     return firstPermittedViewId;
 }
-
 
 // NOVA FUNÇÃO: Filtra sub-abas após a injeção do HTML
 function filterSubTabs() {
