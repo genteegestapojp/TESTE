@@ -29,63 +29,45 @@ let masterUserPermission = false;
 let gruposAcesso = [];
 
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 // SUBSTITUIR A VERSÃO EXISTENTE DE loadUserPermissions
 async function loadUserPermissions(userId, grupoId) {
     masterUserPermission = false;
     let finalPermissionsSet = new Set(); 
     
-    // 1. MASTER BYPASS E CHECAGEM DE GRUPO
+    // 1. Carregar Permissões do Grupo e Checagem MASTER
     if (grupoId) {
          try {
              // Checa se o grupo é 'MASTER' (Hardcode para ambiente de teste/Admin)
              const grupo = await supabaseRequest(`grupos_acesso?id=eq.${grupoId}&select=nome`, 'GET', null, false);
              if (grupo && grupo.length > 0 && grupo[0].nome === 'MASTER') {
                  masterUserPermission = true;
-                 // Adiciona permissões essenciais para liberar as sub-abas de MASTER.
                  userPermissions = ['gerenciar_permissoes', 'acesso_configuracoes', 'acesso_configuracoes_acessos', 'acesso_home'];
+                 
                  // Adiciona todas as filiais para o Master (sempre)
                  const todasFiliais = await supabaseRequest('filiais?select=nome&ativo=eq.true', 'GET', null, false);
                  todasFiliais.forEach(f => userPermissions.push(`acesso_filial_${f.nome}`));
-                 return; // Sai imediatamente, resolvendo o bloqueio.
+                 return; // Sai imediatamente, resolvendo o bloqueio do Master
+             }
+
+             // Carrega as permissões normais do grupo
+             const permissoesGrupo = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
+             
+             if (permissoesGrupo && Array.isArray(permissoesGrupo)) {
+                 permissoesGrupo.forEach(p => finalPermissionsSet.add(p.permissao));
              }
          } catch (e) {
-             console.error("ERRO BYPASS MASTER: Falha na leitura do grupo, ignorando...", e);
+             console.error("ERRO CRÍTICO: Falha ao carregar permissoes_grupo.", e);
          }
     }
     
-    // 2. Carregar Permissões do Grupo (Ignorado se grupoId for NULL)
-    if (grupoId) {
-        const permissoesGrupo = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
-        
-        if (permissoesGrupo && Array.isArray(permissoesGrupo)) {
-            permissoesGrupo.forEach(p => finalPermissionsSet.add(p.permissao));
-        }
-    }
-    
-    // 3. Carregar Permissões Individuais e Sobrescrever/Adicionar (Lógica do BRUNO e Sobrescritas)
-    if (userId) {
-        const permissoesUsuario = await supabaseRequest(`permissoes_usuario?usuario_id=eq.${userId}&select=permissao_codigo,tem_permissao`, 'GET', null, false);
-
-        if (permissoesUsuario && Array.isArray(permissoesUsuario)) {
-            // Aplica as permissões individuais (sobrescreve o grupo e/ou adiciona permissões)
-            permissoesUsuario.forEach(p => {
-                const code = p.permissao_codigo;
-                
-                if (p.tem_permissao === true) { 
-                    finalPermissionsSet.add(code); 
-                } else if (p.tem_permissao === false) { 
-                    finalPermissionsSet.delete(code); 
-                }
-            });
-        }
-    }
-    
+    // 2. Finaliza o array e checa Master pela permissão
     userPermissions = Array.from(finalPermissionsSet);
     
-    // 4. Checagem MASTER Secundária (Se o usuário não está no grupo MASTER, mas tem a permissão de gerência)
+    // Checagem MASTER Secundária (Para usuários sem grupo MASTER, mas com a permissão de gerência)
     if (userPermissions.includes('gerenciar_permissoes')) {
          masterUserPermission = true;
-         // Adiciona todas as filiais para o Master (se ele tiver a permissão de gerência)
          try {
              const todasFiliais = await supabaseRequest('filiais?select=nome&ativo=eq.true', 'GET', null, false);
              todasFiliais.forEach(f => userPermissions.push(`acesso_filial_${f.nome}`));
@@ -7520,6 +7502,8 @@ function closePermissionsModal() {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 // SUBSTITUIR A VERSÃO EXISTENTE DE managePermissionsModal
 async function managePermissionsModal(targetId, targetName, targetType) {
     const modal = document.getElementById('permissionsModal');
@@ -7530,134 +7514,77 @@ async function managePermissionsModal(targetId, targetName, targetType) {
     document.getElementById('permissionsTargetId').value = targetId;
     document.getElementById('permissionsTargetType').value = targetType;
     title.textContent = `Gerenciar Permissões`;
-    subtitle.textContent = targetType === 'grupo' ? `Configurando o Grupo: ${targetName}` : `Configurando o Usuário: ${targetName}`;
+    subtitle.textContent = targetType === 'grupo' ? `Configurando o Grupo: ${targetName}` : `Visualizando Permissões (Apenas Grupo): ${targetName}`;
     list.innerHTML = `<div class="loading"><div class="spinner"></div>Carregando permissões...</div>`;
     modal.style.display = 'flex';
 
     try {
-        // 1. Buscar todas as permissões do sistema (sem filtro de filial)
+        // 1. Buscar todas as permissões do sistema
         const allPermissions = await supabaseRequest('permissoes_sistema?ativa=eq.true&order=categoria,nome', 'GET', null, false);
-        
-        // 2. Buscar TODAS as filiais ativas
         const allFiliais = await supabaseRequest('filiais?ativo=eq.true&order=nome', 'GET', null, false);
         
-        // 3. Buscar permissões atuais (do grupo ou individuais)
         let currentPermissions = [];
-        let groupPermissions = [];
+        let isReadOnly = targetType !== 'grupo'; // Usuários (não grupos) são apenas para visualização
 
         if (targetType === 'grupo') {
             const result = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${targetId}&select=permissao`, 'GET', null, false);
             currentPermissions = result ? result.map(p => p.permissao) : [];
-        } else { // 'usuario'
-            // Busca o grupo que o usuário pertence
+        } else { // 'usuario': Carrega permissões do grupo para visualização
             const userAccess = await supabaseRequest(`acessos?id=eq.${targetId}&select=grupo_id`, 'GET', null, false);
             const grupoId = userAccess[0]?.grupo_id;
-            
-            // Se houver grupo, carrega as permissões herdadas
+
             if (grupoId) {
                 const result = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
-                groupPermissions = result ? result.map(p => p.permissao) : [];
+                currentPermissions = result ? result.map(p => p.permissao) : [];
             }
-            
-            // Busca as permissões individuais de sobrescrita
-            const result = await supabaseRequest(`permissoes_usuario?usuario_id=eq.${targetId}&select=permissao_codigo,tem_permissao`, 'GET', null, false);
-            currentPermissions = result || []; // { permissao_codigo, tem_permissao }
         }
 
         let html = '';
         let currentCategory = '';
         
-        // ====================================================================
+        // Esconde o botão de salvar se for apenas visualização
+        const saveButton = document.querySelector('#permissionsModal .btn-success');
+        if (saveButton) saveButton.style.display = isReadOnly ? 'none' : 'block';
+        
         // A) RENDERIZAR PERMISSÕES DE ACESSO À FILIAL
-        // ====================================================================
         html += `<h4 class="font-bold text-lg text-gray-700 mt-4 mb-2 border-b pb-1">Acessos de Filial</h4>`;
         
         allFiliais.forEach(filial => {
             const permissionCode = `acesso_filial_${filial.nome}`;
-            const permissao = {
-                codigo: permissionCode,
-                nome: `Filial ${filial.nome} (${filial.descricao})`,
-                descricao: `Permissão de login na Filial ${filial.nome}`
-            };
-
-            let isChecked = false;
-            let statusHerdado = '';
-
-            if (targetType === 'grupo') {
-                isChecked = currentPermissions.includes(permissao.codigo);
-            } else { // 'usuario' (Lógica de Sobrescrita)
-                const individualOverride = currentPermissions.find(cp => cp.permissao_codigo === permissao.codigo);
-                const isGroupPermitted = groupPermissions.includes(permissao.codigo);
-                
-                if (individualOverride) {
-                    // 🚨 AJUSTE 1: A caixa marcada/desmarcada obedece a sobrescrita individual 🚨
-                    isChecked = individualOverride.tem_permissao;
-                    
-                    // AJUSTE 2: Corrige a string de status para refletir a SOBRESCRITA
-                    const herdadoStatus = isGroupPermitted ? '✅' : '❌';
-                    const sobrescritoStatus = isChecked ? '✅' : '❌';
-                    statusHerdado = ` (Herdado: ${herdadoStatus} | Sobrescrito: ${sobrescritoStatus})`;
-                } else {
-                    // Sem sobrescrita, a caixa obedece a permissão do grupo
-                    isChecked = isGroupPermitted;
-                    statusHerdado = isGroupPermitted ? ' (Herdado do Grupo: ✅)' : ' (Herdado do Grupo: ❌)';
-                }
-            }
+            const permissao = { codigo: permissionCode, nome: `Filial ${filial.nome} (${filial.descricao})`, descricao: `Permissão de login na Filial ${filial.nome}` };
+            const isChecked = currentPermissions.includes(permissao.codigo);
+            const statusDisplay = isChecked ? '<span class="text-green-600 font-bold">PERMITIDO</span>' : '<span class="text-red-600 font-bold">NEGADO</span>';
 
             html += `
                 <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md">
                     <label class="flex items-center space-x-3 cursor-pointer">
-                        <input type="checkbox" data-permission-code="${permissao.codigo}" class="h-5 w-5 rounded border-gray-300 text-blue-600" ${isChecked ? 'checked' : ''}>
+                        <input type="checkbox" data-permission-code="${permissao.codigo}" class="h-5 w-5 rounded border-gray-300 text-blue-600" ${isChecked ? 'checked' : ''} ${isReadOnly ? 'disabled' : ''}>
                         <span class="text-sm font-medium text-gray-700">${permissao.nome}</span>
                         <span class="text-xs text-gray-500 ml-2" title="${permissao.descricao}">${permissao.descricao}</span>
                     </label>
-                    <span class="text-xs text-gray-500">${statusHerdado}</span>
+                    <span class="text-xs text-gray-500">${isReadOnly ? statusDisplay : ''}</span>
                 </div>
             `;
         });
         
-        // ====================================================================
         // B) RENDERIZAR OUTRAS PERMISSÕES DO SISTEMA
-        // ====================================================================
-
         allPermissions.forEach(p => {
             if (p.categoria !== currentCategory) {
                 currentCategory = p.categoria;
                 html += `<h4 class="font-bold text-lg text-gray-700 mt-4 mb-2 border-b pb-1">${p.categoria}</h4>`;
             }
             
-            let isChecked = false;
-            let statusHerdado = '';
-            
-            if (targetType === 'grupo') {
-                isChecked = currentPermissions.includes(p.codigo);
-            } else { // 'usuario' (A Lógica Crítica de Sobrescrita)
-                const individualOverride = currentPermissions.find(cp => cp.permissao_codigo === p.codigo);
-                const isGroupPermitted = groupPermissions.includes(p.codigo);
-                
-                if (individualOverride) {
-                    // 🚨 AJUSTE 1: A caixa marcada/desmarcada obedece a sobrescrita individual 🚨
-                    isChecked = individualOverride.tem_permissao;
-                    
-                    // AJUSTE 2: Corrige a string de status para refletir a SOBRESCRITA
-                    const herdadoStatus = isGroupPermitted ? '✅' : '❌';
-                    const sobrescritoStatus = isChecked ? '✅' : '❌';
-                    statusHerdado = ` (Herdado: ${herdadoStatus} | Sobrescrito: ${sobrescritoStatus})`;
-                } else {
-                    // Sem sobrescrita, a caixa obedece a permissão do grupo
-                    isChecked = isGroupPermitted;
-                    statusHerdado = isGroupPermitted ? ' (Herdado do Grupo: ✅)' : ' (Herdado do Grupo: ❌)';
-                }
-            }
+            const isChecked = currentPermissions.includes(p.codigo);
+            const statusDisplay = isChecked ? '<span class="text-green-600 font-bold">PERMITIDO</span>' : '<span class="text-red-600 font-bold">NEGADO</span>';
 
             html += `
                 <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md">
                     <label class="flex items-center space-x-3 cursor-pointer">
-                        <input type="checkbox" data-permission-code="${p.codigo}" class="h-5 w-5 rounded border-gray-300 text-blue-600" ${isChecked ? 'checked' : ''}>
+                        <input type="checkbox" data-permission-code="${p.codigo}" class="h-5 w-5 rounded border-gray-300 text-blue-600" ${isChecked ? 'checked' : ''} ${isReadOnly ? 'disabled' : ''}>
                         <span class="text-sm font-medium text-gray-700">${p.nome}</span>
                         <span class="text-xs text-gray-500 ml-2" title="${p.descricao}">${p.descricao}</span>
                     </label>
-                    <span class="text-xs text-gray-500">${statusHerdado}</span>
+                    <span class="text-xs text-gray-500">${isReadOnly ? statusDisplay : ''}</span>
                 </div>
             `;
         });
@@ -7669,7 +7596,9 @@ async function managePermissionsModal(targetId, targetName, targetType) {
     }
 }
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
+// SUBSTITUIR A VERSÃO EXISTENTE DE savePermissions
 async function savePermissions() {
     const targetId = document.getElementById('permissionsTargetId').value;
     const targetType = document.getElementById('permissionsTargetType').value;
@@ -7677,12 +7606,15 @@ async function savePermissions() {
     const alert = document.getElementById('permissionsAlert');
     alert.innerHTML = '';
     
+    // Apenas grupos podem ter permissões salvas. Usuários são apenas para visualização.
+    if (targetType !== 'grupo') {
+        showNotification('Permissões de usuário individual não são mais permitidas. Use apenas Grupos.', 'error');
+        closePermissionsModal();
+        return;
+    }
+    
     try {
-        if (targetType === 'grupo') {
-            await saveGroupPermissions(targetId, checkboxes, alert);
-        } else { // 'usuario'
-            await saveUserPermissionsOverride(targetId, checkboxes, alert);
-        }
+        await saveGroupPermissions(targetId, checkboxes, alert);
 
         showNotification('Permissões salvas com sucesso!', 'success');
         closePermissionsModal();
@@ -7691,7 +7623,6 @@ async function savePermissions() {
         console.error('Erro ao salvar permissões:', error);
     }
 }
-
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
 // SUBSTITUIR A VERSÃO EXISTENTE DE saveGroupPermissions (Aprox. linha 3757)
@@ -7720,40 +7651,6 @@ async function saveGroupPermissions(grupoId, checkboxes, alert) {
     }
 }
 
-
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
-// SUBSTITUIR A VERSÃO EXISTENTE DE saveUserPermissionsOverride
-async function saveUserPermissionsOverride(userId, checkboxes, alert) {
-    const permissionsToProcess = [];
-    
-    checkboxes.forEach(cb => {
-        const code = cb.dataset.permissionCode;
-        const isChecked = cb.checked;
-        permissionsToProcess.push({ 
-            usuario_id: userId, 
-            permissao_codigo: code, 
-            tem_permissao: isChecked 
-        });
-    });
-
-    if (permissionsToProcess.length === 0) return;
-
-    // 🚨 AJUSTE CRÍTICO: DELETAR O REGISTRO ANTIGO ANTES DE INSERIR PARA EVITAR O 409 🚨
-    
-    // 1. Coleta todos os códigos para os quais vamos tentar escrever/atualizar
-    const codesToProcess = permissionsToProcess.map(p => p.permissao_codigo);
-    
-    // 2. Deleta todas as entradas antigas para estes códigos e este usuário
-    // Usamos 'false' no 4º parâmetro (filtro de filial)
-    await supabaseRequest(`permissoes_usuario?usuario_id=eq.${userId}&permissao_codigo=in.(${codesToProcess.join(',')})`, 'DELETE', null, false);
-    
-    // 3. Insere todos os novos dados (sem risco de duplicidade, pois deletamos antes)
-    // Não precisamos de UPSERT aqui, pois a linha não deve mais existir.
-    await supabaseRequest('permissoes_usuario', 'POST', permissionsToProcess, false);
-}
 
 
 // NOVO: Função para renderizar as filiais permitidas na tela de seleção
