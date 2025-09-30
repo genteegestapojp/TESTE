@@ -7643,7 +7643,9 @@ async function savePermissions() {
     }
 }
 
-// SUBSTITUIR A VERSÃO EXISTENTE DE saveGroupPermissions
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// SUBSTITUIR A VERSÃO EXISTENTE DE saveGroupPermissions (Aprox. linha 3656)
 async function saveGroupPermissions(grupoId, checkboxes, alert) {
     const permissionsToSave = [];
     const permissionsToRemove = [];
@@ -7658,6 +7660,11 @@ async function saveGroupPermissions(grupoId, checkboxes, alert) {
         }
     });
 
+    // 🚨 DEBUG CRÍTICO: Mostra o que está sendo enviado para salvar 🚨
+    console.log("DEBUG SALVANDO: Permissões para salvar:", permissionsToSave);
+    console.log("DEBUG SALVANDO: Permissões para remover:", permissionsToRemove);
+    // 🚨 FIM DEBUG CRÍTICO 🚨
+
     // 1. Deletar permissões que foram desmarcadas
     if (permissionsToRemove.length > 0) {
         // Deleta em lote por ID e Código de Permissão
@@ -7670,6 +7677,7 @@ async function saveGroupPermissions(grupoId, checkboxes, alert) {
         await supabaseRequest('permissoes_grupo', 'POST', permissionsToSave, false, true);
     }
 }
+
 
 async function saveUserPermissionsOverride(userId, checkboxes, alert) {
     // Para usuário, a lógica é de SOBRESCRITA, salvamos apenas as diferenças.
