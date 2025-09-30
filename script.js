@@ -29,12 +29,14 @@ let masterUserPermission = false;
 let gruposAcesso = [];
 
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 // SUBSTITUIR A VERSÃO EXISTENTE DE loadUserPermissions
 async function loadUserPermissions(userId, grupoId) {
     masterUserPermission = false;
-    let finalPermissionsSet = new Set();
+    let finalPermissionsSet = new Set(); 
     
-    // 1. Carregar Permissões do Grupo
+    // 1. Carregar Permissões do Grupo (Ignorado se grupoId for NULL, que é o caso do Bruno)
     if (grupoId) {
         // Desativa o filtro de filial (4º parâmetro = false)
         const permissoesGrupo = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
@@ -45,11 +47,12 @@ async function loadUserPermissions(userId, grupoId) {
     }
     
     // 2. Carregar Permissões Individuais e Sobrescrever/Adicionar
-    if (userId) {
+    if (userId) { // ESTA É A LÓGICA DO BRUNO!
         // Desativa o filtro de filial (4º parâmetro = false)
         const permissoesUsuario = await supabaseRequest(`permissoes_usuario?usuario_id=eq.${userId}&select=permissao_codigo,tem_permissao`, 'GET', null, false);
 
         if (permissoesUsuario && Array.isArray(permissoesUsuario)) {
+            // Se houver permissões individuais, elas sobrescrevem qualquer herança
             permissoesUsuario.forEach(p => {
                 const code = p.permissao_codigo;
                 
@@ -65,16 +68,13 @@ async function loadUserPermissions(userId, grupoId) {
     userPermissions = Array.from(finalPermissionsSet);
     
     // 🚨 CORREÇÃO FINAL MASTER: Verifica se a permissão 'gerenciar_permissoes' existe 🚨
-    // O Master é definido por ter a permissão de Gerenciamento, e não pelo nome do grupo.
     if (userPermissions.includes('gerenciar_permissoes')) {
          masterUserPermission = true;
-         // Se for Master, damos a ele TODAS as permissões de filial para simplificar a UX
+         // Se for Master, damos a ele TODAS as permissões de filial (se ele tiver a permissão de gerência)
          const todasFiliais = await supabaseRequest('filiais?select=nome&ativo=eq.true', 'GET', null, false);
          todasFiliais.forEach(f => userPermissions.push(`acesso_filial_${f.nome}`));
-         // E também todas as outras permissões, se necessário, mas o 'masterUserPermission = true' já faz o bypass na hasPermission.
     }
 }
-
 
 function hasPermission(permission) {
     // Se for usuário master, sempre retorna true.
