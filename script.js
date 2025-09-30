@@ -2722,7 +2722,9 @@ async function loadMotoristaTab() {
     if (dataFim && !dataFim.value) dataFim.value = hoje.toISOString().split('T')[0];
 }
 
-       // SUBSTITUIR A FUNÇÃO renderMotoristasStatusList COMPLETA
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// SUBSTITUIR A FUNÇÃO renderMotoristasStatusList COMPLETA
 async function renderMotoristasStatusList() {
     const container = document.getElementById('motoristasStatusList');
     if (!container) return;
@@ -2732,38 +2734,41 @@ async function renderMotoristasStatusList() {
 
     const [activeExpeditions, recentlyCompletedExpeditions, allItems] = await Promise.all([
          // Busca expedições ativas
-         supabaseRequest(`expeditions?status=not.in.(entregue,cancelado,faturado,faturamento_iniciado,aguardando_faturamento)`),
-         // Busca expedições recentemente concluídas (para status que não são em_uso)
+         supabaseRequest(`expeditions?status=not.in.(entregue,cancelado)`),
+         // Busca expedições recentemente concluídas (para achar o último veículo de quem retornou)
          supabaseRequest(`expeditions?status=eq.entregue&order=data_hora.desc&limit=50`),
          supabaseRequest('expedition_items')
     ]);
     
     // Contagem de status para o Dashboard
     const dispCount = motoristas.filter(m => m.status === 'disponivel').length;
-    const ativoCount = motoristas.filter(m => ['em_viagem', 'descarregando_imobilizado'].includes(m.status)).length;
+    const ativoCount = motoristas.filter(m => ['em_viagem', 'descarregando_imobilizado', 'saiu_para_entrega'].includes(m.status)).length;
     const retornandoCount = motoristas.filter(m => ['retornando_cd', 'retornando_com_imobilizado'].includes(m.status)).length;
     
-    // Mapeia motoristas com status e info do último veículo
+    // Mapeia motoristas com status e info do veículo
     const motoristasComStatus = motoristas.map(m => {
         const activeExp = activeExpeditions.find(exp => exp.motorista_id === m.id);
         let veiculoPlaca = 'N/A';
         let veiculoId = null;
+        let displayStatus = m.status; // Status padrão do motorista
         
         if (activeExp) {
-            // Se tem expedição ativa
+            // 1. Se tem expedição ativa, o status é o da expedição (ex: saiu_para_entrega)
             veiculoId = activeExp.veiculo_id;
-            veiculoPlaca = veiculos.find(v => v.id === activeExp.veiculo_id)?.placa || 'N/A';
-            return { ...m, displayStatus: activeExp.status, veiculoPlaca, veiculoId, activeExp: { ...activeExp, items: allItems.filter(i => i.expedition_id === activeExp.id) } };
+            veiculoPlaca = veiculos.find(v => v.id === veiculoId)?.placa || 'N/A';
+            displayStatus = activeExp.status; // Exibe o status da expedição
+            return { ...m, displayStatus, veiculoPlaca, veiculoId, activeExp: { ...activeExp, items: allItems.filter(i => i.expedition_id === activeExp.id) } };
         } 
         
-        // Se está retornando, tenta achar o veículo pelo status (que deve ter sido sincronizado)
+        // 2. Se o motorista está em um status de retorno, tenta achar o último veículo
         if (['retornando_cd', 'retornando_com_imobilizado', 'descarregando_imobilizado'].includes(m.status)) {
-             const returningVehicle = veiculos.find(v => v.status === m.status);
-             veiculoPlaca = returningVehicle?.placa || 'N/A';
-        } 
+             const lastExp = recentlyCompletedExpeditions.find(exp => exp.motorista_id === m.id);
+             veiculoId = lastExp?.veiculo_id;
+             veiculoPlaca = veiculos.find(v => v.id === veiculoId)?.placa || 'N/A';
+        }
         
-        // Retorna status normal
-        return { ...m, displayStatus: m.status, veiculoPlaca, veiculoId: null };
+        // Retorna status normal (disponivel, folga, etc.)
+        return { ...m, displayStatus, veiculoPlaca, veiculoId };
     });
 
     motoristasComStatus.sort((a, b) => a.nome.localeCompare(b.nome));
@@ -2778,14 +2783,14 @@ async function renderMotoristasStatusList() {
         </div>
         
         <div class="filters-section my-4" style="padding: 12px;">
-            <div class="filters-grid">
-                <div class="form-group" style="grid-column: span 3 / span 3;">
+            <div class="filters-grid" style="grid-template-columns: repeat(2, 1fr);">
+                 <div class="form-group" style="grid-column: span 2 / span 2; margin-bottom: 0;">
                     <label for="motoristaStatusFilter">Filtrar por Status:</label>
                     <select id="motoristaStatusFilter" onchange="applyMotoristaStatusFilter()" class="w-full">
                         <option value="">Todos os Status</option>
                         <option value="disponivel">Disponível</option>
-                        <option value="em_viagem">Em Viagem / Em Descarga</option>
-                        <option value="retornando_cd,retornando_com_imobilizado,descarregando_imobilizado">Retornando</option>
+                        <option value="em_viagem,saiu_para_entrega">Em Atividade (Viagem/Descarga)</option>
+                        <option value="retornando_cd,retornando_com_imobilizado,descarregando_imobilizado">Retornando/Desc. Imobilizado</option>
                         <option value="folga">Folga</option>
                     </select>
                 </div>
@@ -2802,7 +2807,7 @@ async function renderMotoristasStatusList() {
     // Armazena o array completo (não filtrado) na memória para o filtro
     window.motoristasDataCache = motoristasComStatus; 
     
-    // Iniciar timers para quem está em atividade
+    // Iniciar timers
     motoristasComStatus.forEach(m => {
         if (m.activeExp && m.displayStatus === 'saiu_para_entrega') {
              startMotoristaTimer(m);
@@ -8123,7 +8128,7 @@ async function loadFaturamentoData(subTabName = 'faturamentoAtivo') {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
-// NOVO CÓDIGO: Função de Filtragem de Status
+/ NOVO CÓDIGO: Função de Filtragem de Status
 function applyMotoristaStatusFilter() {
     const filterValue = document.getElementById('motoristaStatusFilter').value;
     const allMotoristas = window.motoristasDataCache || [];
@@ -8135,11 +8140,15 @@ function applyMotoristaStatusFilter() {
         const statuses = filterValue.split(',').map(s => s.trim());
         
         if (statuses.length > 0 && statuses[0]) {
-            filteredList = allMotoristas.filter(m => statuses.includes(m.status));
+            // Filtra motoristas cujos status estão na lista de filtros
+            filteredList = allMotoristas.filter(m => statuses.includes(m.displayStatus));
         }
     }
     
-    document.getElementById('motoristaListFiltered').innerHTML = renderMotoristasListHtml(filteredList);
+    const listContainer = document.getElementById('motoristaListFiltered');
+    if(listContainer) {
+        listContainer.innerHTML = renderMotoristasListHtml(filteredList);
+    }
     
     // Garante que os timers sejam reiniciados apenas para os motoristas visíveis
     filteredList.forEach(m => {
@@ -8149,6 +8158,7 @@ function applyMotoristaStatusFilter() {
     });
 }
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
 // NOVO CÓDIGO: Função auxiliar para iniciar o timer do motorista (extraída para limpeza)
 function startMotoristaTimer(m) {
@@ -8181,4 +8191,47 @@ function startMotoristaTimer(m) {
         if(elDesloc) elDesloc.textContent = `Desloc.: ${minutesToHHMM(tempoDeslocamento / 60000)}`;
 
     }, 1000);
+}
+
+
+// NOVO CÓDIGO: Função para renderizar a lista de motoristas após o filtro
+function renderMotoristasListHtml(motoristasData) {
+    if (motoristasData.length === 0) {
+        return '<div class="alert alert-info mt-4">Nenhum motorista encontrado com o filtro selecionado.</div>';
+    }
+    
+    return motoristasData.map(m => {
+        let actionButton = '';
+        // Placa no nome (Requisito)
+        const veiculoPlacaNoNome = m.veiculoPlaca && m.veiculoPlaca !== 'N/A' ? `(${m.veiculoPlaca})` : '';
+
+        // 🚨 RESTAURAÇÃO DOS BOTÕES DE AÇÃO 🚨
+        if ((m.displayStatus === 'retornando_cd' || m.displayStatus === 'retornando_com_imobilizado') && m.veiculoId) {
+            actionButton = `<button class="btn btn-primary btn-small" onclick="marcarRetornoCD('${m.id}', '${m.veiculoId}')">Cheguei no CD</button>`;
+        } else if (m.displayStatus === 'descarregando_imobilizado' && m.veiculoId) {
+            actionButton = `<button class="btn btn-warning btn-small" onclick="finalizarDescargaImobilizado('${m.id}', '${m.veiculoId}')">Finalizar Descarga</button>`;
+        }
+
+        let timeInfo = '';
+        if (m.activeExp && m.displayStatus === 'saiu_para_entrega') {
+            timeInfo = `
+                <div class="text-xs text-gray-500 mt-1">
+                    <span id="loja_timer_${m.id}">Loja: --:--</span> | 
+                    <span id="desloc_timer_${m.id}">Desloc.: --:--</span>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="motorista-status-item">
+                <div>
+                    <strong class="text-gray-800">${m.nome} ${veiculoPlacaNoNome}</strong>
+                    ${timeInfo}
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="status-badge status-${m.displayStatus.replace(/ /g, '_')}">${getStatusLabel(m.displayStatus)}</span>
+                    ${actionButton}
+                </div>
+            </div>`;
+    }).join('');
 }
