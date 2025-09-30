@@ -2827,11 +2827,11 @@ function renderMotoristasListHtml(motoristasData) {
     return motoristasData.map(m => {
         let actionButton = '';
         
-        // 🚨 FIX: Placa como Card Animado 🚨
+        // 🚨 CORREÇÃO CRÍTICA: Placa como Card Animado 🚨
         const veiculoPlacaNoNome = m.veiculoPlaca && m.veiculoPlaca !== 'N/A' ? 
-            `<span class="placa-animada">${m.veiculoPlaca}</span>` : '';
-
-        // 🚨 RESTAURAÇÃO E FIX DOS BOTÕES DE AÇÃO 🚨
+            `<span class="placa-animada">${m.veiculoPlaca}</span>` : ''; // Usa a classe CSS
+        
+        // RESTAURAÇÃO E FIX DOS BOTÕES DE AÇÃO
         if ((m.displayStatus === 'retornando_cd' || m.displayStatus === 'retornando_com_imobilizado') && m.veiculoId) {
             actionButton = `<button class="btn btn-primary btn-small" onclick="marcarRetornoCD('${m.id}', '${m.veiculoId}')">Cheguei no CD</button>`;
         } else if (m.displayStatus === 'descarregando_imobilizado' && m.veiculoId) {
@@ -2863,7 +2863,7 @@ function renderMotoristasListHtml(motoristasData) {
         return `
             <div class="motorista-status-item">
                 <div>
-                    <strong class="text-gray-800">${m.nome} ${veiculoPlacaNoNome}</strong>
+                    <strong class="text-gray-800">${m.nome}</strong> ${veiculoPlacaNoNome}
                     ${timeInfo}
                 </div>
                 <div class="flex items-center gap-4">
