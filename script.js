@@ -3622,7 +3622,6 @@ function populateRastreioFilters() {
 
 // --- FUNCIONALIDADES DO RASTREIO EM TEMPO REAL ---
 
-// SUBSTITUIR A FUNÇÃO loadRastreioData COMPLETA
 async function loadRastreioData() {
     try {
         console.log("Iniciando carregamento dos dados de rastreio...");
@@ -3649,7 +3648,7 @@ async function loadRastreioData() {
 
             const itemsOrdenados = expItems.sort((a, b) => {
                 const aInicio = a.data_inicio_descarga ? new Date(a.data_inicio_descarga) : new Date('2099-01-01');
-                const bInicio = b.data_inicio_descarga ? new Date(b.data_inicio_descarga) : new Date('2099-01-01');
+                const bInicio = b.data_inicio_descarga ? new Date(b.data_fim_descarga) : new Date('2099-01-01');
                 return aInicio - bInicio;
             });
 
@@ -3727,7 +3726,7 @@ async function loadRastreioData() {
                 ...exp,
                 items: expItems,
                 motorista_nome: motorista?.nome || 'N/A',
-                veiculo_placa: veiculo?.placa || 'N/A',
+                veiculo_placa: veiculo?.placa || 'N/A', // Placa vem da expedição ativa
                 status_rastreio: statusAtual,
                 loja_atual: lojaAtual,
                 proxima_loja: proximaLoja,
@@ -3766,6 +3765,13 @@ async function loadRastreioData() {
 
         const promessasRetorno = motoristasRetornando.map(async m => {
             const currentLocation = returningLocations.find(loc => loc.motorista_id === m.id);
+            
+            // 🚨 NOVO CÓDIGO CRÍTICO: Busca o último veículo usado pelo motorista
+            const lastExpedition = await supabaseRequest(`expeditions?motorista_id=eq.${m.id}&select=veiculo_id&order=data_hora.desc&limit=1`, 'GET', null, false);
+            const lastVeiculoId = lastExpedition[0]?.veiculo_id;
+            const lastVehicle = lastVeiculoId ? veiculos.find(v => v.id === lastVeiculoId) : null;
+            // FIM NOVO CÓDIGO
+            
             if (currentLocation && currentLocation.latitude && currentLocation.longitude) {
                 const cdCoords = { lat: selectedFilial.latitude_cd, lng: selectedFilial.longitude_cd };
                 
@@ -3780,21 +3786,21 @@ async function loadRastreioData() {
                 const tempoEstimadoMinutos = rota ? rota.duration / 60 : 0;
                 const eta = new Date(new Date().getTime() + tempoEstimadoMinutos * 60000);
                 
-                // 🚨 FIX CRÍTICO: Inicializa TODAS as propriedades usadas no renderizador para evitar 'undefined'
                 return {
                     id: `return-${m.id}`,
-                    expedition_id: null, // Não é uma expedição ativa
+                    expedition_id: null,
                     motorista_id: m.id,
                     motorista_nome: m.nome,
-                    veiculo_placa: veiculos.find(v => v.id === m.veiculo_id)?.placa || 'N/A',
+                    // 🚨 ATRIBUIÇÃO CORRIGIDA DA PLACA
+                    veiculo_placa: lastVehicle?.placa || 'N/A', 
                     status_rastreio: 'retornando',
                     distancia_total_km: distanciaTotalKm,
-                    tempo_total_rota: tempoEstimadoMinutos, // Tempo total da rota de retorno
+                    tempo_total_rota: tempoEstimadoMinutos,
                     tempo_em_rota: 0, 
                     entregas_concluidas: 0,
                     total_entregas: 0,
-                    items: [], // CRÍTICO: Deve ser um array vazio para que .map funcione
-                    progresso_rota: 100, // Está retornando
+                    items: [],
+                    progresso_rota: 100,
                     loja_atual: null,
                     proxima_loja: null,
                     coordenadas: {
