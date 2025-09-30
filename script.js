@@ -31,18 +31,21 @@ let gruposAcesso = [];
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 // SUBSTITUIR A VERSÃO EXISTENTE DE loadUserPermissions
 async function loadUserPermissions(userId, grupoId) {
     masterUserPermission = false;
     let finalPermissionsSet = new Set(); 
     
-    // 1. Carregar Permissões do Grupo e Checagem MASTER
+    // 1. MASTER BYPASS E CHECAGEM DE GRUPO
     if (grupoId) {
          try {
              // Checa se o grupo é 'MASTER' (Hardcode para ambiente de teste/Admin)
              const grupo = await supabaseRequest(`grupos_acesso?id=eq.${grupoId}&select=nome`, 'GET', null, false);
              if (grupo && grupo.length > 0 && grupo[0].nome === 'MASTER') {
                  masterUserPermission = true;
+                 // Adiciona permissões essenciais para liberar as sub-abas de MASTER.
                  userPermissions = ['gerenciar_permissoes', 'acesso_configuracoes', 'acesso_configuracoes_acessos', 'acesso_home'];
                  
                  // Adiciona todas as filiais para o Master (sempre)
@@ -51,7 +54,8 @@ async function loadUserPermissions(userId, grupoId) {
                  return; // Sai imediatamente, resolvendo o bloqueio do Master
              }
 
-             // Carrega as permissões normais do grupo
+             // 2. Carrega Permissões do Grupo (Caminho normal)
+             // O BRUNO E OUTROS USUÁRIOS COM GRUPO SÃO PROCESSADOS AQUI
              const permissoesGrupo = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
              
              if (permissoesGrupo && Array.isArray(permissoesGrupo)) {
@@ -62,12 +66,14 @@ async function loadUserPermissions(userId, grupoId) {
          }
     }
     
-    // 2. Finaliza o array e checa Master pela permissão
+    // 3. Permissões Individuais: REMOVIDA (Conforme solicitado)
+    
     userPermissions = Array.from(finalPermissionsSet);
     
-    // Checagem MASTER Secundária (Para usuários sem grupo MASTER, mas com a permissão de gerência)
+    // 4. Checagem MASTER Secundária (Baseada em permissão, para grupos não-MASTER)
     if (userPermissions.includes('gerenciar_permissoes')) {
          masterUserPermission = true;
+         // Adiciona todas as filiais para o Master (se ele tiver a permissão de gerência)
          try {
              const todasFiliais = await supabaseRequest('filiais?select=nome&ativo=eq.true', 'GET', null, false);
              todasFiliais.forEach(f => userPermissions.push(`acesso_filial_${f.nome}`));
