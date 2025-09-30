@@ -29,57 +29,65 @@ let masterUserPermission = false;
 let gruposAcesso = [];
 
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
 // SUBSTITUIR A VERSÃO EXISTENTE DE loadUserPermissions
 async function loadUserPermissions(userId, grupoId) {
     masterUserPermission = false;
-    let finalPermissionsSet = new Set(); 
+    let finalPermissionsSet = new Set();
     
-    // 1. MASTER BYPASS E CHECAGEM DE GRUPO
+    // 1. CHECAGEM DE GRUPO
     if (grupoId) {
          try {
-             // Checagem Master
-             const grupo = await supabaseRequest(`grupos_acesso?id=eq.${grupoId}&select=nome`, 'GET', null, false);
+             // Carrega o nome do grupo e todas as permissões do grupo em paralelo
+             const [grupo, permissoesGrupo] = await Promise.all([
+                 supabaseRequest(`grupos_acesso?id=eq.${grupoId}&select=nome`, 'GET', null, false),
+                 supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false)
+             ]);
+
+             // MASTER BYPASS: Se for MASTER, define o bypass e retorna
              if (grupo && grupo.length > 0 && grupo[0].nome === 'MASTER') {
                  masterUserPermission = true;
+                 // Adiciona um conjunto básico de permissões para garantir o fluxo de UI
                  userPermissions = ['gerenciar_permissoes', 'acesso_configuracoes', 'acesso_configuracoes_acessos', 'acesso_home'];
                  const todasFiliais = await supabaseRequest('filiais?select=nome&ativo=eq.true', 'GET', null, false);
                  todasFiliais.forEach(f => userPermissions.push(`acesso_filial_${f.nome}`));
                  return; 
              }
 
-             // Carrega Permissões do Grupo
-             const permissoesGrupo = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
-             
+             // CARREGA PERMISSÕES DE GRUPOS NORMAIS
              if (permissoesGrupo && Array.isArray(permissoesGrupo)) {
-                 // 🚨 AJUSTE CRÍTICO: Saneamento do código de permissão ao ler do BD 🚨
                  permissoesGrupo.forEach(p => finalPermissionsSet.add(p.permissao.trim().toLowerCase()));
              }
          } catch (e) {
-             console.error("ERRO CRÍTICO: Falha ao carregar permissoes_grupo.", e);
+             console.error("ERRO CRÍTICO: Falha ao carregar permissoes_grupo ou grupo_acesso.", e);
          }
     }
     
-    // 2. Permissões Individuais: (Removido, apenas para demonstrar a ausência da lógica)
-    
-    userPermissions = Array.from(finalPermissionsSet);
-    
-    // 3. Checagem MASTER Secundária
-    if (userPermissions.includes('gerenciar_permissoes')) {
+    // 2. IMPLICAR PERMISSÕES PAI A PARTIR DE SUB-PERMISSÕES (FIX CRÍTICO)
+    // Se o usuário tem acesso a uma sub-aba (ex: acesso_operacao_lancamento), ele deve 
+    // ter implicitamente acesso à aba principal (acesso_operacao) para que ela apareça.
+    const explicitPermissions = Array.from(finalPermissionsSet);
+    explicitPermissions.forEach(p => {
+        // Ex: 'acesso_operacao_lancamento' -> 'acesso_operacao'
+        const parts = p.split('_');
+        if (parts.length > 2 && parts[0] === 'acesso') {
+            finalPermissionsSet.add(`${parts[0]}_${parts[1]}`);
+        }
+    });
+
+    // 3. Checagem do Master por Permissão (para quem tem permissão de gerenciar)
+    if (finalPermissionsSet.has('gerenciar_permissoes')) {
          masterUserPermission = true;
          // Adiciona todas as filiais
          try {
              const todasFiliais = await supabaseRequest('filiais?select=nome&ativo=eq.true', 'GET', null, false);
-             todasFiliais.forEach(f => userPermissions.push(`acesso_filial_${f.nome}`));
+             todasFiliais.forEach(f => finalPermissionsSet.add(`acesso_filial_${f.nome}`));
          } catch (e) {
              console.error("ERRO MASTER: Falha ao adicionar filiais.", e);
          }
     }
+    
+    userPermissions = Array.from(finalPermissionsSet);
 }
-
 
 // SUBSTITUIR A VERSÃO EXISTENTE DE hasPermission
 function hasPermission(permission) {
