@@ -7711,20 +7711,37 @@ function renderFiliaisSelection(allowedFiliais) {
 }
 
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
+// SUBSTITUIR A VERSÃO EXISTENTE DE filterNavigationMenu
 function filterNavigationMenu() {
     const navItems = document.querySelectorAll('.nav-item');
     let firstPermittedViewId = null;
 
     navItems.forEach(item => {
-        const permission = item.dataset.permission;
+        const htmlPermission = item.dataset.permission; // Ex: 'acesso_faturamento'
         
-        // Se houver permissão definida E o usuário NÃO tiver essa permissão, esconde.
-        if (permission && !hasPermission(permission)) {
+        let isPermitted = false;
+
+        if (htmlPermission) {
+            // 1. Checa a permissão conforme está no HTML (Ex: 'acesso_faturamento')
+            if (hasPermission(htmlPermission)) {
+                isPermitted = true;
+            } else {
+                // 🚨 FIX CRÍTICO: Mapeia o nome da permissão para o padrão 'view_' do BD.
+                // Troca 'acesso_' por 'view_' e tenta checar novamente.
+                const mappedPermission = htmlPermission.replace('acesso_', 'view_');
+                if (hasPermission(mappedPermission)) {
+                    isPermitted = true;
+                }
+            }
+        } else {
+            // Se não houver data-permission, assume que é permitido (como o link 'Trocar Filial')
+            isPermitted = true;
+        }
+
+        if (!isPermitted) {
             item.style.display = 'none';
         } else {
-            // Garante que itens permitidos sejam exibidos (no caso de um teste anterior ter escondido)
+            // Garante que itens permitidos sejam exibidos
             item.style.display = 'flex'; 
             if (!firstPermittedViewId) {
                 firstPermittedViewId = item.getAttribute('href').substring(1);
