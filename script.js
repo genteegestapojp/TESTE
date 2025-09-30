@@ -29,7 +29,7 @@ let masterUserPermission = false;
 let gruposAcesso = [];
 
 
-// SUBSTITUIR A VERSÃO EXISTENTE DE loadUserPermissions
+// SUBSTITUIR A VERSÃO EXISTENTE DE loadUserPermissions (Com as correções anteriores)
 async function loadUserPermissions(userId, grupoId) {
     masterUserPermission = false;
     let finalPermissionsSet = new Set();
@@ -62,9 +62,13 @@ async function loadUserPermissions(userId, grupoId) {
          }
     }
     
-    // 2. IMPLICAR PERMISSÕES PAI A PARTIR DE SUB-PERMISSÕES (FIX CRÍTICO)
-    // Se o usuário tem acesso a uma sub-aba (ex: acesso_operacao_lancamento), ele deve 
-    // ter implicitamente acesso à aba principal (acesso_operacao) para que ela apareça.
+    // 🚨 FIX CRÍTICO 1: Adiciona acesso_home implicitamente para garantir que a navegação não fique vazia 🚨
+    if (!masterUserPermission) {
+        finalPermissionsSet.add('acesso_home');
+    }
+    
+    // 2. IMPLICAR PERMISSÕES PAI A PARTIR DE SUB-PERMISSÕES (FIX PARA TABS)
+    // Se o usuário tem acesso a uma sub-aba, ele deve ter implicitamente acesso à aba principal.
     const explicitPermissions = Array.from(finalPermissionsSet);
     explicitPermissions.forEach(p => {
         // Ex: 'acesso_operacao_lancamento' -> 'acesso_operacao'
@@ -74,7 +78,7 @@ async function loadUserPermissions(userId, grupoId) {
         }
     });
 
-    // 3. Checagem do Master por Permissão (para quem tem permissão de gerenciar)
+    // 3. Checagem do Master por Permissão
     if (finalPermissionsSet.has('gerenciar_permissoes')) {
          masterUserPermission = true;
          // Adiciona todas as filiais
@@ -2535,7 +2539,9 @@ function clearHistoricoFaturamentoFilters() {
     loadHistoricoFaturamento();
 }
 
-      // Nova função para sub-abas (SUBSTITUÍDA)
+ // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// SUBSTITUIR A VERSÃO EXISTENTE DE showSubTab
 function showSubTab(tabName, subTabName, element) {
     // Verificar permissão da sub-aba
     const permissionMap = {
@@ -2574,19 +2580,22 @@ function showSubTab(tabName, subTabName, element) {
     };
     
     if (permissionMap[tabName] && permissionMap[tabName][subTabName] && !hasPermission(permissionMap[tabName][subTabName])) {
+        // AJUSTE: Removemos o 'return' para que o aviso seja dado, mas o fluxo de ativação da aba continue.
         showNotification('Você não tem permissão para acessar esta seção.', 'error');
-        return;
     }
 
     const tabContent = document.getElementById(tabName);
     if (!tabContent) return;
     
+    // Desativa todas as sub-abas e conteúdos para começar
     tabContent.querySelectorAll('.sub-tab').forEach(tab => tab.classList.remove('active'));
     tabContent.querySelectorAll('.sub-tab-content').forEach(content => content.classList.remove('active'));
 
+    // Ativa a sub-aba clicada
     if(element) element.classList.add('active');
     document.getElementById(subTabName).classList.add('active');
     
+    // Lógica para carregar os dados específicos da sub-aba
     if (tabName === 'acompanhamento') {
         if (subTabName === 'frota') {
             loadFrotaData();
@@ -2630,7 +2639,6 @@ function showSubTab(tabName, subTabName, element) {
     }
     feather.replace();
 }
-
         async function loadMotoristaTab() {
             ('motoristas', 'statusFrota', document.querySelector('#motoristas .sub-tab'));
             await renderMotoristasStatusList();
