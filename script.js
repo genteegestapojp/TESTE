@@ -28,9 +28,7 @@ let userPermissions = [];
 let masterUserPermission = false;
 let gruposAcesso = [];
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js (Aprox. linha 41)
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
@@ -7508,6 +7506,8 @@ function closePermissionsModal() {
     document.getElementById('permissionsModal').style.display = 'none';
 }
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 // SUBSTITUIR A VERSÃO EXISTENTE DE managePermissionsModal
 async function managePermissionsModal(targetId, targetName, targetType) {
     const modal = document.getElementById('permissionsModal');
@@ -7537,14 +7537,17 @@ async function managePermissionsModal(targetId, targetName, targetType) {
             const result = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${targetId}&select=permissao`, 'GET', null, false);
             currentPermissions = result ? result.map(p => p.permissao) : [];
         } else { // 'usuario'
+            // Busca o grupo que o usuário pertence
             const userAccess = await supabaseRequest(`acessos?id=eq.${targetId}&select=grupo_id`, 'GET', null, false);
             const grupoId = userAccess[0]?.grupo_id;
+            
+            // Se houver grupo, carrega as permissões herdadas
             if (grupoId) {
                 const result = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
                 groupPermissions = result ? result.map(p => p.permissao) : [];
             }
             
-            // Buscar as permissões individuais de sobrescrita
+            // Busca as permissões individuais de sobrescrita
             const result = await supabaseRequest(`permissoes_usuario?usuario_id=eq.${targetId}&select=permissao_codigo,tem_permissao`, 'GET', null, false);
             currentPermissions = result || []; // { permissao_codigo, tem_permissao }
         }
@@ -7575,10 +7578,15 @@ async function managePermissionsModal(targetId, targetName, targetType) {
                 const isGroupPermitted = groupPermissions.includes(permissao.codigo);
                 
                 if (individualOverride) {
+                    // 🚨 AJUSTE 1: A caixa marcada/desmarcada obedece a sobrescrita individual 🚨
                     isChecked = individualOverride.tem_permissao;
-                    statusHerdado = isGroupPermitted ? ' (Herdado: ✅ | Sobrescrito: ' : ' (Herdado: ❌ | Sobrescrito: ';
-                    statusHerdado += isChecked ? '✅)' : '❌)';
+                    
+                    // AJUSTE 2: Corrige a string de status para refletir a SOBRESCRITA
+                    const herdadoStatus = isGroupPermitted ? '✅' : '❌';
+                    const sobrescritoStatus = isChecked ? '✅' : '❌';
+                    statusHerdado = ` (Herdado: ${herdadoStatus} | Sobrescrito: ${sobrescritoStatus})`;
                 } else {
+                    // Sem sobrescrita, a caixa obedece a permissão do grupo
                     isChecked = isGroupPermitted;
                     statusHerdado = isGroupPermitted ? ' (Herdado do Grupo: ✅)' : ' (Herdado do Grupo: ❌)';
                 }
@@ -7611,17 +7619,20 @@ async function managePermissionsModal(targetId, targetName, targetType) {
             
             if (targetType === 'grupo') {
                 isChecked = currentPermissions.includes(p.codigo);
-            } else { // 'usuario' (Lógica de Sobrescrita)
+            } else { // 'usuario' (A Lógica Crítica de Sobrescrita)
                 const individualOverride = currentPermissions.find(cp => cp.permissao_codigo === p.codigo);
                 const isGroupPermitted = groupPermissions.includes(p.codigo);
                 
                 if (individualOverride) {
-                    // Sobrescrita explícita
+                    // 🚨 AJUSTE 1: A caixa marcada/desmarcada obedece a sobrescrita individual 🚨
                     isChecked = individualOverride.tem_permissao;
-                    statusHerdado = isGroupPermitted ? ' (Herdado: ✅ | Sobrescrito: ' : ' (Herdado: ❌ | Sobrescrito: ';
-                    statusHerdado += isChecked ? '✅)' : '❌)';
+                    
+                    // AJUSTE 2: Corrige a string de status para refletir a SOBRESCRITA
+                    const herdadoStatus = isGroupPermitted ? '✅' : '❌';
+                    const sobrescritoStatus = isChecked ? '✅' : '❌';
+                    statusHerdado = ` (Herdado: ${herdadoStatus} | Sobrescrito: ${sobrescritoStatus})`;
                 } else {
-                    // Sem sobrescrita, usa a permissão do grupo
+                    // Sem sobrescrita, a caixa obedece a permissão do grupo
                     isChecked = isGroupPermitted;
                     statusHerdado = isGroupPermitted ? ' (Herdado do Grupo: ✅)' : ' (Herdado do Grupo: ❌)';
                 }
@@ -7645,6 +7656,7 @@ async function managePermissionsModal(targetId, targetName, targetType) {
         console.error(error);
     }
 }
+
 
 async function savePermissions() {
     const targetId = document.getElementById('permissionsTargetId').value;
