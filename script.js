@@ -2827,18 +2827,19 @@ function renderMotoristasListHtml(motoristasData) {
     return motoristasData.map(m => {
         let actionButton = '';
         
-        // 🚨 CORREÇÃO CRÍTICA: Placa como Card Animado 🚨
+        // 🚨 FIX: Placa como Card Animado 🚨
+        // Verifica se a placa é válida e aplica a classe CSS.
         const veiculoPlacaNoNome = m.veiculoPlaca && m.veiculoPlaca !== 'N/A' ? 
-            `<span class="placa-animada">${m.veiculoPlaca}</span>` : ''; // Usa a classe CSS
-        
-        // RESTAURAÇÃO E FIX DOS BOTÕES DE AÇÃO
+            `<span class="placa-animada">${m.veiculoPlaca}</span>` : '';
+
+        // RESTAURAÇÃO DOS BOTÕES DE AÇÃO
         if ((m.displayStatus === 'retornando_cd' || m.displayStatus === 'retornando_com_imobilizado') && m.veiculoId) {
             actionButton = `<button class="btn btn-primary btn-small" onclick="marcarRetornoCD('${m.id}', '${m.veiculoId}')">Cheguei no CD</button>`;
         } else if (m.displayStatus === 'descarregando_imobilizado' && m.veiculoId) {
             actionButton = `<button class="btn btn-warning btn-small" onclick="finalizarDescargaImobilizado('${m.id}', '${m.veiculoId}')">Finalizar Descarga</button>`;
         }
         
-        // Se estiver em rota e em doca, mostra os botões de carregamento (apenas no painel do motorista)
+        // Se estiver em rota e em doca, mostra os botões de carregamento
         if (m.activeExp && m.displayStatus !== 'saiu_para_entrega') {
              const doca = docas.find(d => d.id === m.activeExp.doca_id);
              const coddocaValue = doca?.coddoca || 'N/A';
