@@ -7674,27 +7674,36 @@ async function saveGroupPermissions(grupoId, checkboxes, alert) {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
-// SUBSTITUIR A VERSÃO EXISTENTE DE saveUserPermissionsOverride (Aprox. linha 3780)
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// SUBSTITUIR A VERSÃO EXISTENTE DE saveUserPermissionsOverride
 async function saveUserPermissionsOverride(userId, checkboxes, alert) {
-    const updates = [];
+    const permissionsToProcess = [];
     
     checkboxes.forEach(cb => {
         const code = cb.dataset.permissionCode;
         const isChecked = cb.checked;
-
-        // O valor salvo é a decisão do usuário (tem_permissao = true ou false)
-        updates.push({ 
+        permissionsToProcess.push({ 
             usuario_id: userId, 
             permissao_codigo: code, 
             tem_permissao: isChecked 
         });
     });
 
-    // Inserir/Atualizar em lote (SOBRESCRITA)
-    if (updates.length > 0) {
-        // 🚨 AJUSTE CRÍTICO: Força o UPSERT no 5º parâmetro (true) para resolver o erro 409 (Duplicata) 🚨
-        await supabaseRequest('permissoes_usuario', 'POST', updates, false, true);
-    }
+    if (permissionsToProcess.length === 0) return;
+
+    // 🚨 AJUSTE CRÍTICO: DELETAR O REGISTRO ANTIGO ANTES DE INSERIR PARA EVITAR O 409 🚨
+    
+    // 1. Coleta todos os códigos para os quais vamos tentar escrever/atualizar
+    const codesToProcess = permissionsToProcess.map(p => p.permissao_codigo);
+    
+    // 2. Deleta todas as entradas antigas para estes códigos e este usuário
+    // Usamos 'false' no 4º parâmetro (filtro de filial)
+    await supabaseRequest(`permissoes_usuario?usuario_id=eq.${userId}&permissao_codigo=in.(${codesToProcess.join(',')})`, 'DELETE', null, false);
+    
+    // 3. Insere todos os novos dados (sem risco de duplicidade, pois deletamos antes)
+    // Não precisamos de UPSERT aqui, pois a linha não deve mais existir.
+    await supabaseRequest('permissoes_usuario', 'POST', permissionsToProcess, false);
 }
 
 
