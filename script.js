@@ -7645,7 +7645,7 @@ async function savePermissions() {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
-// SUBSTITUIR A VERSÃO EXISTENTE DE saveGroupPermissions (Aprox. linha 3656)
+// SUBSTITUIR A VERSÃO EXISTENTE DE saveGroupPermissions (Aprox. linha 3757)
 async function saveGroupPermissions(grupoId, checkboxes, alert) {
     const permissionsToSave = [];
     const permissionsToRemove = [];
@@ -7660,27 +7660,24 @@ async function saveGroupPermissions(grupoId, checkboxes, alert) {
         }
     });
 
-    // 🚨 DEBUG CRÍTICO: Mostra o que está sendo enviado para salvar 🚨
-    console.log("DEBUG SALVANDO: Permissões para salvar:", permissionsToSave);
-    console.log("DEBUG SALVANDO: Permissões para remover:", permissionsToRemove);
-    // 🚨 FIM DEBUG CRÍTICO 🚨
-
     // 1. Deletar permissões que foram desmarcadas
     if (permissionsToRemove.length > 0) {
-        // Deleta em lote por ID e Código de Permissão
+        // Usa o endpoint correto: permissoes_grupo
         await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&permissao=in.(${permissionsToRemove.join(',')})`, 'DELETE', null, false);
     }
 
     // 2. Inserir/Atualizar permissões selecionadas usando Upsert em lote
     if (permissionsToSave.length > 0) {
-        // 💡 Uso da flag 'true' para ativar o Upsert na supabaseRequest.
+        // 🚨 AJUSTE CRÍTICO: Endpoint correto e UPSERT ativado 🚨
         await supabaseRequest('permissoes_grupo', 'POST', permissionsToSave, false, true);
     }
 }
 
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// SUBSTITUIR A VERSÃO EXISTENTE DE saveUserPermissionsOverride (Aprox. linha 3780)
 async function saveUserPermissionsOverride(userId, checkboxes, alert) {
-    // Para usuário, a lógica é de SOBRESCRITA, salvamos apenas as diferenças.
     const updates = [];
     
     checkboxes.forEach(cb => {
@@ -7696,21 +7693,12 @@ async function saveUserPermissionsOverride(userId, checkboxes, alert) {
     });
 
     // Inserir/Atualizar em lote (SOBRESCRITA)
-    // Usamos a constraint `unique (usuario_id, permissao_codigo)`
-    const upsertPromises = updates.map(p => 
-        supabaseRequest('permissoes_usuario', 'POST', p, false)
-            .catch(err => {
-                // Se o erro for de duplicata, tentamos o PATCH (update)
-                if (err.message.includes('duplicate key value')) {
-                    return supabaseRequest(`permissoes_usuario?usuario_id=eq.${p.usuario_id}&permissao_codigo=eq.${p.permissao_codigo}`, 'PATCH', { tem_permissao: p.tem_permissao }, false);
-                }
-                throw err;
-            })
-    );
-    
-    await Promise.all(upsertPromises);
+    // Usamos o UPSERT para evitar o erro 409 (o que está no log)
+    if (updates.length > 0) {
+        // 🚨 AJUSTE CRÍTICO: Força o UPSERT para resolver o erro 409 (Duplicata) 🚨
+        await supabaseRequest('permissoes_usuario', 'POST', updates, false, true);
+    }
 }
-
 
 // NOVO: Função para renderizar as filiais permitidas na tela de seleção
 function renderFiliaisSelection(allowedFiliais) {
