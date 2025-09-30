@@ -7504,6 +7504,8 @@ function closePermissionsModal() {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 // SUBSTITUIR A VERSÃO EXISTENTE DE managePermissionsModal
 async function managePermissionsModal(targetId, targetName, targetType) {
     const modal = document.getElementById('permissionsModal');
@@ -7514,12 +7516,13 @@ async function managePermissionsModal(targetId, targetName, targetType) {
     document.getElementById('permissionsTargetId').value = targetId;
     document.getElementById('permissionsTargetType').value = targetType;
     title.textContent = `Gerenciar Permissões`;
+    // Usuários agora são apenas para visualização de permissões de grupo.
     subtitle.textContent = targetType === 'grupo' ? `Configurando o Grupo: ${targetName}` : `Visualizando Permissões (Apenas Grupo): ${targetName}`;
     list.innerHTML = `<div class="loading"><div class="spinner"></div>Carregando permissões...</div>`;
     modal.style.display = 'flex';
 
     try {
-        // 1. Buscar todas as permissões do sistema
+        // 1. Buscar todas as permissões do sistema e filiais
         const allPermissions = await supabaseRequest('permissoes_sistema?ativa=eq.true&order=categoria,nome', 'GET', null, false);
         const allFiliais = await supabaseRequest('filiais?ativo=eq.true&order=nome', 'GET', null, false);
         
@@ -7527,13 +7530,15 @@ async function managePermissionsModal(targetId, targetName, targetType) {
         let isReadOnly = targetType !== 'grupo'; // Usuários (não grupos) são apenas para visualização
 
         if (targetType === 'grupo') {
+            // Lógica para carregar permissões do grupo que está sendo editado
             const result = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${targetId}&select=permissao`, 'GET', null, false);
             currentPermissions = result ? result.map(p => p.permissao) : [];
-        } else { // 'usuario': Carrega permissões do grupo para visualização
+        } else { // 'usuario'
+            // 🚨 AJUSTE: Carrega permissões do grupo associado para VISUALIZAÇÃO 🚨
             const userAccess = await supabaseRequest(`acessos?id=eq.${targetId}&select=grupo_id`, 'GET', null, false);
             const grupoId = userAccess[0]?.grupo_id;
 
-            if (grupoId) {
+            if (grupoId) { // Só carrega permissão se houver grupo
                 const result = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
                 currentPermissions = result ? result.map(p => p.permissao) : [];
             }
@@ -7546,7 +7551,9 @@ async function managePermissionsModal(targetId, targetName, targetType) {
         const saveButton = document.querySelector('#permissionsModal .btn-success');
         if (saveButton) saveButton.style.display = isReadOnly ? 'none' : 'block';
         
+        // ====================================================================
         // A) RENDERIZAR PERMISSÕES DE ACESSO À FILIAL
+        // ====================================================================
         html += `<h4 class="font-bold text-lg text-gray-700 mt-4 mb-2 border-b pb-1">Acessos de Filial</h4>`;
         
         allFiliais.forEach(filial => {
@@ -7567,7 +7574,10 @@ async function managePermissionsModal(targetId, targetName, targetType) {
             `;
         });
         
+        // ====================================================================
         // B) RENDERIZAR OUTRAS PERMISSÕES DO SISTEMA
+        // ====================================================================
+
         allPermissions.forEach(p => {
             if (p.categoria !== currentCategory) {
                 currentCategory = p.categoria;
@@ -7595,7 +7605,6 @@ async function managePermissionsModal(targetId, targetName, targetType) {
         console.error(error);
     }
 }
-
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
 // SUBSTITUIR A VERSÃO EXISTENTE DE savePermissions
