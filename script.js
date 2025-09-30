@@ -4366,15 +4366,14 @@ async function checkAuthForEdit() {
 async function openEditModal(expeditionId) {
     const isMaster = masterUserPermission;
     
-    // 1. Verificar Permissão Principal
-    // Permissão de Edição: Precisa ser Master OU ter a permissão (editar_expedicao, view_editar_expedicao, etc.)
-    const requiredPermission = 'editar_expedicao';
+    // 1. Verificar Permissão Principal (Usando o código provável do BD: edit_expeditions)
+    const requiredPermission = 'edit_expeditions'; // Permissão correta no formato do BD
     let canEdit = isMaster || hasPermission(requiredPermission);
     
-    // 🚨 FIX CRÍTICO: Checa formas alternativas de permissão de ação, caso o código do BD seja diferente 🚨
+    // 🚨 FIX CRÍTICO: Checa se o usuário tem a permissão com ou sem prefixo/variantes em português.
     if (!canEdit) {
-        // Ex: Se o BD tem "view_editar_expedicao" (Embora as permissões de ação devam ser puras)
-        canEdit = hasPermission('view_' + requiredPermission) || hasPermission('acesso_' + requiredPermission);
+        // Tenta a variação mais comum em português
+        canEdit = hasPermission('editar_expedicao') || hasPermission('view_editar_expedicao');
     }
 
     if (!canEdit) {
@@ -4403,7 +4402,7 @@ async function openEditModal(expeditionId) {
         return;
     }
 
-    // 2. Aplicar Restrição de Status (SÓ PARA USUÁRIOS NORMAIS)
+    // 2. Aplicar Restrição de Status (SÓ PARA USUÁRIOS NORMAIS) - Master Bypass OK
     if (!isMaster && (expedition.status === 'saiu_para_entrega' || expedition.status === 'entregue')) {
         showNotification('Esta expedição não pode mais ser editada, pois já saiu para entrega.', 'error');
         return;
@@ -4717,7 +4716,16 @@ async function deleteExpedition(expeditionId) {
     const isMaster = masterUserPermission;
 
     // 1. Verificar Permissão Principal
-    if (!isMaster && !hasPermission('excluir_expedicao')) {
+    const requiredPermission = 'excluir_expedicao'; // Termo em português, mas mantemos o fallback
+    let canDelete = isMaster || hasPermission(requiredPermission);
+    
+    // 🚨 FIX CRÍTICO: Checa formas alternativas de permissão de ação.
+    if (!canDelete) {
+        // Ex: Se o BD tem o código de ação em inglês (delete_expeditions/delete_expedition)
+        canDelete = hasPermission('delete_expeditions') || hasPermission('delete_expedition');
+    }
+
+    if (!canDelete) {
         showNotification('Você não tem permissão para excluir expedições.', 'error');
         return;
     }
@@ -4728,7 +4736,7 @@ async function deleteExpedition(expeditionId) {
         return;
     }
 
-    // 2. Aplicar Restrição de Status (SÓ PARA USUÁRIOS NORMAIS)
+    // 2. Aplicar Restrição de Status (SÓ PARA USUÁRIOS NORMAIS) - Master Bypass OK
     if (!isMaster && (expeditionToDel.status === 'saiu_para_entrega' || expeditionToDel.status === 'entregue')) {
         showNotification('Esta expedição não pode ser excluída, pois já saiu para entrega.', 'error');
         return;
