@@ -2267,54 +2267,16 @@ await openOrdemCarregamentoModal(newExpeditionId);
         }
 
         // --- FUNCIONALIDADES DA ABA FATURAMENTO ---
-       async function loadFaturamento() {
-    showSubTab('faturamento', 'faturamentoAtivo', document.querySelector('#faturamento .sub-tab'));
+      async function loadFaturamento() {
+    // Busca e aplica a lógica para auto-abrir a única sub-aba permitida
+    const permittedFaturamentoTabs = getPermittedSubTabs('faturamento');
     
-    try {
-        const expeditions = await supabaseRequest("expeditions?status=in.(aguardando_faturamento,faturamento_iniciado,faturado)&order=data_hora.desc");
-        const items = await supabaseRequest('expedition_items');
-
-        const expeditionsWithItems = expeditions.map(exp => {
-            const expItems = items.filter(item => item.expedition_id === exp.id);
-            const veiculo = exp.veiculo_id ? veiculos.find(v => v.id === exp.veiculo_id) : null;
-            return {
-                ...exp,
-                items: expItems,
-                total_pallets: expItems.reduce((sum, item) => sum + (item.pallets || 0), 0),
-                total_rolltrainers: expItems.reduce((sum, item) => sum + (item.rolltrainers || 0), 0),
-                lojas_count: expItems.length,
-                lojas_info: expItems.map(item => {
-                    const loja = lojas.find(l => l.id === item.loja_id);
-                    return loja ? `${loja.codigo} - ${loja.nome}` : 'N/A';
-                }).join(', '),
-                doca_nome: docas.find(d => d.id === exp.doca_id)?.nome || 'N/A',
-                lider_nome: lideres.find(l => l.id === exp.lider_id)?.nome || 'N/A',
-                veiculo_placa: veiculo?.placa || null,
-                veiculo_modelo: veiculo?.modelo || null,
-                motorista_nome: motoristas.find(m => m.id === exp.motorista_id)?.nome || null
-            };
-        });
-
-        updateFaturamentoStats(expeditionsWithItems);
-        renderFaturamentoList(expeditionsWithItems);
-        
-        // Definir datas padrão para o histórico (últimos 30 dias)
-        const hoje = new Date();
-        const ha30Dias = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
-        
-        const historicoDataInicio = document.getElementById('historicoFaturamentoDataInicio');
-        const historicoDataFim = document.getElementById('historicoFaturamentoDataFim');
-        
-        if (historicoDataInicio && !historicoDataInicio.value) {
-            historicoDataInicio.value = ha30Dias.toISOString().split('T')[0];
-        }
-        if (historicoDataFim && !historicoDataFim.value) {
-            historicoDataFim.value = hoje.toISOString().split('T')[0];
-        }
-        
-    } catch (error) {
-        document.getElementById('faturamentoList').innerHTML = `<div class="alert alert-error">Erro: ${error.message}</div>`;
+    if (permittedFaturamentoTabs.length > 0) {
+        const initialSubTab = permittedFaturamentoTabs.length === 1 ? permittedFaturamentoTabs[0] : 'faturamentoAtivo';
+        const initialElement = document.querySelector(`#faturamento .sub-tabs button[onclick*="'${initialSubTab}'"]`);
+        showSubTab('faturamento', initialSubTab, initialElement);
     }
+    // A lógica de carregar estatísticas e listas fica dentro da função loadFaturamento/HistoricoFaturamento (chamada por showSubTab)
 }
 
         function renderFaturamentoList(expeditionsList) {
@@ -2587,18 +2549,18 @@ function clearHistoricoFaturamentoFilters() {
 
 
 
-// SUBSTITUIR A VERSÃO EXISTENTE DE showSubTab
 function showSubTab(tabName, subTabName, element) {
     // Permissão lida do atributo data-permission do botão clicado
     const permission = element ? element.dataset.permission : null; 
     
-    if (permission && !hasPermission(permission)) {
-        // Mapeia o nome da permissão para o padrão 'view_' do BD e checa novamente
-        const mappedPermission = permission.replace('acesso_', 'view_');
+    // Apenas faz a checagem se o botão realmente tiver uma permissão e o usuário não for MASTER
+    if (permission && !masterUserPermission) {
+        const requiredPermission = permission.trim().toLowerCase();
+        const mappedPermission = requiredPermission.replace('acesso_', 'view_'); // Ex: 'view_faturamento_ativo'
         
-        if (!hasPermission(mappedPermission)) {
+        // Se não tem a permissão do HTML NEM a permissão mapeada do BD (que deveria ter sido filtrada antes, mas checamos para segurança)
+        if (!userPermissions.includes(requiredPermission) && !userPermissions.includes(mappedPermission)) {
              showNotification('Você não tem permissão para acessar esta seção.', 'error');
-             // O filtro já escondeu a aba, mas se o usuário tentar um truque ou a checagem falhar por outros motivos, bloqueamos aqui.
              return; 
         }
     }
@@ -2606,12 +2568,15 @@ function showSubTab(tabName, subTabName, element) {
     const tabContent = document.getElementById(tabName);
     if (!tabContent) return;
     
+    // Desativa todas as sub-abas e conteúdos para começar
     tabContent.querySelectorAll('.sub-tab').forEach(tab => tab.classList.remove('active'));
     tabContent.querySelectorAll('.sub-tab-content').forEach(content => content.classList.remove('active'));
 
+    // Ativa a sub-aba clicada
     if(element) element.classList.add('active');
     document.getElementById(subTabName).classList.add('active');
     
+    // Lógica para carregar os dados específicos da sub-aba (mantida)
     if (tabName === 'acompanhamento') {
         if (subTabName === 'frota') {
             loadFrotaData();
@@ -2656,24 +2621,86 @@ function showSubTab(tabName, subTabName, element) {
     feather.replace();
 }
 
-        async function loadMotoristaTab() {
-            ('motoristas', 'statusFrota', document.querySelector('#motoristas .sub-tab'));
-            await renderMotoristasStatusList();
-            
-            // Definir datas padrão para o relatório (últimos 30 dias)
-            const hoje = new Date();
-            const ha30Dias = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
-            
-            const dataInicio = document.getElementById('relatorioMotoristaDataInicio');
-            const dataFim = document.getElementById('relatorioMotoristaDataFim');
-            
-            if (dataInicio && !dataInicio.value) {
-                dataInicio.value = ha30Dias.toISOString().split('T')[0];
-            }
-            if (dataFim && !dataFim.value) {
-                dataFim.value = hoje.toISOString().split('T')[0];
-            }
+
+// Novo: Mapa de Permissões de Sub-Abas e Views que contêm sub-abas
+const subTabViewIds = new Set(['operacao', 'faturamento', 'motoristas', 'acompanhamento', 'historico', 'configuracoes']);
+const subTabPermissionMap = {
+    'operacao': {
+        'lancamento': 'acesso_operacao_lancamento',
+        'identificacao': 'acesso_operacao_identificacao'
+    },
+    'faturamento': {
+        'faturamentoAtivo': 'acesso_faturamento_ativo',
+        'historicoFaturamento': 'acesso_faturamento_historico'
+    },
+    'motoristas': {
+        'statusFrota': 'acesso_motoristas_status',
+        'relatorioMotoristas': 'acesso_motoristas_relatorio'
+    },
+    'acompanhamento': {
+        'expedicoesEmAndamento': 'acesso_acompanhamento_expedicoes',
+        'rastreio': 'acesso_acompanhamento_rastreio',
+        'frota': 'acesso_acompanhamento_frota'
+    },
+    'historico': {
+        'listaEntregas': 'acesso_historico_entregas',
+        'indicadores': 'acesso_historico_indicadores'
+    },
+    'configuracoes': {
+        'filiais': 'acesso_configuracoes_filiais',
+        'lojas': 'acesso_configuracoes_lojas',
+        'docas': 'acesso_configuracoes_docas',
+        'veiculos': 'acesso_configuracoes_veiculos',
+        'motoristasConfig': 'acesso_configuracoes_motoristas',
+        'lideres': 'acesso_configuracoes_lideres',
+        'pontosInteresse': 'acesso_configuracoes_pontos',
+        'acessos': 'acesso_configuracoes_acessos',
+        'sistema': 'acesso_configuracoes_sistema'
+    }
+};
+
+
+function getPermittedSubTabs(viewId) {
+    if (!subTabPermissionMap[viewId]) return [];
+    
+    const permittedSubTabs = [];
+    const subTabs = subTabPermissionMap[viewId];
+    
+    for (const subTabId in subTabs) {
+        const requiredPermission = subTabs[subTabId]; // Ex: 'acesso_faturamento_ativo'
+        const mappedPermission = requiredPermission.replace('acesso_', 'view_'); // Ex: 'view_faturamento_ativo'
+        
+        // Checa a permissão do HTML e a permissão mapeada do banco
+        if (hasPermission(requiredPermission) || hasPermission(mappedPermission)) {
+            permittedSubTabs.push(subTabId);
         }
+    }
+    return permittedSubTabs;
+}
+
+
+
+      // SUBSTITUIR A FUNÇÃO loadMotoristaTab
+async function loadMotoristaTab() {
+    // Busca e aplica a lógica para auto-abrir a única sub-aba permitida
+    const permittedMotoristasTabs = getPermittedSubTabs('motoristas');
+    
+    if (permittedMotoristasTabs.length > 0) {
+        const initialSubTab = permittedMotoristasTabs.length === 1 ? permittedMotoristasTabs[0] : 'statusFrota';
+        const initialElement = document.querySelector(`#motoristas .sub-tabs button[onclick*="'${initialSubTab}'"]`);
+        showSubTab('motoristas', initialSubTab, initialElement);
+    }
+    // O restante do carregamento inicial da aba motoristas deve estar dentro da função de sub-aba.
+    
+    // Configurar datas padrão (mantido fora para garantir o carregamento do status)
+    const hoje = new Date();
+    const ha30Dias = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const dataInicio = document.getElementById('relatorioMotoristaDataInicio');
+    const dataFim = document.getElementById('relatorioMotoristaDataFim');
+    if (dataInicio && !dataInicio.value) dataInicio.value = ha30Dias.toISOString().split('T')[0];
+    if (dataFim && !dataFim.value) dataFim.value = hoje.toISOString().split('T')[0];
+}
+
 
         async function renderMotoristasStatusList() {
             const container = document.getElementById('motoristasStatusList');
@@ -3281,50 +3308,56 @@ function showSubTab(tabName, subTabName, element) {
             }
         }
         
-        // --- FUNCIONALIDADES DA ABA ACOMPANHAMENTO ---
-        async function loadAcompanhamento() {
-            showSubTab('acompanhamento', 'expedicoesEmAndamento', document.querySelector('#acompanhamento .sub-tab'));
-            setDefaultDateFilters();
-            
-            const tbody = document.getElementById('acompanhamentoBody');
-            tbody.innerHTML = `<tr><td colspan="12" class="loading"><div class="spinner"></div>Carregando expedições...</td></tr>`;
+       // SUBSTITUIR A FUNÇÃO loadAcompanhamento
+async function loadAcompanhamento() {
+    const permittedAcompanhamentoTabs = getPermittedSubTabs('acompanhamento');
+    
+    if (permittedAcompanhamentoTabs.length > 0) {
+        const initialSubTab = permittedAcompanhamentoTabs.length === 1 ? permittedAcompanhamentoTabs[0] : 'expedicoesEmAndamento';
+        const initialElement = document.querySelector(`#acompanhamento .sub-tabs button[onclick*="'${initialSubTab}'"]`);
+        showSubTab('acompanhamento', initialSubTab, initialElement);
+    }
+    
+    // O restante da lógica de carregamento de dados (expeditions, items) permanece aqui
+    setDefaultDateFilters();
+    const tbody = document.getElementById('acompanhamentoBody');
+    tbody.innerHTML = `<tr><td colspan="12" class="loading"><div class="spinner"></div>Carregando expedições...</td></tr>`;
 
-            try {
-                const expeditions = await supabaseRequest('expeditions?status=not.eq.entregue&order=data_hora.desc');
-                const items = await supabaseRequest('expedition_items');
-                
-                allExpeditions = expeditions.map(exp => {
-                    const expItems = items.filter(item => item.expedition_id === exp.id);
-                    const veiculo = exp.veiculo_id ? veiculos.find(v => v.id === exp.veiculo_id) : null;
-                    const totalCarga = (expItems.reduce((s, i) => s + (i.pallets || 0), 0)) + ((expItems.reduce((s, i) => s + (i.rolltrainers || 0), 0)) / 2);
+    try {
+        const expeditions = await supabaseRequest('expeditions?status=not.eq.entregue&order=data_hora.desc');
+        const items = await supabaseRequest('expedition_items');
+        // ... (o resto da lógica de loadAcompanhamento, que popula allExpeditions, etc., deve permanecer)
+        
+        allExpeditions = expeditions.map(exp => {
+            const expItems = items.filter(item => item.expedition_id === exp.id);
+            const veiculo = exp.veiculo_id ? veiculos.find(v => v.id === exp.veiculo_id) : null;
+            const totalCarga = (expItems.reduce((s, i) => s + (i.pallets || 0), 0)) + ((expItems.reduce((s, i) => s + (i.rolltrainers || 0), 0)) / 2);
 
-                    return {
-                        ...exp, items: expItems,
-                        total_pallets: expItems.reduce((s, i) => s + (i.pallets || 0), 0),
-                        total_rolltrainers: expItems.reduce((s, i) => s + (i.rolltrainers || 0), 0),
-                        lojas_count: expItems.length,
-                        lojas_info: expItems.map(item => {
+            return {
+                ...exp, items: expItems,
+                total_pallets: expItems.reduce((s, i) => s + (i.pallets || 0), 0),
+                total_rolltrainers: expItems.reduce((s, i) => s + (i.rolltrainers || 0), 0),
+                lojas_count: expItems.length,
+                lojas_info: expItems.map(item => {
     const loja = lojas.find(l => l.id === item.loja_id);
     return loja ? `${loja.codigo} - ${loja.nome}` : 'N/A';
 }).join(', '),
-                        doca_nome: docas.find(d => d.id === exp.doca_id)?.nome || 'N/A',
-                        lider_nome: lideres.find(l => l.id === exp.lider_id)?.nome || 'N/A',
-                        veiculo_placa: veiculo?.placa,
-                        motorista_nome: motoristas.find(m => m.id === exp.motorista_id)?.nome,
-                        ocupacao: veiculo && veiculo.capacidade_pallets > 0 ? (totalCarga / veiculo.capacidade_pallets) * 100 : 0
-                    };
-                });
-                
-                populateStatusFilter();
-applyFilters();
+                doca_nome: docas.find(d => d.id === exp.doca_id)?.nome || 'N/A',
+                lider_nome: lideres.find(l => l.id === exp.lider_id)?.nome || 'N/A',
+                veiculo_placa: veiculo?.placa,
+                motorista_nome: motoristas.find(m => m.id === exp.motorista_id)?.nome,
+                ocupacao: veiculo && veiculo.capacidade_pallets > 0 ? (totalCarga / veiculo.capacidade_pallets) * 100 : 0
+            };
+        });
+        
+        populateStatusFilter();
+        applyFilters();
 
-// Popula filtro de motoristas para rastreio
-populateRastreioFilters();
-
-            } catch(error) {
-                tbody.innerHTML = `<tr><td colspan="12" class="alert alert-error">Erro ao carregar dados: ${error.message}</td></tr>`;
-            }
-        }
+        populateRastreioFilters();
+    } catch(error) {
+        tbody.innerHTML = `<tr><td colspan="12" class="alert alert-error">Erro ao carregar dados: ${error.message}</td></tr>`;
+    }
+}
         
         function populateStatusFilter() {
             const filtroStatus = document.getElementById('filtroStatus');
@@ -3966,43 +3999,51 @@ function updateLastRefreshTime() {
     document.getElementById('lastUpdateRastreio').textContent = 
         `Última atualização: ${now.toLocaleTimeString('pt-BR')}`;
 }
-        // --- FUNCIONALIDADES DA ABA HISTÓRICO ---
-        async function loadHistorico() {
-            showSubTab('historico', 'listaEntregas', document.querySelector('#historico .sub-tab'));
-            const container = document.getElementById('historicoList');
-            container.innerHTML = `<div class="loading"><div class="spinner"></div>Carregando histórico...</div>`;
-            try {
-                const expeditions = await supabaseRequest('expeditions?status=eq.entregue&order=data_hora.desc');
-                const items = await supabaseRequest('expedition_items');
-                
-                allHistorico = expeditions.map(exp => {
-                    const expItems = items.filter(item => item.expedition_id === exp.id);
-                    const veiculo = exp.veiculo_id ? veiculos.find(v => v.id === exp.veiculo_id) : null;
-                    const totalPallets = expItems.reduce((s, i) => s + (i.pallets || 0), 0);
-                    const totalRolls = expItems.reduce((s, i) => s + (i.rolltrainers || 0), 0);
-                    const totalCarga = totalPallets + (totalRolls / 2);
-                    const ocupacao = veiculo && veiculo.capacidade_pallets > 0 ? (totalCarga / veiculo.capacidade_pallets) * 100 : 0;
-                    
-                    return {
-                        ...exp,
-                        items: expItems,
-                        lojas_count: expItems.length,
-                        lojas_info: expItems.map(item => {
-                            const loja = lojas.find(l => l.id === item.loja_id);
-                            return loja ? `${loja.codigo} - ${loja.nome}` : 'N/A';
-                        }).join(', '),
-                        veiculo_placa: veiculo?.placa,
-                        motorista_nome: motoristas.find(m => m.id === exp.motorista_id)?.nome,
-                        total_pallets: totalPallets,
-                        ocupacao: ocupacao.toFixed(1)
-                    };
-                });
+      // SUBSTITUIR A FUNÇÃO loadHistorico
+async function loadHistorico() {
+    const permittedHistoricoTabs = getPermittedSubTabs('historico');
+    
+    if (permittedHistoricoTabs.length > 0) {
+        const initialSubTab = permittedHistoricoTabs.length === 1 ? permittedHistoricoTabs[0] : 'listaEntregas';
+        const initialElement = document.querySelector(`#historico .sub-tabs button[onclick*="'${initialSubTab}'"]`);
+        showSubTab('historico', initialSubTab, initialElement);
+    }
+    
+    // O restante da lógica de loadHistorico permanece aqui para carregar allHistorico
+    const container = document.getElementById('historicoList');
+    container.innerHTML = `<div class="loading"><div class="spinner"></div>Carregando histórico...</div>`;
+    try {
+        const expeditions = await supabaseRequest('expeditions?status=eq.entregue&order=data_hora.desc');
+        const items = await supabaseRequest('expedition_items');
+        
+        allHistorico = expeditions.map(exp => {
+            const expItems = items.filter(item => item.expedition_id === exp.id);
+            const veiculo = exp.veiculo_id ? veiculos.find(v => v.id === exp.veiculo_id) : null;
+            const totalPallets = expItems.reduce((s, i) => s + (i.pallets || 0), 0);
+            const totalRolls = expItems.reduce((s, i) => s + (i.rolltrainers || 0), 0);
+            const totalCarga = totalPallets + (totalRolls / 2);
+            const ocupacao = veiculo && veiculo.capacidade_pallets > 0 ? (totalCarga / veiculo.capacidade_pallets) * 100 : 0;
+            
+            return {
+                ...exp,
+                items: expItems,
+                lojas_count: expItems.length,
+                lojas_info: expItems.map(item => {
+                    const loja = lojas.find(l => l.id === item.loja_id);
+                    return loja ? `${loja.codigo} - ${loja.nome}` : 'N/A';
+                }).join(', '),
+                veiculo_placa: veiculo?.placa,
+                motorista_nome: motoristas.find(m => m.id === exp.motorista_id)?.nome,
+                total_pallets: totalPallets,
+                ocupacao: ocupacao.toFixed(1)
+            };
+        });
 
-                applyHistoricoFilters();
-            } catch(error) {
-                container.innerHTML = `<div class="alert alert-error">Erro ao carregar histórico: ${error.message}</div>`;
-            }
-        }
+        applyHistoricoFilters();
+    } catch(error) {
+        container.innerHTML = `<div class="alert alert-error">Erro ao carregar histórico: ${error.message}</div>`;
+    }
+}
 
         function applyHistoricoFilters() {
             const dataInicio = document.getElementById('historicoFiltroDataInicio').value || document.getElementById('indicadoresFiltroDataInicio').value;
@@ -4686,8 +4727,7 @@ async function deleteExpedition(expeditionId) {
         
         // --- FUNCIONALIDADES DA ABA CONFIGURAÇÕES ---
 
-        // SUBSTITUIR A VERSÃO EXISTENTE DE loadConfiguracoes
-async function loadConfiguracoes() {
+  async function loadConfiguracoes() {
     if (!currentUser) {
         document.getElementById('passwordFormContainer').style.display = 'block';
         document.getElementById('configuracoesContent').style.display = 'none';
@@ -4696,7 +4736,6 @@ async function loadConfiguracoes() {
         return;
     }
 
-    // NOVO: Carregar grupos de acesso antes de mostrar a aba de configurações.
     if (gruposAcesso.length === 0) {
         try {
             gruposAcesso = await supabaseRequest('grupos_acesso?order=nome', 'GET', null, false);
@@ -4708,8 +4747,15 @@ async function loadConfiguracoes() {
     
     document.getElementById('passwordFormContainer').style.display = 'none';
     document.getElementById('configuracoesContent').style.display = 'block';
-    showSubTab('configuracoes', 'filiais', document.querySelector('#configuracoes .sub-tab'));
     updateSystemStatus();
+    
+    const permittedConfiguracoesTabs = getPermittedSubTabs('configuracoes');
+    
+    if (permittedConfiguracoesTabs.length > 0) {
+        const initialSubTab = permittedConfiguracoesTabs.length === 1 ? permittedConfiguracoesTabs[0] : 'filiais';
+        const initialElement = document.querySelector(`#configuracoes .sub-tabs button[onclick*="'${initialSubTab}'"]`);
+        showSubTab('configuracoes', initialSubTab, initialElement);
+    }
 }
 
         // SUBSTITUIR A VERSÃO EXISTENTE DE checkPassword
@@ -7029,7 +7075,13 @@ function imprimirDetalhes() {
 }
 // --- FUNCIONALIDADES DA ABA OPERAÇÃO IDENTIFICAÇÃO ---
 async function loadOperacao() {
-    showSubTab('operacao', 'lancamento', document.querySelector('#operacao .sub-tab'));
+    const permittedOperacaoTabs = getPermittedSubTabs('operacao');
+    if (permittedOperacaoTabs.length > 0) {
+        // Abre a única sub-aba permitida ou a padrão 'lancamento'
+        const initialSubTab = permittedOperacaoTabs.length === 1 ? permittedOperacaoTabs[0] : 'lancamento';
+        const initialElement = document.querySelector(`#operacao .sub-tabs button[onclick*="'${initialSubTab}'"]`);
+        showSubTab('operacao', initialSubTab, initialElement);
+    }
 }
 
 async function loadIdentificacaoExpedicoes() {
@@ -7724,34 +7776,29 @@ function filterNavigationMenu() {
     let firstPermittedViewId = null;
 
     navItems.forEach(item => {
-        const htmlPermission = item.dataset.permission; // Ex: 'acesso_faturamento'
+        const viewId = item.getAttribute('href').substring(1);
+        const permission = item.dataset.permission;
         
-        let isPermitted = false;
+        let isPermitted = true;
 
-        if (htmlPermission) {
-            // 1. Checa a permissão conforme está no HTML (Ex: 'acesso_faturamento')
-            if (hasPermission(htmlPermission)) {
-                isPermitted = true;
-            } else {
-                // 🚨 FIX CRÍTICO: Mapeia o nome da permissão para o padrão 'view_' do BD.
-                // Troca 'acesso_' por 'view_' e tenta checar novamente.
-                const mappedPermission = htmlPermission.replace('acesso_', 'view_');
-                if (hasPermission(mappedPermission)) {
-                    isPermitted = true;
-                }
+        if (permission && !hasPermission(permission)) {
+            // Regra 1: A permissão principal não está no array (master ou acesso_tab)
+            isPermitted = false;
+        } else if (subTabViewIds.has(viewId)) {
+            // 🚨 FIX REQ 1A: Se é uma aba com sub-abas, verifique se alguma sub-aba é acessível.
+            const permittedSubTabs = getPermittedSubTabs(viewId);
+            if (permittedSubTabs.length === 0) {
+                // Se o usuário tem permissão para a aba principal, mas nenhuma sub-aba, HIDE!
+                isPermitted = false;
             }
-        } else {
-            // Se não houver data-permission, assume que é permitido (como o link 'Trocar Filial')
-            isPermitted = true;
         }
 
         if (!isPermitted) {
             item.style.display = 'none';
         } else {
-            // Garante que itens permitidos sejam exibidos
             item.style.display = 'flex'; 
             if (!firstPermittedViewId) {
-                firstPermittedViewId = item.getAttribute('href').substring(1);
+                firstPermittedViewId = viewId;
             }
         }
     });
