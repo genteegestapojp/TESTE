@@ -2724,6 +2724,8 @@ async function loadMotoristaTab() {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 // SUBSTITUIR A FUNÇÃO renderMotoristasStatusList COMPLETA
 async function renderMotoristasStatusList() {
     const container = document.getElementById('motoristasStatusList');
@@ -2783,8 +2785,8 @@ async function renderMotoristasStatusList() {
         </div>
         
         <div class="filters-section my-4" style="padding: 12px;">
-            <div class="filters-grid" style="grid-template-columns: repeat(2, 1fr);">
-                 <div class="form-group" style="grid-column: span 2 / span 2; margin-bottom: 0;">
+            <div class="filters-grid" style="grid-template-columns: 1fr;">
+                 <div class="form-group" style="grid-column: span 1 / span 1; margin-bottom: 0;">
                     <label for="motoristaStatusFilter">Filtrar por Status:</label>
                     <select id="motoristaStatusFilter" onchange="applyMotoristaStatusFilter()" class="w-full">
                         <option value="">Todos os Status</option>
@@ -2815,7 +2817,8 @@ async function renderMotoristasStatusList() {
     });
 }
 
-// NOVO: Função para renderizar a lista de motoristas após o filtro
+
+// SUBSTITUIR A FUNÇÃO renderMotoristasListHtml COMPLETA
 function renderMotoristasListHtml(motoristasData) {
     if (motoristasData.length === 0) {
         return '<div class="alert alert-info mt-4">Nenhum motorista encontrado com o filtro selecionado.</div>';
@@ -2823,13 +2826,29 @@ function renderMotoristasListHtml(motoristasData) {
     
     return motoristasData.map(m => {
         let actionButton = '';
-        const placaInfo = m.veiculoPlaca !== 'N/A' ? `(${m.veiculoPlaca})` : '';
+        
+        // 🚨 FIX: Placa como Card Animado 🚨
+        const veiculoPlacaNoNome = m.veiculoPlaca && m.veiculoPlaca !== 'N/A' ? 
+            `<span class="placa-animada">${m.veiculoPlaca}</span>` : '';
 
-        if ((m.status === 'retornando_cd' || m.status === 'retornando_com_imobilizado') && m.veiculoId) {
+        // 🚨 RESTAURAÇÃO E FIX DOS BOTÕES DE AÇÃO 🚨
+        if ((m.displayStatus === 'retornando_cd' || m.displayStatus === 'retornando_com_imobilizado') && m.veiculoId) {
             actionButton = `<button class="btn btn-primary btn-small" onclick="marcarRetornoCD('${m.id}', '${m.veiculoId}')">Cheguei no CD</button>`;
-        } else if (m.status === 'descarregando_imobilizado' && m.veiculoId) {
+        } else if (m.displayStatus === 'descarregando_imobilizado' && m.veiculoId) {
             actionButton = `<button class="btn btn-warning btn-small" onclick="finalizarDescargaImobilizado('${m.id}', '${m.veiculoId}')">Finalizar Descarga</button>`;
         }
+        
+        // Se estiver em rota e em doca, mostra os botões de carregamento (apenas no painel do motorista)
+        if (m.activeExp && m.displayStatus !== 'saiu_para_entrega') {
+             const doca = docas.find(d => d.id === m.activeExp.doca_id);
+             const coddocaValue = doca?.coddoca || 'N/A';
+             if (m.displayStatus === 'aguardando_veiculo') {
+                  actionButton = `<button class="btn btn-success" onclick="openQrModal('iniciar', '${m.activeExp.id}', '${coddocaValue}')">Iniciar Carregamento</button>`;
+             } else if (m.displayStatus === 'em_carregamento') {
+                  actionButton = `<button class="btn btn-primary" onclick="openQrModal('finalizar', '${m.activeExp.id}', '${coddocaValue}')">Finalizar Carregamento</button>`;
+             }
+        }
+
 
         let timeInfo = '';
         if (m.activeExp && m.displayStatus === 'saiu_para_entrega') {
@@ -2844,7 +2863,7 @@ function renderMotoristasListHtml(motoristasData) {
         return `
             <div class="motorista-status-item">
                 <div>
-                    <strong class="text-gray-800">${m.nome} ${placaInfo}</strong>
+                    <strong class="text-gray-800">${m.nome} ${veiculoPlacaNoNome}</strong>
                     ${timeInfo}
                 </div>
                 <div class="flex items-center gap-4">
@@ -8126,9 +8145,8 @@ async function loadFaturamentoData(subTabName = 'faturamentoAtivo') {
     }
 }
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
-/ NOVO CÓDIGO: Função de Filtragem de Status
+// SUBSTITUIR A FUNÇÃO applyMotoristaStatusFilter COMPLETA
 function applyMotoristaStatusFilter() {
     const filterValue = document.getElementById('motoristaStatusFilter').value;
     const allMotoristas = window.motoristasDataCache || [];
@@ -8157,8 +8175,6 @@ function applyMotoristaStatusFilter() {
         }
     });
 }
-
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
 // NOVO CÓDIGO: Função auxiliar para iniciar o timer do motorista (extraída para limpeza)
 function startMotoristaTimer(m) {
