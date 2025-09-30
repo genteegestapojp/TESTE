@@ -7321,7 +7321,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('initialLoginForm').addEventListener('submit', handleInitialLogin);
 });
 
-// SUBSTITUIR A VERSÃO EXISTENTE DE handleInitialLogin
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// SUBSTITUIR A VERSÃO EXISTENTE DE handleInitialLogin (Aprox. linha 3737)
 async function handleInitialLogin(event) {
     event.preventDefault();
     const nome = document.getElementById('initialUser').value.trim();
@@ -7335,6 +7337,10 @@ async function handleInitialLogin(event) {
     alertContainer.innerHTML = '<div class="loading">Autenticando...</div>';
 
     try {
+        // 🚨 AJUSTE DE ESTADO: Garante que a filial global não está definida
+        // antes de buscar permissões não-filtradas.
+        selectedFilial = null; // <-- NOVA LINHA ADICIONADA AQUI
+
         // Busca o acesso pelo nome e senha, incluindo o grupo_id e o ID do acesso.
         const endpoint = `acessos?select=id,nome,grupo_id&nome=eq.${nome}&senha=eq.${senha}`;
         const result = await supabaseRequest(endpoint, 'GET', null, false);
