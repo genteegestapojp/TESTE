@@ -5778,12 +5778,6 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             'GET', null, false
         );
 
-        // 🚨 FIX 1: Aborta se o ID for sintético (caso o botão não tenha sido desabilitado) 🚨
-        if (expeditionId.startsWith('return-')) {
-             showNotification('Não é possível traçar o trajeto de retorno (erro de ID).', 'error');
-             return;
-        }
-
         if (!expeditionItems || expeditionItems.length === 0) {
             showNotification('Não há pontos de entrega para traçar a rota.', 'info');
             const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
@@ -5809,10 +5803,10 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             
             // Desenha a rota real (verde tracejada)
             L.polyline(gpsCoords, {
-                color: '#10B981', 
+                color: '#10B981', // Verde: Rota Real
                 weight: 5,
                 opacity: 0.8,
-                dashArray: '10, 10'
+                dashArray: '10, 10' // Linha tracejada
             }).addTo(mapInstance);
             
             // Adiciona a rota real aos limites do mapa
@@ -5825,9 +5819,10 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             L.marker([startMarker.latitude, startMarker.longitude], { icon: L.divIcon({ className: 'custom-marker', html: '<div style="background: green; color: white; padding: 4px; border-radius: 50%; font-size: 10px; font-weight: bold;">START</div>' }) })
                 .addTo(mapInstance)
                 .bindPopup("<b>Início do Trajeto GPS</b>");
+            
             L.marker([endMarker.latitude, endMarker.longitude], { icon: L.divIcon({ className: 'custom-marker', html: '<div style="background: red; color: white; padding: 4px; border-radius: 50%; font-size: 10px; font-weight: bold;">END</div>' }) })
                 .addTo(mapInstance)
-                .bindPopup("<b>Fim do GPS</b>");
+                .bindPopup("<b>Última Posição GPS</b>");
         }
         
         // 2. ROTA PLANEJADA (ORSM/WAYPOINTS) - Cor Azul
@@ -5869,7 +5864,7 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         // 🚨 FIX 2: Capturar erro de roteamento e notificar 🚨
         routingControl.on('routingerror', function(e) {
              console.error("Erro no Routing Machine:", e.error.message);
-             showNotification(`Erro ao calcular rota planejada: ${e.error.message}. Isso pode ocorrer devido a muitas requisições (429).`, 'error', 6000);
+             showNotification(`Erro ao calcular rota planejada: ${e.error.message}. Exibindo apenas a rota real (GPS).`, 'error', 6000);
              // Tenta ajustar o zoom apenas para a rota real ou o CD
              if (bounds.isValid()) {
                 mapInstance.fitBounds(bounds, { padding: [30, 30] });
@@ -5932,8 +5927,10 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         legend.addTo(mapInstance);
         
     } catch (error) {
-        console.error('Erro ao carregar trajeto:', error);
-        showNotification('Erro ao carregar dados do trajeto: ' + error.message, 'error');
+        // 🚨 Se o fetch da primeira expedição falhar, garantimos que o modal feche.
+        console.error('Erro ao carregar trajeto (Erro Fatal):', error);
+        closeMapModal();
+        showNotification('Erro fatal ao carregar dados do trajeto.', 'error');
     }
 }
 
@@ -6885,6 +6882,8 @@ async function calculateSimulatedRoute(startLat, startLng, endLat, endLng) {
     };
 }
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 // SUBSTITUIR A VERSÃO EXISTENTE DE getRouteFromAPI
 async function getRouteFromAPI(waypoints) {
     if (!waypoints || waypoints.length < 2) {
@@ -6920,10 +6919,10 @@ async function getRouteFromAPI(waypoints) {
         // Rota não encontrada
         return null;
     } catch (error) {
-        // Erro de rede (Failed to fetch, ERR_CONNECTION_RESET)
-        console.error('Falha de rede/conexão OSRM:', error);
-        // Relançar o erro para que o Promise.allSettled capture e o fluxo não trave.
-        throw error;
+        // 🚨 FIX CRÍTICO: Tratamento de erro de rede (Failed to fetch/Timeout) 🚨
+        console.error('Falha crítica de rede/conexão OSRM:', error);
+        // Lança o erro para que o Promise.allSettled capture como 'rejected' e o fluxo continue.
+        throw new Error('Falha de conexão OSRM: A rota não pôde ser calculada.'); 
     }
 }
 
