@@ -6703,7 +6703,7 @@ async function calculateSimulatedRoute(startLat, startLng, endLat, endLng) {
         duration: duration
     };
 }
-// --- NOVO: FUNÇÃO PARA CALCULAR ROTA REAL VIA API OSRM ---
+
 // SUBSTITUIR A VERSÃO EXISTENTE DE getRouteFromAPI
 async function getRouteFromAPI(waypoints) {
     if (!waypoints || waypoints.length < 2) {
@@ -6717,13 +6717,13 @@ async function getRouteFromAPI(waypoints) {
         const response = await fetch(url);
         
         if (response.status === 429) {
-            console.error('ERRO 429: Limite de requisições à API de Roteamento atingido. Tente novamente mais tarde.');
-            showNotification('Erro: Limite de requisições de rota excedido. O mapa pode não carregar.', 'error', 5000);
-            return null;
+            // Limite de requisições. Lançar erro para que o allSettled capture.
+            throw new Error('Limite de requisições OSRM (429)'); 
         }
         
         if (!response.ok) {
-            throw new Error(`Erro ${response.status}: Falha na API de roteamento.`);
+            // Outros erros HTTP (404, 500, etc.)
+            throw new Error(`Erro na API de roteamento: ${response.status}`);
         }
         
         const data = await response.json();
@@ -6736,10 +6736,13 @@ async function getRouteFromAPI(waypoints) {
                 coordinates: route.geometry.coordinates.map(c => [c[1], c[0]])
             };
         }
+        // Rota não encontrada
         return null;
     } catch (error) {
-        console.error('Falha ao obter rota da API:', error);
-        return null; // Retorna null para que o JS continue processando
+        // Erro de rede (Failed to fetch, ERR_CONNECTION_RESET)
+        console.error('Falha de rede/conexão OSRM:', error);
+        // Relançar o erro para que o Promise.allSettled capture e o fluxo não trave.
+        throw error;
     }
 }
 
