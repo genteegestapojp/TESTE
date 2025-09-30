@@ -4366,14 +4366,25 @@ async function checkAuthForEdit() {
 async function openEditModal(expeditionId) {
     const isMaster = masterUserPermission;
     
-    // 1. Verificar Permissão Principal (Usando o código provável do BD: edit_expeditions)
-    const requiredPermission = 'edit_expeditions'; // Permissão correta no formato do BD
-    let canEdit = isMaster || hasPermission(requiredPermission);
+    // 1. Verificar Permissão Principal: Checagem robusta de múltiplas nomenclaturas
+    const requiredPermissions = [
+        'edit_expeditions',     // Plural inglês (Mais comum no seu BD para ações)
+        'edit_expedition',      // Singular inglês (Alternativa comum)
+        'editar_expedicao',     // Português (Como está no Gerenciar Permissões)
+        'view_editar_expedicao',// Prefixado (Fallback)
+        'acesso_editar_expedicao' // Prefixado (Fallback)
+    ];
     
-    // 🚨 FIX CRÍTICO: Checa se o usuário tem a permissão com ou sem prefixo/variantes em português.
+    let canEdit = isMaster;
+
+    // Se o usuário não for MASTER, checa todas as variações da permissão de edição
     if (!canEdit) {
-        // Tenta a variação mais comum em português
-        canEdit = hasPermission('editar_expedicao') || hasPermission('view_editar_expedicao');
+        for (const perm of requiredPermissions) {
+            if (hasPermission(perm)) {
+                canEdit = true;
+                break;
+            }
+        }
     }
 
     if (!canEdit) {
