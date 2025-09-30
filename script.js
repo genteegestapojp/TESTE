@@ -3681,9 +3681,8 @@ async function loadRastreioData() {
                 { lat: selectedFilial.latitude_cd, lng: selectedFilial.longitude_cd },
                 ...itemsOrdenados.map(item => {
                     const loja = lojas.find(l => l.id === item.loja_id);
-                    // Adicionando checagem de loja e coordenadas
                     return (loja && loja.latitude && loja.longitude) ? { lat: loja.latitude, lng: loja.longitude } : null;
-                }).filter(Boolean) // Remove waypoints nulos
+                }).filter(Boolean)
             ];
 
             let rotaCompleta = null;
@@ -3714,12 +3713,26 @@ async function loadRastreioData() {
             
             return {
                 ...exp,
-                // ... (outras propriedades)
+                items: expItems,
+                motorista_nome: motorista?.nome || 'N/A',
+                veiculo_placa: veiculo?.placa || 'N/A',
+                status_rastreio: statusAtual,
+                loja_atual: lojaAtual,
+                proxima_loja: proximaLoja,
+                progresso_rota: Math.round(progresso),
+                tempo_em_rota: Math.round(tempoDecorrido),
+                distancia_total_km: distanciaTotalKm,
+                tempo_total_rota: tempoTotalRota,
                 coordenadas: {
                     lat: parseFloat(currentLocation.latitude),
                     lng: parseFloat(currentLocation.longitude)
                 },
-                // ... (outras propriedades)
+                eta: eta,
+                velocidade_media: currentLocation.velocidade || 0,
+                entregas_concluidas: entregasConcluidas,
+                total_entregas: itemsOrdenados.length,
+                last_update: new Date(currentLocation.data_gps),
+                accuracy: currentLocation.precisao || 0,
                 pontos_proximos: checkProximityToPontosInteresse(currentLocation.latitude, currentLocation.longitude)
             };
         });
@@ -3742,12 +3755,43 @@ async function loadRastreioData() {
         const promessasRetorno = motoristasRetornando.map(async m => {
             const currentLocation = returningLocations.find(loc => loc.motorista_id === m.id);
             if (currentLocation && currentLocation.latitude && currentLocation.longitude) {
-                // ... (lógica de rota de retorno)
+                const cdCoords = { lat: selectedFilial.latitude_cd, lng: selectedFilial.longitude_cd };
                 
+                let rota = null;
+                try {
+                     rota = await getRouteFromAPI([{ lat: currentLocation.latitude, lng: currentLocation.longitude }, { lat: cdCoords.lat, lng: cdCoords.lng }]);
+                } catch (e) {
+                     console.error("Falha ao calcular rota de retorno, pulando dados de rota para este veículo.");
+                }
+
+                const distanciaTotalKm = rota ? rota.distance / 1000 : 0;
+                const tempoEstimadoMinutos = rota ? rota.duration / 60 : 0;
+                const eta = new Date(new Date().getTime() + tempoEstimadoMinutos * 60000);
+                
+                // 🚨 FIX CRÍTICO: Inicializa TODAS as propriedades usadas no renderizador para evitar 'undefined'
                 return {
                     id: `return-${m.id}`,
+                    expedition_id: null, // Não é uma expedição ativa
                     motorista_id: m.id,
-                    // ... (outras propriedades)
+                    motorista_nome: m.nome,
+                    veiculo_placa: veiculos.find(v => v.id === m.veiculo_id)?.placa || 'N/A',
+                    status_rastreio: 'retornando',
+                    distancia_total_km: distanciaTotalKm,
+                    tempo_total_rota: tempoEstimadoMinutos, // Tempo total da rota de retorno
+                    tempo_em_rota: 0, 
+                    entregas_concluidas: 0,
+                    total_entregas: 0,
+                    items: [], // CRÍTICO: Deve ser um array vazio para que .map funcione
+                    progresso_rota: 100, // Está retornando
+                    loja_atual: null,
+                    proxima_loja: null,
+                    coordenadas: {
+                        lat: parseFloat(currentLocation.latitude),
+                        lng: parseFloat(currentLocation.longitude)
+                    },
+                    eta: eta,
+                    last_update: new Date(currentLocation.data_gps),
+                    pontos_proximos: checkProximityToPontosInteresse(currentLocation.latitude, currentLocation.longitude)
                 };
             }
             return null;
@@ -3761,7 +3805,7 @@ async function loadRastreioData() {
         rastreioData = results;
         rastreioData.push(...returningResults);
         
-        // 🚨 NOVO FIX CRÍTICO: Filtrar nulos/undefineds APÓS TODAS AS OPERAÇÕES
+        // FILTRO FINAL CRÍTICO: Filtrar nulos/undefineds APÓS TODAS AS OPERAÇÕES
         rastreioData = rastreioData.filter(Boolean);
         
         updateRastreioStats();
