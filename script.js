@@ -29,14 +29,14 @@ let masterUserPermission = false;
 let gruposAcesso = [];
 
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 
 // SUBSTITUIR A VERSÃO EXISTENTE DE loadUserPermissions
 async function loadUserPermissions(userId, grupoId) {
     masterUserPermission = false;
     let finalPermissionsSet = new Set(); 
     
-    // 1. Carregar Permissões do Grupo (Ignorado se grupoId for NULL, que é o caso do Bruno)
+    // 1. Carregar Permissões do Grupo (Ignorado se grupoId for NULL)
     if (grupoId) {
         // Desativa o filtro de filial (4º parâmetro = false)
         const permissoesGrupo = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
@@ -46,8 +46,8 @@ async function loadUserPermissions(userId, grupoId) {
         }
     }
     
-    // 2. Carregar Permissões Individuais e Sobrescrever/Adicionar
-    if (userId) { // ESTA É A LÓGICA DO BRUNO!
+    // 2. Carregar Permissões Individuais e Sobrescrever/Adicionar (Lógica do BRUNO)
+    if (userId) {
         // Desativa o filtro de filial (4º parâmetro = false)
         const permissoesUsuario = await supabaseRequest(`permissoes_usuario?usuario_id=eq.${userId}&select=permissao_codigo,tem_permissao`, 'GET', null, false);
 
