@@ -4362,12 +4362,22 @@ async function checkAuthForEdit() {
     }
 }
 
-   // SUBSTITUIR A FUNÇÃO openEditModal COMPLETA
+// SUBSTITUIR A FUNÇÃO openEditModal COMPLETA
 async function openEditModal(expeditionId) {
     const isMaster = masterUserPermission;
     
-    // 1. Verificar Permissão Principal (apenas se não for Master)
-    if (!isMaster && !hasPermission('editar_expedicao')) {
+    // 1. Verificar Permissão Principal
+    // Permissão de Edição: Precisa ser Master OU ter a permissão (editar_expedicao, view_editar_expedicao, etc.)
+    const requiredPermission = 'editar_expedicao';
+    let canEdit = isMaster || hasPermission(requiredPermission);
+    
+    // 🚨 FIX CRÍTICO: Checa formas alternativas de permissão de ação, caso o código do BD seja diferente 🚨
+    if (!canEdit) {
+        // Ex: Se o BD tem "view_editar_expedicao" (Embora as permissões de ação devam ser puras)
+        canEdit = hasPermission('view_' + requiredPermission) || hasPermission('acesso_' + requiredPermission);
+    }
+
+    if (!canEdit) {
         showNotification('Você não tem permissão para editar expedições.', 'error');
         return;
     }
@@ -4427,7 +4437,6 @@ async function openEditModal(expeditionId) {
 
     document.getElementById('editExpeditionModal').style.display = 'flex';
 }
-
 
 // Função que abre o modal de edição sem verificação
 async function openEditModalDirectly(expeditionId) {
