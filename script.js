@@ -30,13 +30,15 @@ let gruposAcesso = [];
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js (Aprox. linha 41)
+
 async function loadUserPermissions(userId, grupoId) {
     masterUserPermission = false;
     userPermissions = [];
     
     // 1. Verificar se é Master (Grupo)
     if (grupoId) {
-        // AJUSTE: O 4º parâmetro é 'false' para desativar o filtro de filial (permissoes globais)
+        // AJUSTE JÁ FEITO: O 4º parâmetro é 'false' para desativar o filtro de filial
         const grupo = await supabaseRequest(`grupos_acesso?id=eq.${grupoId}&select=nome`, 'GET', null, false);
         if (grupo && grupo.length > 0 && grupo[0].nome === 'MASTER') {
             masterUserPermission = true;
@@ -44,17 +46,23 @@ async function loadUserPermissions(userId, grupoId) {
         }
         
         // 2. Carregar Permissões do Grupo
-        // AJUSTE: O 4º parâmetro é 'false'
+        // AJUSTE JÁ FEITO: O 4º parâmetro é 'false'
         const permissoesGrupo = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
-        if (permissoesGrupo) {
+        
+        // 🚨 LINHA CRÍTICA PARA DEBUG 🚨
+        console.log("DEBUG PERMISSÕES DO GRUPO - Tabela permissoes_grupo retornou:", permissoesGrupo);
+        // 🚨 FIM LINHA CRÍTICA 🚨
+
+        if (permissoesGrupo && permissoesGrupo.length > 0) { // Garante que a lista não é nula/vazia
             userPermissions = permissoesGrupo.map(p => p.permissao);
+            // DEBUG: Vê o array final de permissões
+            console.log("DEBUG PERMISSÕES FINAIS:", userPermissions); 
         }
     }
 
-    // 3. Carregar Permissões Individuais e Sobrescrever/Adicionar
-    // A permissão individual (permissoes_usuario) sempre prevalece
+    // 3. Carregar Permissões Individuais (lógica de sobrescrita...)
     if (userId) {
-        // AJUSTE: O 4º parâmetro é 'false'
+        // AJUSTE JÁ FEITO: O 4º parâmetro é 'false'
         const permissoesUsuario = await supabaseRequest(`permissoes_usuario?usuario_id=eq.${userId}&select=permissao_codigo,tem_permissao`, 'GET', null, false);
 
         if (permissoesUsuario) {
@@ -62,9 +70,9 @@ async function loadUserPermissions(userId, grupoId) {
             
             permissoesUsuario.forEach(p => {
                 if (p.tem_permissao) {
-                    finalPermissions.add(p.permissao_codigo); // Adiciona (sobrescreve se tem_permissao=true)
+                    finalPermissions.add(p.permissao_codigo);
                 } else {
-                    finalPermissions.delete(p.permissao_codigo); // Remove (anula a permissão do grupo)
+                    finalPermissions.delete(p.permissao_codigo);
                 }
             });
             
