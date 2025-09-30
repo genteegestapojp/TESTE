@@ -5752,6 +5752,8 @@ async function showTrajectoryMap(expeditionId, vehiclePlaca) {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 // SUBSTITUIR A FUNÇÃO initTrajectoryMap COMPLETA
 async function initTrajectoryMap(expeditionId, vehiclePlaca) {
     try {
@@ -5772,71 +5774,24 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             return;
         }
         
-        let bounds = L.latLngBounds(); 
         mapInstance = L.map('map');
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
 
-        // ==========================================================
-        // 1. ROTA FEITA (GPS TRACKING) - Cor Verde (Snap-to-Road)
-        // ==========================================================
-        const trajectoryData = await supabaseRequest(
-            `gps_tracking?expedition_id=eq.${expeditionId}&order=data_gps.asc`,
-            'GET', null, false
-        );
-        
-        if (trajectoryData && trajectoryData.length > 0) {
-            const rawGpsCoords = trajectoryData.map(p => L.latLng(parseFloat(p.latitude), parseFloat(p.longitude)));
-            
-            let matchedCoords = null;
-            try {
-                // 🚨 FIX CRÍTICO: Tenta fazer o Snap-to-Road usando a API Map Matching 🚨
-                matchedCoords = await getMapMatchedRoute(rawGpsCoords);
-                showNotification('Snap-to-Road da Rota Real concluído (Seguindo ruas).', 'success', 2000);
-            } catch(e) {
-                console.warn('Map Matching OSRM falhou. Exibindo rota GPS bruta.', e);
-                showNotification('Ajuste de rota real (Snap-to-Road) falhou. Exibindo dados GPS brutos (linha tracejada).', 'warning', 4000);
-            }
-            
-            const coordsToDraw = matchedCoords ? matchedCoords : rawGpsCoords; // Usa o matched ou o bruto
-            
-            // Desenha a rota real (verde tracejada)
-            const gpsPolyline = L.polyline(coordsToDraw, {
-                color: '#10B981', // Verde: Rota Real
-                weight: 5,
-                opacity: 0.8,
-                dashArray: '10, 10' // Linha tracejada
-            }).addTo(mapInstance);
-            
-            // Adiciona a rota real aos limites do mapa
-            bounds.extend(gpsPolyline.getBounds());
-            
-            // Marcadores de início e fim
-            const startMarker = trajectoryData[0];
-            const endMarker = trajectoryData[trajectoryData.length - 1];
-            
-            L.marker([startMarker.latitude, startMarker.longitude], { icon: L.divIcon({ className: 'custom-marker', html: '<div style="background: green; color: white; padding: 4px; border-radius: 50%; font-size: 10px; font-weight: bold;">START</div>' }) })
-                .addTo(mapInstance)
-                .bindPopup("<b>Início do Trajeto GPS</b>");
-            
-            L.marker([endMarker.latitude, endMarker.longitude], { icon: L.divIcon({ className: 'custom-marker', html: '<div style="background: red; color: white; padding: 4px; border-radius: 50%; font-size: 10px; font-weight: bold;">END</div>' }) })
-                .addTo(mapInstance)
-                .bindPopup("<b>Fim da Posição GPS</b>");
-        } else {
-             showNotification('Dados de GPS para o trajeto real indisponíveis.', 'info', 4000);
-        }
-        
-        // 2. ROTA PLANEJADA (ORSM/WAYPOINTS) - Cor Azul
+        // 1. DEFINIÇÃO DOS WAYPOINTS (PONTOS DE PARADA)
         const waypoints = [
             L.latLng(selectedFilial.latitude_cd, selectedFilial.longitude_cd),
             ...expeditionItems.map(item => {
                 const loja = lojas.find(l => l.id === item.loja_id);
+                // Filtra waypoints inválidos
                 return (loja && loja.latitude && loja.longitude) ? L.latLng(loja.latitude, loja.longitude) : null;
             }).filter(Boolean)
         ];
 
+        // 2. ROTA PLANEJADA (OSRM) - Desenha a linha Azul
         const routingControl = L.Routing.control({
             waypoints: waypoints,
             createMarker: function(i, waypoint, n) {
+                // Lógica de marcadores (CD e Lojas)
                  let iconHtml = '';
                 if (i === 0) {
                     iconHtml = '<div style="background: #0077B6; color: white; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">🏭 CD</div>';
@@ -5857,21 +5812,18 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             },
             routeWhileDragging: false,
             autoRoute: true,
-            lineOptions: { styles: [{ color: '#0077B6', weight: 8, opacity: 0.5 }] } // Rota Planejada (Azul, mais grossa)
+            // Linha única sólida e simples
+            lineOptions: { styles: [{ color: '#0077B6', weight: 6, opacity: 1 }] } 
         }).addTo(mapInstance);
         
         
-        // Capturar erro de roteamento e notificar
+        // 3. CAPTURA DE ERRO DO OSRM E AJUSTE DE ZOOM
         routingControl.on('routingerror', function(e) {
-             console.error("Erro no Routing Machine:", e.error.message);
-             showNotification(`Erro ao calcular rota planejada: Falha no servidor (Timeout/429). Exibindo apenas a rota real (GPS).`, 'error', 6000);
-             // Ajusta o zoom apenas para o que foi desenhado (o GPS)
-             if (bounds.isValid()) {
-                mapInstance.fitBounds(bounds, { padding: [30, 30] });
-             } else {
-                 const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
-                 mapInstance.setView(cdCoords, 11);
-             }
+             console.error("Erro no Routing Machine (Rota Planejada Falhou):", e.error.message);
+             showNotification(`Erro ao calcular rota planejada: Falha no servidor (Timeout/429).`, 'error', 6000);
+             // Se a rota falha, ajusta o zoom apenas para o CD
+             const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
+             mapInstance.setView(cdCoords, 11);
         });
 
         routingControl.on('routesfound', function(e) {
@@ -5879,14 +5831,7 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             const distance = route.summary.totalDistance / 1000;
             const duration = route.summary.totalTime / 60;
             
-            // Adiciona a rota planejada aos limites do mapa
-            try {
-                bounds.extend(routingControl.getBounds());
-            } catch (err) {
-                 console.warn("Falha ao obter bounds da rota planejada.", err);
-            }
-            
-            // Cria o painel de estatísticas (permanece igual)
+            // Cria o painel de estatísticas
             const statsControl = L.control({ position: 'topright' });
             statsControl.onAdd = function() {
                 const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
@@ -5903,17 +5848,16 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
                 return div;
             };
             statsControl.addTo(mapInstance);
-
-            // Ajusta o zoom para cobrir as duas rotas (planejada e real)
-            if (bounds.isValid()) {
-                 mapInstance.fitBounds(bounds, { padding: [30, 30] });
-            }
+            
+            // Ajusta o zoom para a rota encontrada
+             mapInstance.fitBounds(routingControl.getBounds(), { padding: [30, 30] });
         });
 
+        // 4. LIMPEZA E LEGENDAS
         const routingAlt = document.querySelector('.leaflet-routing-alt');
         if (routingAlt) routingAlt.style.display = 'none';
 
-        // Adicionar uma legenda simples (permanece igual)
+        // Legenda simples para a Rota Planejada
         const legend = L.control({ position: 'bottomleft' });
         legend.onAdd = function (map) {
             const div = L.DomUtil.create('div', 'info legend');
@@ -5923,13 +5867,11 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             div.style.boxShadow = '0 1px 5px rgba(0,0,0,0.4)';
             div.innerHTML +=
                 '<b>Legenda:</b><br>' +
-                '<i style="background:#0077B6; width:18px; height: 3px; display:inline-block; margin-right: 5px; opacity: 0.5;"></i> Rota Planejada (OSRM)<br>' +
-                '<i style="background:#10B981; width:18px; height: 3px; display:inline-block; margin-right: 5px; border-top: 2px dashed; border-color: #10B981; opacity: 0.8;"></i> Rota Real (GPS)';
+                '<i style="background:#0077B6; width:18px; height: 3px; display:inline-block; margin-right: 5px; opacity: 1;"></i> Rota Planejada (OSRM)';
             return div;
         };
         legend.addTo(mapInstance);
         
-        // Garante que o mapa seja exibido corretamente no modal
         setTimeout(() => { mapInstance.invalidateSize(); }, 500);
         
     } catch (error) {
