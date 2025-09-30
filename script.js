@@ -29,35 +29,22 @@ let masterUserPermission = false;
 let gruposAcesso = [];
 
 
-
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
+// SUBSTITUIR A VERSÃO EXISTENTE DE loadUserPermissions
 async function loadUserPermissions(userId, grupoId) {
     masterUserPermission = false;
-    let finalPermissionsSet = new Set(); // Usa um Set para armazenar permissões
+    let finalPermissionsSet = new Set();
     
-    // 1. Verificar se é Master (Grupo)
+    // 1. Carregar Permissões do Grupo
     if (grupoId) {
-        // ... (lógica de checagem MASTER omitida para brevidade, mas deve estar correta)
-        const grupo = await supabaseRequest(`grupos_acesso?id=eq.${grupoId}&select=nome`, 'GET', null, false);
-        if (grupo && grupo.length > 0 && grupo[0].nome === 'MASTER') {
-            masterUserPermission = true;
-            userPermissions = [];
-            return; 
-        }
-        
-        // 2. Carregar Permissões do Grupo
         // Desativa o filtro de filial (4º parâmetro = false)
         const permissoesGrupo = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
         
         if (permissoesGrupo && Array.isArray(permissoesGrupo)) {
-            // 🚨 ADICIONA TODAS AS PERMISSÕES DE GRUPO AO SET 🚨
             permissoesGrupo.forEach(p => finalPermissionsSet.add(p.permissao));
         }
     }
     
-    // 3. Carregar Permissões Individuais e Sobrescrever/Adicionar
-    // ESTA É A LÓGICA CRÍTICA DE SOBRESCRITA!
+    // 2. Carregar Permissões Individuais e Sobrescrever/Adicionar
     if (userId) {
         // Desativa o filtro de filial (4º parâmetro = false)
         const permissoesUsuario = await supabaseRequest(`permissoes_usuario?usuario_id=eq.${userId}&select=permissao_codigo,tem_permissao`, 'GET', null, false);
@@ -66,10 +53,8 @@ async function loadUserPermissions(userId, grupoId) {
             permissoesUsuario.forEach(p => {
                 const code = p.permissao_codigo;
                 
-                // Se o usuário tem permissão individual (tem_permissao = true), ADICIONA (sobrescreve o grupo)
                 if (p.tem_permissao === true) { 
                     finalPermissionsSet.add(code); 
-                // Se o usuário tem uma NEGAÇÃO individual (tem_permissao = false), REMOVE (sobrescreve o grupo)
                 } else if (p.tem_permissao === false) { 
                     finalPermissionsSet.delete(code); 
                 }
@@ -78,8 +63,16 @@ async function loadUserPermissions(userId, grupoId) {
     }
     
     userPermissions = Array.from(finalPermissionsSet);
-    // 🚨 DEBUG: Veja o array final de permissões 🚨
-    console.log("DEBUG FINAL: Array de Permissões Pronto:", userPermissions); 
+    
+    // 🚨 CORREÇÃO FINAL MASTER: Verifica se a permissão 'gerenciar_permissoes' existe 🚨
+    // O Master é definido por ter a permissão de Gerenciamento, e não pelo nome do grupo.
+    if (userPermissions.includes('gerenciar_permissoes')) {
+         masterUserPermission = true;
+         // Se for Master, damos a ele TODAS as permissões de filial para simplificar a UX
+         const todasFiliais = await supabaseRequest('filiais?select=nome&ativo=eq.true', 'GET', null, false);
+         todasFiliais.forEach(f => userPermissions.push(`acesso_filial_${f.nome}`));
+         // E também todas as outras permissões, se necessário, mas o 'masterUserPermission = true' já faz o bypass na hasPermission.
+    }
 }
 
 
