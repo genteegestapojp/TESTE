@@ -279,7 +279,11 @@ async function selectFilial(filial) {
 }
         
         // NOVO: Carrega o conteúdo das abas originais para as divs de view
-        async function loadAllTabData() {
+        // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// SUBSTITUA a função loadAllTabData() completa:
+
+async function loadAllTabData() {
             
             document.getElementById('operacao').innerHTML = `
     <h1 class="text-3xl font-bold text-gray-800 mb-6">Operação</h1>
@@ -769,7 +773,6 @@ async function selectFilial(filial) {
             <button class="sub-tab" onclick="showSubTab('configuracoes', 'sistema', this)">Sistema</button>
         </div>
 
-        <!-- FILIAIS -->
         <div id="filiais" class="sub-tab-content active">
             <div class="transport-card">
                 <div class="flex justify-between items-center mb-4">
@@ -795,14 +798,13 @@ async function selectFilial(filial) {
             </div>
         </div>
 
-        <!-- LOJAS -->
         <div id="lojas" class="sub-tab-content">
             <div class="transport-card">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-semibold">Gerenciar Lojas</h3>
                     <div class="flex gap-2">
                         <button class="btn btn-primary" onclick="showAllLojasMap()">Ver no Mapa</button>
-                        <button class="btn btn-success" onclick="('loja')">+ Nova Loja</button>
+                        <button class="btn btn-success" onclick="showAddForm('loja')">+ Nova Loja</button>
                     </div>
                 </div>
                 <div class="table-container bg-white rounded-lg shadow-md">
@@ -825,12 +827,11 @@ async function selectFilial(filial) {
             </div>
         </div>
 
-        <!-- DOCAS -->
         <div id="docas" class="sub-tab-content">
             <div class="transport-card">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-semibold">Gerenciar Docas</h3>
-                    <button class="btn btn-success" onclick="('doca')">+ Nova Doca</button>
+                    <button class="btn btn-success" onclick="showAddForm('doca')">+ Nova Doca</button>
                 </div>
                 <div class="table-container bg-white rounded-lg shadow-md">
                     <table class="w-full">
@@ -851,12 +852,11 @@ async function selectFilial(filial) {
             </div>
         </div>
 
-        <!-- VEÍCULOS -->
         <div id="veiculos" class="sub-tab-content">
             <div class="transport-card">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-semibold">Gerenciar Frota</h3>
-                    <button class="btn btn-success" onclick="('veiculo')">+ Novo Veículo</button>
+                    <button class="btn btn-success" onclick="showAddForm('veiculo')">+ Novo Veículo</button>
                 </div>
                 <div class="table-container bg-white rounded-lg shadow-md">
                     <table class="w-full">
@@ -878,12 +878,11 @@ async function selectFilial(filial) {
             </div>
         </div>
 
-        <!-- MOTORISTAS -->
         <div id="motoristasConfig" class="sub-tab-content">
             <div class="transport-card">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-semibold">Gerenciar Motoristas</h3>
-                    <button class="btn btn-success" onclick="('motorista')">+ Novo Motorista</button>
+                    <button class="btn btn-success" onclick="showAddForm('motorista')">+ Novo Motorista</button>
                 </div>
                 <div class="table-container bg-white rounded-lg shadow-md">
                     <table class="w-full">
@@ -903,12 +902,11 @@ async function selectFilial(filial) {
             </div>
         </div>
 
-        <!-- LÍDERES -->
         <div id="lideres" class="sub-tab-content">
             <div class="transport-card">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-semibold">Gerenciar Líderes</h3>
-                    <button class="btn btn-success" onclick="('lider')">+ Novo Líder</button>
+                    <button class="btn btn-success" onclick="showAddForm('lider')">+ Novo Líder</button>
                 </div>
                 <div class="table-container bg-white rounded-lg shadow-md">
                     <table class="w-full">
@@ -928,14 +926,13 @@ async function selectFilial(filial) {
             </div>
         </div>
 
-        <!-- PONTOS DE INTERESSE -->
         <div id="pontosInteresse" class="sub-tab-content">
             <div class="transport-card">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-semibold">Gerenciar Pontos de Interesse</h3>
                     <div class="flex gap-2">
                         <button class="btn btn-primary" onclick="showPontosInteresseMap()">Ver no Mapa</button>
-                        <button class="btn btn-success" onclick="showAddPontoInteresse()">+ Novo Ponto</button>
+                        <button class="btn btn-success" onclick="showAddForm('pontoInteresse')">+ Novo Ponto</button>
                     </div>
                 </div>
                 <div class="table-container bg-white rounded-lg shadow-md">
@@ -958,12 +955,14 @@ async function selectFilial(filial) {
             </div>
         </div>
 
-        <!-- ACESSOS -->
         <div id="acessos" class="sub-tab-content">
             <div class="transport-card">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-semibold">Gerenciar Acessos</h3>
-                    <button class="btn btn-success" onclick="('acesso')">+ Novo Acesso</button>
+                    <div class="flex gap-2">
+                        <button class="btn btn-primary" onclick="showAddForm('grupo')">+ Novo Grupo</button>
+                        <button class="btn btn-success" onclick="showAddForm('acesso')">+ Novo Usuário</button>
+                    </div>
                 </div>
                 <div class="table-container bg-white rounded-lg shadow-md">
                     <table class="w-full">
@@ -982,7 +981,6 @@ async function selectFilial(filial) {
             </div>
         </div>
 
-        <!-- SISTEMA -->
         <div id="sistema" class="sub-tab-content">
             <div class="transport-card">
                 <h3 class="text-xl font-semibold mb-4">Status do Sistema</h3>
@@ -993,17 +991,17 @@ async function selectFilial(filial) {
 </div>
 `;
 
-
-// Adicionar event listeners aos formulários
-document.getElementById('expeditionForm').addEventListener('submit', (e) => { e.preventDefault(); lancarCarga(); });
-document.getElementById('editExpeditionForm').addEventListener('submit', (e) => { e.preventDefault(); saveEditedExpedition(); });
-document.getElementById('passwordForm').addEventListener('submit', (e) => { e.preventDefault(); checkPassword(); });
-document.getElementById('addForm').addEventListener('submit', (e) => { e.preventDefault(); handleSave(); });
-// Event listener para o formulário de autenticação de edição
-document.getElementById('authEditForm').addEventListener('submit', (e) => { 
-    e.preventDefault(); 
-    checkAuthForEdit(); 
-});
+            
+            // Adicionar event listeners aos formulários
+            document.getElementById('expeditionForm').addEventListener('submit', (e) => { e.preventDefault(); lancarCarga(); });
+            document.getElementById('editExpeditionForm').addEventListener('submit', (e) => { e.preventDefault(); saveEditedExpedition(); });
+            document.getElementById('passwordForm').addEventListener('submit', (e) => { e.preventDefault(); checkPassword(); });
+            document.getElementById('addForm').addEventListener('submit', (e) => { e.preventDefault(); handleSave(); });
+            // Event listener para o formulário de autenticação de edição
+            document.getElementById('authEditForm').addEventListener('submit', (e) => { 
+                e.preventDefault(); 
+                checkAuthForEdit(); 
+            });
 
             // Carregar dados para os selects
             await loadSelectData();
@@ -4694,7 +4692,9 @@ async function checkPassword() {
         }
         
       // Substitua a função showAddForm no seu script.js (cerca da linha 2689)
-function showAddForm(type) {
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+function showAddForm(type, itemToEdit = null) {
     const modal = document.getElementById('addFormModal');
     const title = document.getElementById('addFormTitle');
     const fieldsContainer = document.getElementById('addFormFields');
@@ -4702,118 +4702,178 @@ function showAddForm(type) {
 
     let formHtml = '';
     
+    // Adiciona lógica de edição
+    const isEditing = itemToEdit && typeof itemToEdit === 'object';
+    const editData = isEditing ? itemToEdit : {};
+    
+    // Atualiza o texto do botão salvar
+    const saveButton = document.querySelector('#addFormModal button[type="submit"]');
+    if (saveButton) {
+        saveButton.textContent = isEditing ? 'Salvar Edição' : 'Salvar';
+    }
+
+
     if (type === 'filial') {
-        title.textContent = `Adicionar Nova Filial`;
+        title.textContent = isEditing ? `Editar Filial: ${editData.nome}` : `Adicionar Nova Filial`;
         formHtml = `
-            <div class="form-group"><label>Nome da Filial (Ex: 464):</label><input type="text" id="add_nome" required></div>
-            <div class="form-group"><label>Descrição (Ex: MT):</label><input type="text" id="add_descricao" required></div>
-            <div class="form-group md:col-span-2"><label>Endereço do CD (Ponto de Partida):</label><input type="text" id="add_endereco_cd" placeholder="Rua, Número, Cidade" required></div>
-            <div class="form-group"><label>Latitude do CD:</label><input type="number" id="add_latitude_cd" step="0.000001" placeholder="-15.601400"></div>
-            <div class="form-group"><label>Longitude do CD:</label><input type="number" id="add_longitude_cd" step="0.000001" placeholder="-56.097900"></div>
+            ${isEditing ? `<input type="hidden" id="edit_filial_nome" value="${editData.nome}">` : ''}
+            <div class="form-group"><label>Nome da Filial (Ex: 464):</label><input type="text" id="add_nome" value="${editData.nome || ''}" required ${isEditing ? 'readonly' : ''}></div>
+            <div class="form-group"><label>Descrição (Ex: MT):</label><input type="text" id="add_descricao" value="${editData.descricao || ''}" required></div>
+            <div class="form-group md:col-span-2"><label>Endereço do CD (Ponto de Partida):</label><input type="text" id="add_endereco_cd" value="${editData.endereco_cd || ''}" placeholder="Rua, Número, Cidade" required></div>
+            <div class="form-group"><label>Latitude do CD:</label><input type="number" id="add_latitude_cd" step="0.000001" value="${editData.latitude_cd || ''}" placeholder="-15.601400"></div>
+            <div class="form-group"><label>Longitude do CD:</label><input type="number" id="add_longitude_cd" step="0.000001" value="${editData.longitude_cd || ''}" placeholder="-56.097900"></div>
+            <div class="form-group"><label>Status:</label><select id="add_ativo">
+                <option value="true" ${editData.ativo !== false ? 'selected' : ''}>Ativa</option>
+                <option value="false" ${editData.ativo === false ? 'selected' : ''}>Inativa</option>
+            </select></div>
             <div class="text-center mt-4 md:col-span-2">
                 <button type="button" class="btn btn-secondary mr-2" onclick="getCurrentLocationFilial()">📍 Usar Localização Atual</button>
                 <button type="button" class="btn btn-primary" onclick="geocodeAddressFilial()">🌍 Buscar por Endereço</button>
             </div>
         `;
     } else if (type === 'loja') {
-        title.textContent = `Adicionar Nova Loja`;
+        title.textContent = isEditing ? `Editar Loja: ${editData.nome}` : `Adicionar Nova Loja`;
         formHtml = `
-            <div class="form-group"><label>Nome da Loja:</label><input type="text" id="add_nome" required></div>
-            <div class="form-group"><label>Código da Loja:</label><input type="text" id="add_codigo" required></div>
-            <div class="form-group"><label>Cidade:</label><input type="text" id="add_cidade" required></div>
-            <div class="form-group"><label>Código QR:</label><input type="text" id="add_codlojaqr" required></div>
-            <div class="form-group md:col-span-2"><label>Endereço Completo:</label><input type="text" id="add_endereco_completo" placeholder="Rua, Número, Bairro, CEP" required></div>
-            <div class="form-group"><label>Latitude:</label><input type="number" id="add_latitude" step="0.000001" placeholder="-15.601400"></div>
-            <div class="form-group"><label>Longitude:</label><input type="number" id="add_longitude" step="0.000001" placeholder="-56.097900"></div>
-            <div class="form-group"><label>Status:</label><select id="add_ativo"><option value="true">Ativa</option><option value="false">Inativa</option></select></div>
+            ${isEditing ? `<input type="hidden" id="edit_loja_id" value="${editData.id}">` : ''}
+            <div class="form-group"><label>Nome da Loja:</label><input type="text" id="add_nome" value="${editData.nome || ''}" required></div>
+            <div class="form-group"><label>Código da Loja:</label><input type="text" id="add_codigo" value="${editData.codigo || ''}" required></div>
+            <div class="form-group"><label>Cidade:</label><input type="text" id="add_cidade" value="${editData.cidade || ''}" required></div>
+            <div class="form-group"><label>Código QR:</label><input type="text" id="add_codlojaqr" value="${editData.codlojaqr || ''}" required></div>
+            <div class="form-group md:col-span-2"><label>Endereço Completo:</label><input type="text" id="add_endereco_completo" value="${editData.endereco_completo || ''}" placeholder="Rua, Número, Bairro, CEP" required></div>
+            <div class="form-group"><label>Latitude:</label><input type="number" id="add_latitude" step="0.000001" value="${editData.latitude || ''}" placeholder="-15.601400"></div>
+            <div class="form-group"><label>Longitude:</label><input type="number" id="add_longitude" step="0.000001" value="${editData.longitude || ''}" placeholder="-56.097900"></div>
+            <div class="form-group"><label>Status:</label><select id="add_ativo">
+                <option value="true" ${editData.ativo !== false ? 'selected' : ''}>Ativa</option>
+                <option value="false" ${editData.ativo === false ? 'selected' : ''}>Inativa</option>
+            </select></div>
             <div class="text-center mt-4 md:col-span-2">
                 <button type="button" class="btn btn-secondary mr-2" onclick="getCurrentLocation()">📍 Usar Localização Atual</button>
                 <button type="button" class="btn btn-primary" onclick="geocodeAddress()">🌍 Buscar por Endereço</button>
             </div>
         `;
     } else if (type === 'doca') {
-        title.textContent = `Adicionar Nova Doca`;
+        title.textContent = isEditing ? `Editar Doca: ${editData.nome}` : `Adicionar Nova Doca`;
         formHtml = `
-            <div class="form-group"><label>Nome da Doca:</label><input type="text" id="add_nome" required></div>
-            <div class="form-group"><label>Capacidade (Pallets):</label><input type="number" id="add_capacidade_pallets" min="0" required></div>
-            <div class="form-group"><label>Código QR:</label><input type="text" id="add_coddoca" required></div>
+            ${isEditing ? `<input type="hidden" id="edit_doca_id" value="${editData.id}">` : ''}
+            <div class="form-group"><label>Nome da Doca:</label><input type="text" id="add_nome" value="${editData.nome || ''}" required></div>
+            <div class="form-group"><label>Capacidade (Pallets):</label><input type="number" id="add_capacidade_pallets" min="0" value="${editData.capacidade_pallets || ''}" required></div>
+            <div class="form-group"><label>Código QR:</label><input type="text" id="add_coddoca" value="${editData.coddoca || ''}" required></div>
+             <div class="form-group"><label>Status:</label><select id="add_ativo">
+                <option value="true" ${editData.ativo !== false ? 'selected' : ''}>Ativa</option>
+                <option value="false" ${editData.ativo === false ? 'selected' : ''}>Inativa</option>
+            </select></div>
         `;
     } else if (type === 'lider') {
-        title.textContent = `Adicionar Novo Líder`;
+        title.textContent = isEditing ? `Editar Líder: ${editData.nome}` : `Adicionar Novo Líder`;
         formHtml = `
-            <div class="form-group"><label>Nome do Líder:</label><input type="text" id="add_nome" required></div>
-            <div class="form-group"><label>Matrícula:</label><input type="text" id="add_codigo_funcionario" required></div>
+            ${isEditing ? `<input type="hidden" id="edit_lider_id" value="${editData.id}">` : ''}
+            <div class="form-group"><label>Nome do Líder:</label><input type="text" id="add_nome" value="${editData.nome || ''}" required></div>
+            <div class="form-group"><label>Matrícula:</label><input type="text" id="add_codigo_funcionario" value="${editData.codigo_funcionario || ''}" required></div>
+            <div class="form-group"><label>Status:</label><select id="add_ativo">
+                <option value="true" ${editData.ativo !== false ? 'selected' : ''}>Ativa</option>
+                <option value="false" ${editData.ativo === false ? 'selected' : ''}>Inativa</option>
+            </select></div>
         `;
     } else if (type === 'veiculo') {
-        title.textContent = `Adicionar Novo Veículo`;
+        title.textContent = isEditing ? `Editar Veículo: ${editData.placa}` : `Adicionar Novo Veículo`;
         formHtml = `
-            <div class="form-group"><label>Placa:</label><input type="text" id="add_placa" required></div>
-            <div class="form-group"><label>Modelo:</label><input type="text" id="add_modelo" required></div>
-            <div class="form-group"><label>Capacidade (Pallets):</label><input type="number" id="add_capacidade_pallets" min="1" required></div>
-            <div class="form-group"><label>Tipo:</label><select id="add_tipo" required><option value="JJS">JJS</option><option value="PERLOG">PERLOG</option></select></div>
-            <div class="form-group"><label>Status:</label><select id="add_status" required><option value="disponivel">Disponível</option><option value="em_uso">Em Uso</option><option value="manutencao">Manutenção</option></select></div>
+            ${isEditing ? `<input type="hidden" id="edit_veiculo_id" value="${editData.id}">` : ''}
+            <div class="form-group"><label>Placa:</label><input type="text" id="add_placa" value="${editData.placa || ''}" required></div>
+            <div class="form-group"><label>Modelo:</label><input type="text" id="add_modelo" value="${editData.modelo || ''}" required></div>
+            <div class="form-group"><label>Capacidade (Pallets):</label><input type="number" id="add_capacidade_pallets" min="1" value="${editData.capacidade_pallets || ''}" required></div>
+            <div class="form-group"><label>Tipo:</label><select id="add_tipo" required>
+                <option value="JJS" ${editData.tipo === 'JJS' ? 'selected' : ''}>JJS</option>
+                <option value="PERLOG" ${editData.tipo === 'PERLOG' ? 'selected' : ''}>PERLOG</option>
+            </select></div>
+            <div class="form-group"><label>Status:</label><select id="add_status" required>
+                <option value="disponivel" ${editData.status === 'disponivel' ? 'selected' : ''}>Disponível</option>
+                <option value="em_uso" ${editData.status === 'em_uso' ? 'selected' : ''}>Em Uso</option>
+                <option value="manutencao" ${editData.status === 'manutencao' ? 'selected' : ''}>Manutenção</option>
+            </select></div>
         `;
     } else if (type === 'motorista') {
-        title.textContent = `Adicionar Novo Motorista`;
+        title.textContent = isEditing ? `Editar Motorista: ${editData.nome}` : `Adicionar Novo Motorista`;
         formHtml = `
-            <div class="form-group"><label>Nome:</label><input type="text" id="add_nome" required></div>
-            <div class="form-group"><label>Produtivo (Matrícula):</label><input type="text" id="add_produtivo" required></div>
-            <div class="form-group"><label>Status:</label><select id="add_status" required><option value="disponivel">Disponível</option><option value="em_viagem">Em Viagem</option><option value="folga">Folga</option></select></div>
+            ${isEditing ? `<input type="hidden" id="edit_motorista_id" value="${editData.id}">` : ''}
+            <div class="form-group"><label>Nome:</label><input type="text" id="add_nome" value="${editData.nome || ''}" required></div>
+            <div class="form-group"><label>Produtivo (Matrícula):</label><input type="text" id="add_produtivo" value="${editData.PRODUTIVO || ''}" required></div>
+            <div class="form-group"><label>Status:</label><select id="add_status" required>
+                <option value="disponivel" ${editData.status === 'disponivel' ? 'selected' : ''}>Disponível</option>
+                <option value="em_viagem" ${editData.status === 'em_viagem' ? 'selected' : ''}>Em Viagem</option>
+                <option value="folga" ${editData.status === 'folga' ? 'selected' : ''}>Folga</option>
+            </select></div>
         `;
-    } else if (type === 'grupo') { // NOVO TIPO PARA GRUPO DE ACESSO
-        title.textContent = `Adicionar Novo Grupo`;
+    } else if (type === 'grupo') { // LÓGICA DO GRUPO (CRIAÇÃO E EDIÇÃO)
+        title.textContent = isEditing ? `Editar Grupo: ${editData.nome}` : `Adicionar Novo Grupo`;
         formHtml = `
-            <div class="form-group"><label>Nome do Grupo:</label><input type="text" id="add_nome" required></div>
+            ${isEditing ? `<input type="hidden" id="edit_grupo_id" value="${editData.id}">` : ''}
+            <div class="form-group"><label>Nome do Grupo:</label><input type="text" id="add_nome" value="${editData.nome || ''}" required></div>
         `;
-    } else if (type === 'acesso') { // TIPO AJUSTADO: AGORA USA GRUPO_ID
-        title.textContent = `Adicionar Novo Usuário`;
+    } else if (type === 'acesso') { // LÓGICA DE USUÁRIO
+        title.textContent = isEditing ? `Editar Usuário: ${editData.nome}` : `Adicionar Novo Usuário`;
         // Usar gruposAcesso global para preencher o select
-        const gruposHtml = gruposAcesso.map(g => `<option value="${g.id}">${g.nome}</option>`).join('');
+        const gruposHtml = gruposAcesso.map(g => `<option value="${g.id}" ${editData.grupo_id === g.id ? 'selected' : ''}>${g.nome}</option>`).join('');
+        
+        // Se estiver editando, o itemToEdit.nome será o valor de 'acesso' a ser editado
+        const nomeAcesso = editData.nome || '';
+        
         formHtml = `
-            <div class="form-group"><label>Nome de Usuário:</label><input type="text" id="add_nome" required></div>
-            <div class="form-group"><label>Senha:</label><input type="password" id="add_senha" required></div>
+            ${isEditing ? `<input type="hidden" id="edit_acesso_id" value="${editData.id || ''}">` : ''}
+            <div class="form-group"><label>Nome de Usuário:</label><input type="text" id="add_nome" value="${nomeAcesso}" required></div>
+            <div class="form-group"><label>${isEditing ? 'Nova Senha:' : 'Senha:'}</label><input type="password" id="add_senha" ${!isEditing ? 'required' : ''} placeholder="${isEditing ? 'Deixe em branco para manter a atual' : ''}"></div>
             <div class="form-group"><label>Grupo de Acesso:</label><select id="add_grupo_id" required>
                 <option value="">Selecione um Grupo</option>
                 ${gruposHtml}
             </select></div>
         `;
     } else if (type === 'pontoInteresse') {
-        title.textContent = 'Adicionar Ponto de Interesse';
+        title.textContent = isEditing ? `Editar Ponto: ${editData.nome}` : 'Adicionar Ponto de Interesse';
+         // Lógica do select de lojas para preencher campos (apenas para a criação)
+        const lojasOptions = lojas.map(loja => `<option value="${loja.id}">${loja.codigo} - ${loja.nome}</option>`).join('');
+
         formHtml = `
-            <div class="form-group md:col-span-2">
+            ${isEditing ? `<input type="hidden" id="edit_ponto_id" value="${editData.id}">` : ''}
+            <div class="form-group md:col-span-2" ${isEditing ? 'style="display:none;"' : ''}>
                 <label>Selecionar Loja (opcional):</label>
                 <select id="add_loja_id" class="w-full">
                     <option value="">-- Ou insira um ponto manualmente --</option>
-                    ${lojas.map(loja => `<option value="${loja.id}">${loja.codigo} - ${loja.nome}</option>`).join('')}
+                    ${lojasOptions}
                 </select>
             </div>
-            <div class="form-group"><label>Nome do Ponto:</label><input type="text" id="add_nome" placeholder="Ex: CD Principal, Loja 123, etc." required></div>
+            <div class="form-group"><label>Nome do Ponto:</label><input type="text" id="add_nome" value="${editData.nome || ''}" placeholder="Ex: CD Principal, Loja 123, etc." required></div>
             <div class="form-group"><label>Tipo:</label><select id="add_tipo" required>
-                <option value="CD">Centro de Distribuição</option>
-                <option value="LOJA">Loja</option>
-                <option value="POSTO">Posto de Combustível</option>
-                <option value="CASA">Casa/Residência</option>
-                <option value="OUTRO">Outro</option>
+                <option value="CD" ${editData.tipo === 'CD' ? 'selected' : ''}>Centro de Distribuição</option>
+                <option value="LOJA" ${editData.tipo === 'LOJA' ? 'selected' : ''}>Loja</option>
+                <option value="POSTO" ${editData.tipo === 'POSTO' ? 'selected' : ''}>Posto de Combustível</option>
+                <option value="CASA" ${editData.tipo === 'CASA' ? 'selected' : ''}>Casa/Residência</option>
+                <option value="OUTRO" ${editData.tipo === 'OUTRO' ? 'selected' : ''}>Outro</option>
             </select></div>
-            <div class="form-group"><label>Latitude:</label><input type="number" id="add_latitude" step="0.000001" placeholder="-15.601400" required></div>
-            <div class="form-group"><label>Longitude:</label><input type="number" id="add_longitude" step="0.000001" value="" placeholder="-56.097900" required></div>
-            <div class="form-group"><label>Raio de Detecção (metros):</label><input type="number" id="add_raio_deteccao" min="50" max="2000" value="200" required></div>
+            <div class="form-group"><label>Latitude:</label><input type="number" id="add_latitude" step="0.000001" value="${editData.latitude || ''}" placeholder="-15.601400" required></div>
+            <div class="form-group"><label>Longitude:</label><input type="number" id="add_longitude" step="0.000001" value="${editData.longitude || ''}" placeholder="-56.097900" required></div>
+            <div class="form-group"><label>Raio de Detecção (metros):</label><input type="number" id="add_raio_deteccao" min="50" max="2000" value="${editData.raio_deteccao || 200}" required></div>
             <div class="form-group"><label>Cor no Mapa:</label><select id="add_cor">
-                <option value="#0077B6">Azul</option>
-                <option value="#EF4444">Vermelho</option>
-                <option value="#10B981">Verde</option>
-                <option value="#F59E0B">Laranja</option>
-                <option value="#8B5CF6">Roxo</option>
-                <option value="#EC4899">Rosa</option>
+                <option value="#0077B6" ${editData.cor === '#0077B6' ? 'selected' : ''}>Azul</option>
+                <option value="#EF4444" ${editData.cor === '#EF4444' ? 'selected' : ''}>Vermelho</option>
+                <option value="#10B981" ${editData.cor === '#10B981' ? 'selected' : ''}>Verde</option>
+                <option value="#F59E0B" ${editData.cor === '#F59E0B' ? 'selected' : ''}>Laranja</option>
+                <option value="#8B5CF6" ${editData.cor === '#8B5CF6' ? 'selected' : ''}>Roxo</option>
+                <option value="#EC4899" ${editData.cor === '#EC4899' ? 'selected' : ''}>Rosa</option>
             </select></div>
-            <div class="form-group" style="display:none;"><label>Status:</label><select id="add_ativo"><option value="true">Ativo</option><option value="false">Inativo</option></select></div>
+            <div class="form-group"><label>Status:</label><select id="add_ativo">
+                <option value="true" ${editData.ativo !== false ? 'selected' : ''}>Ativo</option>
+                <option value="false" ${editData.ativo === false ? 'selected' : ''}>Inativo</option>
+            </select></div>
+            <div class="text-center mt-4 md:col-span-2">
+                <button type="button" class="btn btn-secondary mr-2" onclick="getCurrentLocation()">📍 Usar Localização Atual</button>
+            </div>
         `;
     }
+    
     fieldsContainer.innerHTML = formHtml;
     modal.style.display = 'flex';
     
-    // NOVO: Adicionar listener para o select de loja no Ponto de Interesse
-    if (type === 'pontoInteresse') {
+    // NOVO: Adicionar listener para o select de loja no Ponto de Interesse (apenas no modo de adição)
+    if (type === 'pontoInteresse' && !isEditing) {
         const lojaSelect = document.getElementById('add_loja_id');
         if (lojaSelect) {
             lojaSelect.addEventListener('change', (e) => {
@@ -6712,6 +6772,8 @@ async function renderAcessosConfig() {
         let gruposHtml = '<tr><td colspan="3" class="font-bold text-center bg-gray-200">GRUPOS DE ACESSO</td></tr>';
         
         gruposData.forEach(grupo => {
+            // Usamos JSON.stringify e o replace para passar o objeto como string para o onclick
+            const grupoJson = JSON.stringify(grupo).replace(/"/g, "'"); 
             gruposHtml += `
                 <tr class="hover:bg-gray-50">
                     <td class="font-medium">${grupo.nome}</td>
@@ -6719,7 +6781,7 @@ async function renderAcessosConfig() {
                     <td>
                         <div class="flex gap-1">
                             <button class="btn btn-primary btn-small" onclick="managePermissionsModal('${grupo.id}', '${grupo.nome}', 'grupo')">Permissões</button>
-                            <button class="btn btn-warning btn-small" onclick="showAddGroupForm(${JSON.stringify(grupo).replace(/"/g, '"')})">Editar</button>
+                            <button class="btn btn-warning btn-small" onclick="showAddForm('grupo', ${grupoJson})">Editar</button>
                             <button class="btn btn-danger btn-small" onclick="deleteGroup('${grupo.id}')">Excluir</button>
                         </div>
                     </td>
@@ -6728,12 +6790,10 @@ async function renderAcessosConfig() {
         });
         
         // 2. Carregar Usuários Individuais
-        // 💡 AJUSTE CRUCIAL: Alterado para 'grupo_id(nome)' (o nome da coluna FK) para garantir que o resultado aninhado seja acessível via 'acesso.grupo_id.nome'.
         const acessosData = await supabaseRequest('acessos?select=id,nome,grupo_id(nome)&order=nome', 'GET', null, false);
         let acessosHtml = '<tr><td colspan="3" class="font-bold text-center bg-gray-200">USUÁRIOS INDIVIDUAIS</td></tr>';
 
         acessosData.forEach(acesso => {
-            // 💡 ACESSO SEGURO: Verifica se o campo grupo_id é um objeto com o nome.
             const grupoNome = acesso.grupo_id && typeof acesso.grupo_id === 'object' && acesso.grupo_id.nome 
                              ? acesso.grupo_id.nome 
                              : 'SEM GRUPO';
