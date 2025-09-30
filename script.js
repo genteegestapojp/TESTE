@@ -7328,7 +7328,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
-// SUBSTITUIR A VERSÃO EXISTENTE DE handleInitialLogin
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// SUBSTITUIR A VERSÃO EXISTENTE DE handleInitialLogin (Aprox. linha 3737)
 async function handleInitialLogin(event) {
     event.preventDefault();
     const nome = document.getElementById('initialUser').value.trim();
@@ -7342,37 +7344,63 @@ async function handleInitialLogin(event) {
     alertContainer.innerHTML = '<div class="loading">Autenticando...</div>';
 
     try {
-        // 🚨 AJUSTE DE ESTADO: Garante que a filial global não está definida
-        selectedFilial = null; // <-- LINHA ADICIONADA AQUI
+        // GARANTIA: Reseta o estado global antes da autenticação
+        selectedFilial = null;
 
-        // Busca o acesso pelo nome e senha, incluindo o grupo_id e o ID do acesso.
-        const endpoint = `acessos?select=id,nome,grupo_id&nome=eq.${nome}&senha=eq.${senha}`;
-        const result = await supabaseRequest(endpoint, 'GET', null, false);
+        // 🚨 NOVO CÓDIGO: Fetch DIRETO para autenticação, eliminando o supabaseRequest 🚨
+        const authUrl = `${SUPABASE_URL}/rest/v1/acessos?select=id,nome,grupo_id&nome=eq.${nome}&senha=eq.${senha}`;
+        
+        const authResponse = await fetch(authUrl, {
+            method: 'GET',
+            headers: headers // Usa os headers globais (API Key)
+        });
+
+        if (!authResponse.ok) {
+            // Se o status for 401, a RLS na tabela 'acessos' está ativada.
+            const errorText = await authResponse.text();
+            throw new Error(`Erro ${authResponse.status} na autenticação. RLS na tabela 'acessos' está bloqueando a leitura!`);
+        }
+        
+        const result = await authResponse.json();
+        // 🚨 FIM NOVO CÓDIGO 🚨
 
         if (!result || result.length === 0 || !result[0]) {
             alertContainer.innerHTML = '<div class="alert alert-error">Usuário ou senha incorretos.</div>';
             return;
         }
-// ... (restante da função é igual)
+
         const user = result[0];
         currentUser = {
-// ...
+            id: user.id, // ID do acesso na tabela 'acessos'
+            nome: user.nome,
+            grupoId: user.grupo_id
         };
 
         // 1. Carregar as permissões do usuário (Grupo + Individual)
         await loadUserPermissions(currentUser.id, currentUser.grupoId);
         
-// ... (restante da função)
+        // 2. Se o usuário é Master, ele ganha acesso a todas as filiais
+        if (masterUserPermission) {
+            // Buscamos todas as filiais ATIVAS no banco (usa supabaseRequest com false)
+            const todasFiliais = await supabaseRequest('filiais?select=nome&ativo=eq.true', 'GET', null, false);
+            todasFiliais.forEach(f => userPermissions.push(`acesso_filial_${f.nome}`));
+        }
+
         // 3. Carrega as filiais ativas e determina o acesso/redirecionamento
         await loadFiliais(); 
 
         showNotification(`Bem-vindo, ${currentUser.nome}!`, 'success');
 
     } catch (err) {
-        alertContainer.innerHTML = '<div class="alert alert-error">Erro ao verificar credenciais.</div>';
+        let msg = 'Erro ao verificar credenciais. Verifique a conexão.';
+        if (err.message.includes('401')) {
+             msg = `Erro crítico (401). Provavelmente a **RLS na sua tabela 'acessos' está ATIVADA** ou sua chave 'SUPABASE_ANON_KEY' está incorreta.`;
+        }
+        alertContainer.innerHTML = `<div class="alert alert-error">${msg}</div>`;
         console.error(err);
     }
 }
+
 // NOVA FUNÇÃO
 async function showMainSystem() {
     // Oculta todas as telas de seleção
