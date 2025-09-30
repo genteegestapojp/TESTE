@@ -3877,16 +3877,26 @@ function applyRastreioFilters() {
 function renderRastreioList(data) {
     const container = document.getElementById('rastreioList');
     
-    if (data.length === 0) {
+    // Filtra explicitamente qualquer nulo ou undefined que possa ter entrado
+    const safeData = data.filter(Boolean); 
+    
+    if (safeData.length === 0) {
         container.innerHTML = '<div class="alert alert-info">Nenhum veículo em rota no momento.</div>';
         return;
     }
     
-    container.innerHTML = data.map(rastreio => {
+    container.innerHTML = safeData.map(rastreio => { 
         let statusInfo = '';
         let locationInfo = '';
         let nextActionInfo = '';
         
+        // 🚨 NOVO CÓDIGO: Verifica se o status é de retorno para desabilitar o botão de trajeto 🚨
+        const isReturning = rastreio.status_rastreio === 'retornando';
+        const trajectoryButton = isReturning ?
+            `<button class="btn btn-secondary btn-small" disabled title="Trajeto de retorno não disponível">Ver Trajeto</button>` :
+            `<button class="btn btn-warning btn-small" onclick="showTrajectoryMap('${rastreio.id}', '${rastreio.veiculo_placa}')">Ver Trajeto</button>`;
+
+
         if (rastreio.status_rastreio === 'em_transito') {
             statusInfo = `<div class="flex items-center gap-2 text-blue-600"><div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div><span class="font-semibold">Em Trânsito</span></div>`;
             locationInfo = `<div class="text-sm text-gray-600">Próxima parada: <strong>${rastreio.proxima_loja?.nome || 'N/A'}</strong></div>`;
@@ -3906,19 +3916,19 @@ function renderRastreioList(data) {
             nextActionInfo = `<div class="text-xs text-gray-500">ETA CD: ${rastreio.eta.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}</div>`;
         }
         
+        // Calcular tempo desde a última atualização
         const tempoUltimaAtualizacao = rastreio.last_update ? 
             Math.round((new Date() - rastreio.last_update) / 60000) : null;
 
-        // 🚨 CORREÇÃO CRÍTICA: Verifica se pontos_proximos existe e é um array antes de chamar .map 🚨
+        // Informações de proximidade
         let proximityInfo = '';
-        const pontosProximos = rastreio.pontos_proximos;
-        if (pontosProximos && Array.isArray(pontosProximos) && pontosProximos.length > 0) {
+        if (rastreio.pontos_proximos && Array.isArray(rastreio.pontos_proximos) && rastreio.pontos_proximos.length > 0) {
             proximityInfo = `
                 <div class="proximity-alert">
                     <div class="text-sm font-medium">
                         <span class="proximity-icon">📍</span>Pontos Próximos:
                     </div>
-                    ${pontosProximos.map(p => { // O erro estava aqui
+                    ${rastreio.pontos_proximos.map(p => {
                         let icon = '';
                         if (p.ponto.tipo === 'CD') icon = '🏭';
                         else if (p.ponto.tipo === 'LOJA') icon = '🏪';
@@ -3995,9 +4005,7 @@ ${proximityInfo}
     <button class="btn btn-success btn-small" onclick="showAllVehiclesMap()">
         Mapa Geral
     </button>
-    <button class="btn btn-warning btn-small" onclick="showTrajectoryMap('${rastreio.id}', '${rastreio.veiculo_placa}')">
-        Ver Trajeto
-    </button>
+    ${trajectoryButton}
 </div>
                     </div>
                 </div>
