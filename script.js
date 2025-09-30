@@ -199,15 +199,49 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
             }, timeout);
         }
 
-       // NOVA FUNÇÃO de navegação (SUBSTITUÍDA)
+   
+
+// SUBSTITUIR A VERSÃO EXISTENTE DE showView (Aprox. linha 200 no script.js)
 function showView(viewId, element) {
-    // Verificar permissão
-    const permission = element.dataset.permission;
-    if (permission && !hasPermission(permission)) {
-        showNotification('Você não tem permissão para acessar esta aba.', 'error');
-        return;
+  
+    const permission = element.dataset.permission; 
+    
+    // 🚨 FIX CRÍTICO: Aplica o mapeamento de permissão para garantir que a checagem dupla funcione 🚨
+    let checkPermission = permission;
+    if (permission && permission.startsWith('acesso_')) {
+        // Tenta checar o termo original do HTML ('acesso_faturamento')
+        checkPermission = permission;
+    } else if (permission) {
+     
+        const mappedPermission = permission.replace('acesso_', 'view_');
+        
+        
+        if (!hasPermission(permission) && hasPermission(mappedPermission)) {
+            checkPermission = mappedPermission;
+        } else {
+            checkPermission = permission; // Volta para o original se o mapeado não ajudar
+        }
     }
 
+
+    // 1. Verificar permissão usando o termo ajustado/mapeado
+    if (checkPermission && !hasPermission(checkPermission)) {
+        // Para garantir, fazemos a checagem dupla manual novamente:
+        const alternativePermission = checkPermission.startsWith('acesso_') ? 
+            checkPermission.replace('acesso_', 'view_') : 
+            checkPermission; // Se for 'view_', mantém
+
+        if (checkPermission !== alternativePermission && hasPermission(alternativePermission)) {
+             // O usuário tem a permissão 'view_', então o acesso é permitido.
+             // Não fazemos nada e o fluxo continua.
+        } else {
+             // A checagem falhou e não há alternativa válida no array de permissões.
+             showNotification('Você não tem permissão para acessar esta aba.', 'error');
+             return;
+        }
+    }
+
+    // A partir daqui, o acesso está liberado:
     document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
 
@@ -215,20 +249,20 @@ function showView(viewId, element) {
     if(element) element.classList.add('active');
 
    // Limpa timers antigos ao trocar de view para não sobrecarregar
-Object.values(activeTimers).forEach(clearInterval);
-activeTimers = {};
+    Object.values(activeTimers).forEach(clearInterval);
+    activeTimers = {};
 
-// Limpa timer específico do rastreio
-if (rastreioTimer) {
-    clearInterval(rastreioTimer);
-    rastreioTimer = null;
-}
+    // Limpa timer específico do rastreio
+    if (rastreioTimer) {
+        clearInterval(rastreioTimer);
+        rastreioTimer = null;
+    }
 
-// Limpa timer específico do mapa da home
-if (homeMapTimer) {
-    clearInterval(homeMapTimer);
-    homeMapTimer = null;
-}
+    // Limpa timer específico do mapa da home
+    if (homeMapTimer) {
+        clearInterval(homeMapTimer);
+        homeMapTimer = null;
+    }
 
     // Carrega os dados da view selecionada
     switch(viewId) {
@@ -243,8 +277,6 @@ if (homeMapTimer) {
     }
     feather.replace(); // Redesenha os ícones
 }
-
-
 
 // NOVO: Função para determinar e aplicar o acesso à filial
 async function determineFilialAccess() {
