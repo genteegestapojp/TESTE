@@ -36,45 +36,64 @@ async function loadUserPermissions(userId, grupoId) {
     masterUserPermission = false;
     let finalPermissionsSet = new Set(); 
     
+    console.log(`DEBUG INÍCIO: Carregando permissões para User ID: ${userId}, Grupo ID: ${grupoId}`);
+
     // 1. Carregar Permissões do Grupo (Ignorado se grupoId for NULL)
     if (grupoId) {
-        // Desativa o filtro de filial (4º parâmetro = false)
-        const permissoesGrupo = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
-        
-        if (permissoesGrupo && Array.isArray(permissoesGrupo)) {
-            permissoesGrupo.forEach(p => finalPermissionsSet.add(p.permissao));
+        try {
+            // Desativa o filtro de filial (4º parâmetro = false)
+            const permissoesGrupo = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
+            console.log("DEBUG GRUPO: Dados brutos de permissões de grupo:", permissoesGrupo);
+            if (permissoesGrupo && Array.isArray(permissoesGrupo)) {
+                permissoesGrupo.forEach(p => finalPermissionsSet.add(p.permissao));
+            }
+        } catch (e) {
+            console.error("ERRO CRÍTICO: Falha ao carregar permissoes_grupo. (Pode ser RLS ou dado corrompido)", e);
         }
     }
     
     // 2. Carregar Permissões Individuais e Sobrescrever/Adicionar (Lógica do BRUNO)
     if (userId) {
-        // Desativa o filtro de filial (4º parâmetro = false)
-        const permissoesUsuario = await supabaseRequest(`permissoes_usuario?usuario_id=eq.${userId}&select=permissao_codigo,tem_permissao`, 'GET', null, false);
+        try {
+            // Desativa o filtro de filial (4º parâmetro = false)
+            const permissoesUsuario = await supabaseRequest(`permissoes_usuario?usuario_id=eq.${userId}&select=permissao_codigo,tem_permissao`, 'GET', null, false);
+            console.log("DEBUG INDIVIDUAL: Dados brutos de permissões de usuário:", permissoesUsuario);
 
-        if (permissoesUsuario && Array.isArray(permissoesUsuario)) {
-            // Se houver permissões individuais, elas sobrescrevem qualquer herança
-            permissoesUsuario.forEach(p => {
-                const code = p.permissao_codigo;
-                
-                if (p.tem_permissao === true) { 
-                    finalPermissionsSet.add(code); 
-                } else if (p.tem_permissao === false) { 
-                    finalPermissionsSet.delete(code); 
-                }
-            });
+            if (permissoesUsuario && Array.isArray(permissoesUsuario)) {
+                // Se houver permissões individuais, elas sobrescrevem qualquer herança
+                permissoesUsuario.forEach(p => {
+                    const code = p.permissao_codigo;
+                    
+                    if (p.tem_permissao === true) { 
+                        finalPermissionsSet.add(code); 
+                    } else if (p.tem_permissao === false) { 
+                        finalPermissionsSet.delete(code); 
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("ERRO CRÍTICO: Falha ao carregar permissoes_usuario.", e);
         }
     }
     
     userPermissions = Array.from(finalPermissionsSet);
     
-    // 🚨 CORREÇÃO FINAL MASTER: Verifica se a permissão 'gerenciar_permissoes' existe 🚨
+    // 3. Checagem MASTER (O MASTER deve ser definido pela permissão, não pelo nome do grupo)
     if (userPermissions.includes('gerenciar_permissoes')) {
          masterUserPermission = true;
-         // Se for Master, damos a ele TODAS as permissões de filial (se ele tiver a permissão de gerência)
-         const todasFiliais = await supabaseRequest('filiais?select=nome&ativo=eq.true', 'GET', null, false);
-         todasFiliais.forEach(f => userPermissions.push(`acesso_filial_${f.nome}`));
+         // Se for Master, damos a ele TODAS as permissões de filial (para que ele possa selecionar)
+         try {
+             const todasFiliais = await supabaseRequest('filiais?select=nome&ativo=eq.true', 'GET', null, false);
+             todasFiliais.forEach(f => userPermissions.push(`acesso_filial_${f.nome}`));
+         } catch (e) {
+             console.error("ERRO CRÍTICO: Falha ao adicionar filiais ao Master.", e);
+         }
     }
+
+    console.log("DEBUG FINAL - CONJUNTO DE PERMISSÕES:", userPermissions);
+    console.log(`DEBUG FINAL - MASTER BYPASS ATIVO: ${masterUserPermission}`);
 }
+
 
 function hasPermission(permission) {
     // Se for usuário master, sempre retorna true.
