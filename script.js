@@ -7650,7 +7650,6 @@ async function saveGroupPermissions(grupoId, checkboxes, alert) {
     const permissionsToSave = [];
     const permissionsToRemove = [];
     
-    // Coleta as permissões que devem ser mantidas/adicionadas
     checkboxes.forEach(cb => {
         const code = cb.dataset.permissionCode;
         if (cb.checked) {
@@ -7662,13 +7661,12 @@ async function saveGroupPermissions(grupoId, checkboxes, alert) {
 
     // 1. Deletar permissões que foram desmarcadas
     if (permissionsToRemove.length > 0) {
-        // Usa o endpoint correto: permissoes_grupo
         await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&permissao=in.(${permissionsToRemove.join(',')})`, 'DELETE', null, false);
     }
 
     // 2. Inserir/Atualizar permissões selecionadas usando Upsert em lote
     if (permissionsToSave.length > 0) {
-        // 🚨 AJUSTE CRÍTICO: Endpoint correto e UPSERT ativado 🚨
+        // 🚨 AJUSTE CRÍTICO: Força o UPSERT no 5º parâmetro (true) para evitar erro 409/duplicata de grupo 🚨
         await supabaseRequest('permissoes_grupo', 'POST', permissionsToSave, false, true);
     }
 }
@@ -7693,12 +7691,12 @@ async function saveUserPermissionsOverride(userId, checkboxes, alert) {
     });
 
     // Inserir/Atualizar em lote (SOBRESCRITA)
-    // Usamos o UPSERT para evitar o erro 409 (o que está no log)
     if (updates.length > 0) {
-        // 🚨 AJUSTE CRÍTICO: Força o UPSERT para resolver o erro 409 (Duplicata) 🚨
+        // 🚨 AJUSTE CRÍTICO: Força o UPSERT no 5º parâmetro (true) para resolver o erro 409 (Duplicata) 🚨
         await supabaseRequest('permissoes_usuario', 'POST', updates, false, true);
     }
 }
+
 
 // NOVO: Função para renderizar as filiais permitidas na tela de seleção
 function renderFiliaisSelection(allowedFiliais) {
