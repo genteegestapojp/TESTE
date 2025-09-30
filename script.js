@@ -5787,15 +5787,14 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         if (trajectoryData && trajectoryData.length > 0) {
             const gpsCoords = trajectoryData.map(p => L.latLng(parseFloat(p.latitude), parseFloat(p.longitude)));
             
-            // Desenha a rota real (verde tracejada)
+            // Desenha a rota real (verde tracejada) - Apenas a união dos pontos GPS
             L.polyline(gpsCoords, {
                 color: '#10B981', // Verde: Rota Real
                 weight: 5,
                 opacity: 0.8,
-                dashArray: '10, 10' // Linha tracejada
+                dashArray: '10, 10'
             }).addTo(mapInstance);
             
-            // Adiciona a rota real aos limites do mapa
             bounds.extend(L.polyline(gpsCoords).getBounds());
             
             // Marcadores de início e fim
@@ -5847,10 +5846,10 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         }).addTo(mapInstance);
         
         
-        // 🚨 FIX 2: Capturar erro de roteamento e notificar 🚨
+        // 🚨 FIX: Capturar erro de roteamento e notificar (apenas notifica, não trava) 🚨
         routingControl.on('routingerror', function(e) {
              console.error("Erro no Routing Machine:", e.error.message);
-             showNotification(`Erro ao calcular rota planejada: ${e.error.message}. Exibindo apenas a rota real (GPS).`, 'error', 6000);
+             showNotification(`Erro ao calcular rota planejada: Falha no servidor (Timeout/429).`, 'error', 6000);
              // Tenta ajustar o zoom apenas para a rota real ou o CD
              if (bounds.isValid()) {
                 mapInstance.fitBounds(bounds, { padding: [30, 30] });
@@ -5912,8 +5911,10 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         };
         legend.addTo(mapInstance);
         
+        // Garante que o mapa seja exibido corretamente no modal
+        setTimeout(() => { mapInstance.invalidateSize(); }, 500);
+        
     } catch (error) {
-        // 🚨 Se o fetch da primeira expedição falhar, garantimos que o modal feche.
         console.error('Erro ao carregar trajeto (Erro Fatal):', error);
         closeMapModal();
         showNotification('Erro fatal ao carregar dados do trajeto.', 'error');
