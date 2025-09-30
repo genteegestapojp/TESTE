@@ -3610,7 +3610,7 @@ function populateRastreioFilters() {
 
 // --- FUNCIONALIDADES DO RASTREIO EM TEMPO REAL ---
 
-// Função de rastreio em tempo real (Versão corrigida)
+// SUBSTITUIR A FUNÇÃO loadRastreioData COMPLETA
 async function loadRastreioData() {
     try {
         console.log("Iniciando carregamento dos dados de rastreio...");
@@ -3630,8 +3630,9 @@ async function loadRastreioData() {
             const veiculo = veiculos.find(v => v.id === exp.veiculo_id);
             const currentLocation = locations.find(loc => loc.expedition_id === exp.id);
             
+            // FILTRAGEM DE SEGURANÇA: Se não houver localização, pula este item
             if (!currentLocation || !currentLocation.latitude || !currentLocation.longitude) {
-                return;
+                return null;
             }
 
             const itemsOrdenados = expItems.sort((a, b) => {
@@ -3685,20 +3686,32 @@ async function loadRastreioData() {
                 })
             ];
 
+            // 🚨 AJUSTE CRÍTICO: Utiliza 'await' e trata falha de rota na promessa individual
+            let rotaCompleta = null;
             if (waypoints.length > 1) {
-                const rotaCompleta = await getRouteFromAPI(waypoints);
-                if (rotaCompleta) {
-                    distanciaTotalKm = rotaCompleta.distance / 1000;
-                    tempoTotalRota = rotaCompleta.duration / 60;
+                try {
+                    rotaCompleta = await getRouteFromAPI(waypoints);
+                } catch (e) {
+                    // Ignora o erro OSRM para esta expedição, permitindo que a aplicação continue
+                    console.error("Falha ao calcular rota completa, pulando dados de rota para esta expedição.");
                 }
+            }
+            
+            if (rotaCompleta) {
+                distanciaTotalKm = rotaCompleta.distance / 1000;
+                tempoTotalRota = rotaCompleta.duration / 60;
             }
 
             // Calcula a ETA para a próxima parada, se houver
             if (proximaLoja && proximaLoja.latitude && proximaLoja.longitude) {
-                const rotaProximaLoja = await getRouteFromAPI([{ lat: currentLocation.latitude, lng: currentLocation.longitude }, { lat: proximaLoja.latitude, lng: proximaLoja.longitude }]);
-                if(rotaProximaLoja) {
-                    const tempoEstimadoMinutos = rotaProximaLoja.duration / 60;
-                    eta = new Date(new Date().getTime() + tempoEstimadoMinutos * 60000);
+                try {
+                    const rotaProximaLoja = await getRouteFromAPI([{ lat: currentLocation.latitude, lng: currentLocation.longitude }, { lat: proximaLoja.latitude, lng: proximaLoja.longitude }]);
+                    if(rotaProximaLoja) {
+                        const tempoEstimadoMinutos = rotaProximaLoja.duration / 60;
+                        eta = new Date(new Date().getTime() + tempoEstimadoMinutos * 60000);
+                    }
+                } catch (e) {
+                     console.error("Falha ao calcular ETA, usando tempo atual.");
                 }
             }
             
@@ -3728,9 +3741,14 @@ async function loadRastreioData() {
             };
         });
 
-        const results = await Promise.all(promessasRoteamento);
-        rastreioData = results.filter(Boolean);
-
+        // 🚨 AJUSTE CRÍTICO: Usar Promise.allSettled para garantir que TODAS as rotas falhem ou funcionem sem quebrar o fluxo.
+        const resultsSettled = await Promise.allSettled(promessasRoteamento);
+        const results = resultsSettled
+            .filter(p => p.status === 'fulfilled' && p.value !== null)
+            .map(p => p.value);
+        
+        // ... (o restante do código para retornar)
+        
         const motoristasRetornando = await supabaseRequest('motoristas?status=in.(retornando_cd,retornando_com_imobilizado)');
         const returningMotoristIds = motoristasRetornando.map(m => m.id);
 
@@ -3744,7 +3762,14 @@ async function loadRastreioData() {
             const currentLocation = returningLocations.find(loc => loc.motorista_id === m.id);
             if (currentLocation && currentLocation.latitude && currentLocation.longitude) {
                 const cdCoords = { lat: selectedFilial.latitude_cd, lng: selectedFilial.longitude_cd };
-                const rota = await getRouteFromAPI([{ lat: currentLocation.latitude, lng: currentLocation.longitude }, { lat: cdCoords.lat, lng: cdCoords.lng }]);
+                
+                let rota = null;
+                try {
+                     rota = await getRouteFromAPI([{ lat: currentLocation.latitude, lng: currentLocation.longitude }, { lat: cdCoords.lat, lng: cdCoords.lng }]);
+                } catch (e) {
+                     console.error("Falha ao calcular rota de retorno, pulando dados de rota para este veículo.");
+                }
+
                 const distanciaTotalKm = rota ? rota.distance / 1000 : 0;
                 const tempoEstimadoMinutos = rota ? rota.duration / 60 : 0;
                 const eta = new Date(new Date().getTime() + tempoEstimadoMinutos * 60000);
@@ -3768,18 +3793,26 @@ async function loadRastreioData() {
             return null;
         });
 
-        const returningResults = await Promise.all(promessasRetorno);
-        rastreioData.push(...returningResults.filter(Boolean));
-
+        const returningResultsSettled = await Promise.allSettled(promessasRetorno);
+        const returningResults = returningResultsSettled
+            .filter(p => p.status === 'fulfilled' && p.value !== null)
+            .map(p => p.value);
+            
+        rastreioData = results;
+        rastreioData.push(...returningResults);
+        
         updateRastreioStats();
         applyRastreioFilters();
         updateLastRefreshTime();
 
     } catch (error) {
-        console.error('Erro ao carregar dados de rastreio:', error);
-        document.getElementById('rastreioList').innerHTML = `<div class="alert alert-error">Erro ao carregar dados de rastreio: ${error.message}</div>`;
+        // Tratar erro de Supabase ou erro de conexão geral
+        console.error('ERRO GERAL: Falha no loadRastreioData:', error);
+        document.getElementById('rastreioList').innerHTML = `<div class="alert alert-error">Erro ao carregar dados de rastreio. Verifique o servidor.</div>`;
+        // Garantir que as abas que dependem desta função (como Faturamento/Frota) sejam liberadas
     }
 }
+
 function updateRastreioStats() {
     const veiculosEmRota = rastreioData.length;
     const entregasAndamento = rastreioData.filter(r => r.status_rastreio === 'em_descarga').length;
