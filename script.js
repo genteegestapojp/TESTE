@@ -29,16 +29,15 @@ let masterUserPermission = false;
 let gruposAcesso = [];
 
 
-
-
 // SUBSTITUIR A VERSÃO EXISTENTE DE loadUserPermissions
 async function loadUserPermissions(userId, grupoId) {
     masterUserPermission = false;
     let finalPermissionsSet = new Set(); 
     
-    // 1. MASTER BYPASS (Solução para estabilidade no ambiente de teste - se o grupo se chama 'MASTER')
+    // 1. MASTER BYPASS E CHECAGEM DE GRUPO
     if (grupoId) {
          try {
+             // Checa se o grupo é 'MASTER' (Hardcode para ambiente de teste/Admin)
              const grupo = await supabaseRequest(`grupos_acesso?id=eq.${grupoId}&select=nome`, 'GET', null, false);
              if (grupo && grupo.length > 0 && grupo[0].nome === 'MASTER') {
                  masterUserPermission = true;
@@ -54,9 +53,8 @@ async function loadUserPermissions(userId, grupoId) {
          }
     }
     
-    // 2. Carregar Permissões do Grupo (Ignorado se grupoId for NULL, que é o caso do Bruno)
+    // 2. Carregar Permissões do Grupo (Ignorado se grupoId for NULL)
     if (grupoId) {
-        // Desativa o filtro de filial (4º parâmetro = false)
         const permissoesGrupo = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
         
         if (permissoesGrupo && Array.isArray(permissoesGrupo)) {
@@ -66,7 +64,6 @@ async function loadUserPermissions(userId, grupoId) {
     
     // 3. Carregar Permissões Individuais e Sobrescrever/Adicionar (Lógica do BRUNO e Sobrescritas)
     if (userId) {
-        // Desativa o filtro de filial (4º parâmetro = false)
         const permissoesUsuario = await supabaseRequest(`permissoes_usuario?usuario_id=eq.${userId}&select=permissao_codigo,tem_permissao`, 'GET', null, false);
 
         if (permissoesUsuario && Array.isArray(permissoesUsuario)) {
@@ -85,7 +82,7 @@ async function loadUserPermissions(userId, grupoId) {
     
     userPermissions = Array.from(finalPermissionsSet);
     
-    // 4. Checagem MASTER (Se o usuário não está no grupo MASTER, mas tem a permissão de gerência)
+    // 4. Checagem MASTER Secundária (Se o usuário não está no grupo MASTER, mas tem a permissão de gerência)
     if (userPermissions.includes('gerenciar_permissoes')) {
          masterUserPermission = true;
          // Adiciona todas as filiais para o Master (se ele tiver a permissão de gerência)
@@ -97,7 +94,6 @@ async function loadUserPermissions(userId, grupoId) {
          }
     }
 }
-
 
 function hasPermission(permission) {
     // Se for usuário master, sempre retorna true.
