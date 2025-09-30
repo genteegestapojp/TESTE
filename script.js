@@ -28,13 +28,15 @@ let userPermissions = [];
 let masterUserPermission = false;
 let gruposAcesso = [];
 
-// NOVO: Função centralizada para carregar permissões do usuário
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 async function loadUserPermissions(userId, grupoId) {
     masterUserPermission = false;
     userPermissions = [];
     
     // 1. Verificar se é Master (Grupo)
     if (grupoId) {
+        // AJUSTE: O 4º parâmetro é 'false' para desativar o filtro de filial (permissoes globais)
         const grupo = await supabaseRequest(`grupos_acesso?id=eq.${grupoId}&select=nome`, 'GET', null, false);
         if (grupo && grupo.length > 0 && grupo[0].nome === 'MASTER') {
             masterUserPermission = true;
@@ -42,6 +44,7 @@ async function loadUserPermissions(userId, grupoId) {
         }
         
         // 2. Carregar Permissões do Grupo
+        // AJUSTE: O 4º parâmetro é 'false'
         const permissoesGrupo = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
         if (permissoesGrupo) {
             userPermissions = permissoesGrupo.map(p => p.permissao);
@@ -51,6 +54,7 @@ async function loadUserPermissions(userId, grupoId) {
     // 3. Carregar Permissões Individuais e Sobrescrever/Adicionar
     // A permissão individual (permissoes_usuario) sempre prevalece
     if (userId) {
+        // AJUSTE: O 4º parâmetro é 'false'
         const permissoesUsuario = await supabaseRequest(`permissoes_usuario?usuario_id=eq.${userId}&select=permissao_codigo,tem_permissao`, 'GET', null, false);
 
         if (permissoesUsuario) {
@@ -68,6 +72,8 @@ async function loadUserPermissions(userId, grupoId) {
         }
     }
 }
+
+
 function hasPermission(permission) {
     // Se for usuário master, sempre retorna true.
     if (masterUserPermission) {
