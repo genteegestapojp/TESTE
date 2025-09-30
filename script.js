@@ -34,53 +34,50 @@ let gruposAcesso = [];
 
 async function loadUserPermissions(userId, grupoId) {
     masterUserPermission = false;
-    userPermissions = [];
+    let finalPermissionsSet = new Set(); // Usa um Set para armazenar permissões
     
     // 1. Verificar se é Master (Grupo)
     if (grupoId) {
-        // AJUSTE JÁ FEITO: O 4º parâmetro é 'false' para desativar o filtro de filial
         const grupo = await supabaseRequest(`grupos_acesso?id=eq.${grupoId}&select=nome`, 'GET', null, false);
         if (grupo && grupo.length > 0 && grupo[0].nome === 'MASTER') {
             masterUserPermission = true;
-            return; // Usuário Master não precisa de mais checagens
+            userPermissions = []; // Limpa e deixa o master funcionar pelo flag
+            return; 
         }
         
         // 2. Carregar Permissões do Grupo
-        // AJUSTE JÁ FEITO: O 4º parâmetro é 'false'
+        // Desativa o filtro de filial (4º parâmetro = false)
         const permissoesGrupo = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
         
-        // 🚨 LINHA CRÍTICA PARA DEBUG 🚨
-        console.log("DEBUG PERMISSÕES DO GRUPO - Tabela permissoes_grupo retornou:", permissoesGrupo);
+        // 🚨 LINHA CRÍTICA PARA DEBUG: COPIE ESTA SAÍDA! 🚨
+        console.log("DEBUG A: Permissões de Grupo lidas do BD:", permissoesGrupo);
         // 🚨 FIM LINHA CRÍTICA 🚨
 
-        if (permissoesGrupo && permissoesGrupo.length > 0) { // Garante que a lista não é nula/vazia
-            userPermissions = permissoesGrupo.map(p => p.permissao);
-            // DEBUG: Vê o array final de permissões
-            console.log("DEBUG PERMISSÕES FINAIS:", userPermissions); 
+        if (permissoesGrupo && Array.isArray(permissoesGrupo)) {
+            permissoesGrupo.forEach(p => finalPermissionsSet.add(p.permissao));
         }
     }
 
-    // 3. Carregar Permissões Individuais (lógica de sobrescrita...)
+    // 3. Carregar Permissões Individuais e Sobrescrever/Adicionar
     if (userId) {
-        // AJUSTE JÁ FEITO: O 4º parâmetro é 'false'
+        // Desativa o filtro de filial (4º parâmetro = false)
         const permissoesUsuario = await supabaseRequest(`permissoes_usuario?usuario_id=eq.${userId}&select=permissao_codigo,tem_permissao`, 'GET', null, false);
 
-        if (permissoesUsuario) {
-            const finalPermissions = new Set(userPermissions);
-            
+        if (permissoesUsuario && Array.isArray(permissoesUsuario)) {
+            // Se houver permissões individuais, elas sobrescrevem o grupo
             permissoesUsuario.forEach(p => {
                 if (p.tem_permissao) {
-                    finalPermissions.add(p.permissao_codigo);
+                    finalPermissionsSet.add(p.permissao_codigo); // Adiciona ou mantém
                 } else {
-                    finalPermissions.delete(p.permissao_codigo);
+                    finalPermissionsSet.delete(p.permissao_codigo); // Remove (sobrescreve negando)
                 }
             });
-            
-            userPermissions = Array.from(finalPermissions);
         }
     }
+    
+    userPermissions = Array.from(finalPermissionsSet);
+    console.log("DEBUG B: userPermissions final (Filial + Abas):", userPermissions); // DEBUG FINAL
 }
-
 
 function hasPermission(permission) {
     // Se for usuário master, sempre retorna true.
@@ -7331,7 +7328,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
-// SUBSTITUIR A VERSÃO EXISTENTE DE handleInitialLogin (Aprox. linha 3737)
+// SUBSTITUIR A VERSÃO EXISTENTE DE handleInitialLogin
 async function handleInitialLogin(event) {
     event.preventDefault();
     const nome = document.getElementById('initialUser').value.trim();
@@ -7346,8 +7343,7 @@ async function handleInitialLogin(event) {
 
     try {
         // 🚨 AJUSTE DE ESTADO: Garante que a filial global não está definida
-        // antes de buscar permissões não-filtradas.
-        selectedFilial = null; // <-- NOVA LINHA ADICIONADA AQUI
+        selectedFilial = null; // <-- LINHA ADICIONADA AQUI
 
         // Busca o acesso pelo nome e senha, incluindo o grupo_id e o ID do acesso.
         const endpoint = `acessos?select=id,nome,grupo_id&nome=eq.${nome}&senha=eq.${senha}`;
@@ -7357,27 +7353,17 @@ async function handleInitialLogin(event) {
             alertContainer.innerHTML = '<div class="alert alert-error">Usuário ou senha incorretos.</div>';
             return;
         }
-
+// ... (restante da função é igual)
         const user = result[0];
         currentUser = {
-            id: user.id, // ID do acesso na tabela 'acessos'
-            nome: user.nome,
-            grupoId: user.grupo_id
+// ...
         };
 
         // 1. Carregar as permissões do usuário (Grupo + Individual)
         await loadUserPermissions(currentUser.id, currentUser.grupoId);
         
-        // 2. Se o usuário é Master, ele ganha acesso a todas as filiais
-        if (masterUserPermission) {
-            // Buscamos todas as filiais ATIVAS no banco
-            const todasFiliais = await supabaseRequest('filiais?select=nome&ativo=eq.true', 'GET', null, false);
-            // Adiciona a permissão explícita para o Master
-            todasFiliais.forEach(f => userPermissions.push(`acesso_filial_${f.nome}`));
-        }
-
+// ... (restante da função)
         // 3. Carrega as filiais ativas e determina o acesso/redirecionamento
-        // loadFiliais() agora chama determineFilialAccess(), que decide se redireciona direto ou mostra a seleção.
         await loadFiliais(); 
 
         showNotification(`Bem-vindo, ${currentUser.nome}!`, 'success');
@@ -7387,7 +7373,6 @@ async function handleInitialLogin(event) {
         console.error(err);
     }
 }
-
 // NOVA FUNÇÃO
 async function showMainSystem() {
     // Oculta todas as telas de seleção
