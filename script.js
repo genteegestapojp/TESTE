@@ -32,16 +32,19 @@ let gruposAcesso = [];
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js (Aprox. linha 41)
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 async function loadUserPermissions(userId, grupoId) {
     masterUserPermission = false;
     let finalPermissionsSet = new Set(); // Usa um Set para armazenar permissões
     
     // 1. Verificar se é Master (Grupo)
     if (grupoId) {
+        // ... (lógica de checagem MASTER omitida para brevidade, mas deve estar correta)
         const grupo = await supabaseRequest(`grupos_acesso?id=eq.${grupoId}&select=nome`, 'GET', null, false);
         if (grupo && grupo.length > 0 && grupo[0].nome === 'MASTER') {
             masterUserPermission = true;
-            userPermissions = []; // Limpa e deixa o master funcionar pelo flag
+            userPermissions = [];
             return; 
         }
         
@@ -49,35 +52,38 @@ async function loadUserPermissions(userId, grupoId) {
         // Desativa o filtro de filial (4º parâmetro = false)
         const permissoesGrupo = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
         
-        // 🚨 LINHA CRÍTICA PARA DEBUG: COPIE ESTA SAÍDA! 🚨
-        console.log("DEBUG A: Permissões de Grupo lidas do BD:", permissoesGrupo);
-        // 🚨 FIM LINHA CRÍTICA 🚨
-
         if (permissoesGrupo && Array.isArray(permissoesGrupo)) {
+            // 🚨 ADICIONA TODAS AS PERMISSÕES DE GRUPO AO SET 🚨
             permissoesGrupo.forEach(p => finalPermissionsSet.add(p.permissao));
         }
     }
-
+    
     // 3. Carregar Permissões Individuais e Sobrescrever/Adicionar
+    // ESTA É A LÓGICA CRÍTICA DE SOBRESCRITA!
     if (userId) {
         // Desativa o filtro de filial (4º parâmetro = false)
         const permissoesUsuario = await supabaseRequest(`permissoes_usuario?usuario_id=eq.${userId}&select=permissao_codigo,tem_permissao`, 'GET', null, false);
 
         if (permissoesUsuario && Array.isArray(permissoesUsuario)) {
-            // Se houver permissões individuais, elas sobrescrevem o grupo
             permissoesUsuario.forEach(p => {
-                if (p.tem_permissao) {
-                    finalPermissionsSet.add(p.permissao_codigo); // Adiciona ou mantém
-                } else {
-                    finalPermissionsSet.delete(p.permissao_codigo); // Remove (sobrescreve negando)
+                const code = p.permissao_codigo;
+                
+                // Se o usuário tem permissão individual (tem_permissao = true), ADICIONA (sobrescreve o grupo)
+                if (p.tem_permissao === true) { 
+                    finalPermissionsSet.add(code); 
+                // Se o usuário tem uma NEGAÇÃO individual (tem_permissao = false), REMOVE (sobrescreve o grupo)
+                } else if (p.tem_permissao === false) { 
+                    finalPermissionsSet.delete(code); 
                 }
             });
         }
     }
     
     userPermissions = Array.from(finalPermissionsSet);
-    console.log("DEBUG B: userPermissions final (Filial + Abas):", userPermissions); // DEBUG FINAL
+    // 🚨 DEBUG: Veja o array final de permissões 🚨
+    console.log("DEBUG FINAL: Array de Permissões Pronto:", userPermissions); 
 }
+
 
 function hasPermission(permission) {
     // Se for usuário master, sempre retorna true.
