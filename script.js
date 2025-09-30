@@ -5750,8 +5750,6 @@ async function showTrajectoryMap(expeditionId, vehiclePlaca) {
 
 
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
 // SUBSTITUIR A FUNÇÃO initTrajectoryMap COMPLETA
 async function initTrajectoryMap(expeditionId, vehiclePlaca) {
     try {
@@ -5777,7 +5775,7 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
 
         // ==========================================================
-        // 1. ROTA FEITA (GPS TRACKING) - Cor Verde
+        // 1. ROTA FEITA (GPS TRACKING) - Cor Verde (Snap-to-Road)
         // ==========================================================
         const trajectoryData = await supabaseRequest(
             `gps_tracking?expedition_id=eq.${expeditionId}&order=data_gps.asc`,
@@ -5785,17 +5783,28 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         );
         
         if (trajectoryData && trajectoryData.length > 0) {
-            const gpsCoords = trajectoryData.map(p => L.latLng(parseFloat(p.latitude), parseFloat(p.longitude)));
+            const rawGpsCoords = trajectoryData.map(p => L.latLng(parseFloat(p.latitude), parseFloat(p.longitude)));
             
-            // Desenha a rota real (verde tracejada) - Apenas a união dos pontos GPS
-            L.polyline(gpsCoords, {
+            let matchedCoords = null;
+            try {
+                // 🚨 FIX CRÍTICO: Tenta fazer o Snap-to-Road usando a API Map Matching 🚨
+                matchedCoords = await getMapMatchedRoute(rawGpsCoords);
+            } catch(e) {
+                console.warn('Map Matching OSRM falhou. Exibindo rota GPS bruta.');
+            }
+            
+            const coordsToDraw = matchedCoords ? matchedCoords : rawGpsCoords; // Usa o matched ou o bruto
+            
+            // Desenha a rota real (verde tracejada)
+            L.polyline(coordsToDraw, {
                 color: '#10B981', // Verde: Rota Real
                 weight: 5,
                 opacity: 0.8,
-                dashArray: '10, 10'
+                dashArray: '10, 10' // Linha tracejada
             }).addTo(mapInstance);
             
-            bounds.extend(L.polyline(gpsCoords).getBounds());
+            // Adiciona a rota real aos limites do mapa
+            bounds.extend(L.polyline(coordsToDraw).getBounds());
             
             // Marcadores de início e fim
             const startMarker = trajectoryData[0];
@@ -5842,15 +5851,15 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             },
             routeWhileDragging: false,
             autoRoute: true,
-            lineOptions: { styles: [{ color: '#0077B6', weight: 8, opacity: 0.5 }] }
+            lineOptions: { styles: [{ color: '#0077B6', weight: 8, opacity: 0.5 }] } // Rota Planejada (Azul, mais grossa)
         }).addTo(mapInstance);
         
         
-        // 🚨 FIX: Capturar erro de roteamento e notificar (apenas notifica, não trava) 🚨
+        // 🚨 FIX: Capturar erro de roteamento (Timeout/Falha na rota planejada) 🚨
         routingControl.on('routingerror', function(e) {
              console.error("Erro no Routing Machine:", e.error.message);
-             showNotification(`Erro ao calcular rota planejada: Falha no servidor (Timeout/429).`, 'error', 6000);
-             // Tenta ajustar o zoom apenas para a rota real ou o CD
+             showNotification(`Erro ao calcular rota planejada: Falha no servidor (Timeout/429). Exibindo apenas a rota real (GPS).`, 'error', 6000);
+             // Ajusta o zoom apenas para o que foi desenhado
              if (bounds.isValid()) {
                 mapInstance.fitBounds(bounds, { padding: [30, 30] });
              } else {
@@ -5891,7 +5900,6 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             }
         });
 
-        // Remove o painel de controle do OSRM para deixar apenas a linha
         const routingAlt = document.querySelector('.leaflet-routing-alt');
         if (routingAlt) routingAlt.style.display = 'none';
 
@@ -6912,6 +6920,33 @@ async function getRouteFromAPI(waypoints) {
         throw new Error('Falha de conexão OSRM: A rota não pôde ser calculada.'); 
     }
 }
+
+
+// NOVO CÓDIGO: Função para Snap-to-Road (Map Matching)
+async function getMapMatchedRoute(coordinates) {
+    if (coordinates.length < 2) return null;
+    
+    // Converte a lista de objetos LatLng em strings "lng,lat;lng,lat"
+    const coordsString = coordinates.map(p => `${p.lng},${p.lat}`).join(';');
+    // Usa o endpoint Map Matching do OSRM para ajustar a rota às vias
+    const url = `https://router.project-osrm.org/match/v1/driving/${coordsString}?geometries=geojson&steps=false&tidy=true`;
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`OSRM Match Failed: ${response.status}`);
+        
+        const data = await response.json();
+        if (data.matchings && data.matchings.length > 0) {
+            // Retorna as coordenadas ajustadas à rua
+            return data.matchings[0].geometry.coordinates.map(c => [c[1], c[0]]);
+        }
+        return null;
+    } catch (error) {
+        console.error('Falha no Map Matching OSRM:', error);
+        throw new Error('Falha no Map Matching: Servidor OSRM instável.');
+    }
+}
+
 
 async function openOrdemCarregamentoModal(expeditionId) {
     const modal = document.getElementById('ordemCarregamentoModal');
