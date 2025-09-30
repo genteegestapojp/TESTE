@@ -93,14 +93,16 @@ async function loadUserPermissions(userId, grupoId) {
     userPermissions = Array.from(finalPermissionsSet);
 }
 
-// SUBSTITUIR A VERSÃO EXISTENTE DE hasPermission
+
 function hasPermission(permission) {
     if (masterUserPermission) {
         return true;
     }
-    // 🚨 AJUSTE CRÍTICO: Saneamento da permissão sendo verificada ('acesso_operacao' -> 'acesso_operacao') 🚨
+    
+    // 🚨 FIX CRÍTICO: Garante que a permissão procurada está sempre saneada.
     const requiredPermission = permission.trim().toLowerCase();
     
+    // O array userPermissions já é populado com .trim().toLowerCase() na loadUserPermissions
     return userPermissions.includes(requiredPermission);
 }
 
