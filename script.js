@@ -3850,6 +3850,7 @@ function applyRastreioFilters() {
     renderRastreioList(filteredData);
 }
 
+// SUBSTITUIR A FUNÇÃO renderRastreioList COMPLETA (Aprox. linha 3901)
 function renderRastreioList(data) {
     const container = document.getElementById('rastreioList');
     
@@ -3882,33 +3883,33 @@ function renderRastreioList(data) {
             nextActionInfo = `<div class="text-xs text-gray-500">ETA CD: ${rastreio.eta.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}</div>`;
         }
         
-        // Calcular tempo desde a última atualização
-const tempoUltimaAtualizacao = rastreio.last_update ? 
-    Math.round((new Date() - rastreio.last_update) / 60000) : null;
+        const tempoUltimaAtualizacao = rastreio.last_update ? 
+            Math.round((new Date() - rastreio.last_update) / 60000) : null;
 
-// Informações de proximidade
-let proximityInfo = '';
-if (rastreio.pontos_proximos && rastreio.pontos_proximos.length > 0) {
-    proximityInfo = `
-        <div class="proximity-alert">
-            <div class="text-sm font-medium">
-                <span class="proximity-icon">📍</span>Pontos Próximos:
-            </div>
-            ${rastreio.pontos_proximos.map(p => {
-                let icon = '';
-                if (p.ponto.tipo === 'CD') icon = '🏭';
-                else if (p.ponto.tipo === 'LOJA') icon = '🏪';
-                else if (p.ponto.tipo === 'POSTO') icon = '⛽';
-                else if (p.ponto.tipo === 'CASA') icon = '🏠';
-                else icon = '📍';
-                
-                return `<div class="text-xs mt-1">${icon} ${p.ponto.nome} - ${p.distancia}m</div>`;
-            }).join('')}
-        </div>
-    `;
-}
+        // 🚨 CORREÇÃO CRÍTICA: Verifica se pontos_proximos existe e é um array antes de chamar .map 🚨
+        let proximityInfo = '';
+        const pontosProximos = rastreio.pontos_proximos;
+        if (pontosProximos && Array.isArray(pontosProximos) && pontosProximos.length > 0) {
+            proximityInfo = `
+                <div class="proximity-alert">
+                    <div class="text-sm font-medium">
+                        <span class="proximity-icon">📍</span>Pontos Próximos:
+                    </div>
+                    ${pontosProximos.map(p => { // O erro estava aqui
+                        let icon = '';
+                        if (p.ponto.tipo === 'CD') icon = '🏭';
+                        else if (p.ponto.tipo === 'LOJA') icon = '🏪';
+                        else if (p.ponto.tipo === 'POSTO') icon = '⛽';
+                        else if (p.ponto.tipo === 'CASA') icon = '🏠';
+                        else icon = '📍';
+                        
+                        return `<div class="text-xs mt-1">${icon} ${p.ponto.nome} - ${p.distancia}m</div>`;
+                    }).join('')}
+                </div>
+            `;
+        }
 
-return `
+        return `
             <div class="bg-white rounded-lg shadow-md p-6 border-l-4 ${rastreio.status_rastreio === 'em_transito' ? 'border-blue-500' : rastreio.status_rastreio === 'em_descarga' ? 'border-orange-500' : 'border-green-500'}">
                 <div class="flex justify-between items-start mb-4">
                     <div>
@@ -3988,13 +3989,12 @@ ${proximityInfo}
                             else if (item.status_descarga === 'em_descarga') iconStatus = '🚚';
                             else iconStatus = '⏳';
                             
-                            // ...
+                            
 return `<div class="flex items-center text-sm ...">
     <span class="mr-2">${iconStatus}</span>
     <span>${index + 1}. ${loja?.codigo || 'N/A'} - ${loja?.nome || 'N/A'}</span>
     ${item.data_fim_descarga ? `<span class="ml-auto text-xs">${new Date(item.data_fim_descarga).toLocaleTimeString('pt-BR')}</span>` : ''}
 </div>`;
-// ...
                         }).join('')}
                     </div>
                 </div>
