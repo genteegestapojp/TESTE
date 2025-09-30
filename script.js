@@ -3283,30 +3283,42 @@ async function loadMotoristaTab() {
         }
 
         async function finalizarDescarga(itemId) {
-            try {
-                await supabaseRequest(`expedition_items?id=eq.${itemId}`, 'PATCH', { status_descarga: 'descarregado', data_fim_descarga: new Date().toISOString() });
-                
-                const itemData = await supabaseRequest(`expedition_items?id=eq.${itemId}&select=expedition_id`);
-                const expeditionId = itemData[0].expedition_id;
-                const allItems = await supabaseRequest(`expedition_items?expedition_id=eq.${expeditionId}`);
+    try {
+        await supabaseRequest(`expedition_items?id=eq.${itemId}`, 'PATCH', { status_descarga: 'descarregado', data_fim_descarga: new Date().toISOString() });
+        
+        const itemData = await supabaseRequest(`expedition_items?id=eq.${itemId}&select=expedition_id`);
+        const expeditionId = itemData[0].expedition_id;
+        const allItems = await supabaseRequest(`expedition_items?expedition_id=eq.${expeditionId}`);
 
-                if (allItems.every(item => item.status_descarga === 'descarregado')) {
-                    await supabaseRequest(`expeditions?id=eq.${expeditionId}`, 'PATCH', { status: 'entregue' });
-                    const comImobilizado = await showYesNoModal('Retornando com imobilizados?');
-                    const novoStatus = comImobilizado ? 'retornando_com_imobilizado' : 'retornando_cd';
-                    
-                    const expDetails = await supabaseRequest(`expeditions?id=eq.${expeditionId}&select=motorista_id`);
-                    await supabaseRequest(`motoristas?id=eq.${expDetails[0].motorista_id}`, 'PATCH', { status: novoStatus }, false);
-                    
-                    showNotification(`Última entrega finalizada! Viagem concluída.`, 'success');
-                } else {
-                    showNotification('Descarga da loja finalizada!', 'success');
-                }
-                consultarExpedicoesPorPlaca();
-            } catch(error) {
-                showNotification('Erro ao finalizar descarga: ' + error.message, 'error');
+        if (allItems.every(item => item.status_descarga === 'descarregado')) {
+            await supabaseRequest(`expeditions?id=eq.${expeditionId}`, 'PATCH', { status: 'entregue' });
+            const comImobilizado = await showYesNoModal('Retornando com imobilizados?');
+            const novoStatus = comImobilizado ? 'retornando_com_imobilizado' : 'retornando_cd';
+            
+            // 🚨 AJUSTE CRÍTICO: Buscar o veiculo_id E o motorista_id
+            const expDetails = await supabaseRequest(`expeditions?id=eq.${expeditionId}&select=motorista_id,veiculo_id`);
+            const motoristaId = expDetails[0].motorista_id;
+            const veiculoId = expDetails[0].veiculo_id;
+            
+            // 1. Atualiza status do Motorista
+            if (motoristaId) {
+                await supabaseRequest(`motoristas?id=eq.${motoristaId}`, 'PATCH', { status: novoStatus }, false);
             }
+            
+            // 2. NOVO CÓDIGO: Atualiza status do Veículo para o mesmo status de retorno
+            if (veiculoId) {
+                await supabaseRequest(`veiculos?id=eq.${veiculoId}`, 'PATCH', { status: novoStatus }, false);
+            }
+            
+            showNotification(`Última entrega finalizada! Viagem concluída.`, 'success');
+        } else {
+            showNotification('Descarga da loja finalizada!', 'success');
         }
+        consultarExpedicoesPorPlaca();
+    } catch(error) {
+        showNotification('Erro ao finalizar descarga: ' + error.message, 'error');
+    }
+}
         
        // SUBSTITUIR A FUNÇÃO loadAcompanhamento
 async function loadAcompanhamento() {
