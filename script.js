@@ -3693,9 +3693,13 @@ function populateRastreioFilters() {
 
 // --- FUNCIONALIDADES DO RASTREIO EM TEMPO REAL ---
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// SUBSTITUIR A FUNÇÃO loadRastreioData COMPLETA
 async function loadRastreioData() {
     try {
         console.log("Iniciando carregamento dos dados de rastreio...");
+        // Garante que o status de retorno seja tratado (para Veículos e Motoristas)
         const expeditionsEmRota = await supabaseRequest('expeditions?status=eq.saiu_para_entrega&order=data_saida_entrega.desc');
         const items = await supabaseRequest('expedition_items');
         
@@ -3712,7 +3716,6 @@ async function loadRastreioData() {
             const veiculo = veiculos.find(v => v.id === exp.veiculo_id);
             const currentLocation = locations.find(loc => loc.expedition_id === exp.id);
             
-            // FILTRAGEM DE SEGURANÇA: Se não houver localização, pula este item
             if (!currentLocation || !currentLocation.latitude || !currentLocation.longitude) {
                 return null;
             }
@@ -3755,56 +3758,46 @@ async function loadRastreioData() {
             const tempoSaida = new Date(exp.data_saida_entrega);
             const tempoDecorrido = (new Date() - tempoSaida) / 60000;
             
+            // 🚨 VARIÁVEIS DE ROTA: DEFINIDAS COMO ZERO PARA EVITAR CHAMADAS OSRM BLOQUEADAS 🚨
             let distanciaTotalKm = 0;
             let tempoTotalRota = 0;
             let eta = new Date();
             
-            const waypoints = [
-                { lat: selectedFilial.latitude_cd, lng: selectedFilial.longitude_cd },
-                ...itemsOrdenados.map(item => {
-                    const loja = lojas.find(l => l.id === item.loja_id);
-                    return (loja && loja.latitude && loja.longitude) ? { lat: loja.latitude, lng: loja.longitude } : null;
-                }).filter(Boolean)
-            ];
-
-            let rotaCompleta = null;
-            if (waypoints.length > 1) {
-                try {
-                    rotaCompleta = await getRouteFromAPI(waypoints);
-                } catch (e) {
-                    console.error("Falha ao calcular rota completa, pulando dados de rota para esta expedição.");
-                }
-            }
-            
-            if (rotaCompleta) {
-                distanciaTotalKm = rotaCompleta.distance / 1000;
-                tempoTotalRota = rotaCompleta.duration / 60;
-            }
-
-            if (proximaLoja && proximaLoja.latitude && proximaLoja.longitude) {
-                try {
-                    const rotaProximaLoja = await getRouteFromAPI([{ lat: currentLocation.latitude, lng: currentLocation.longitude }, { lat: proximaLoja.latitude, lng: proximaLoja.longitude }]);
-                    if(rotaProximaLoja) {
-                        const tempoEstimadoMinutos = rotaProximaLoja.duration / 60;
-                        eta = new Date(new Date().getTime() + tempoEstimadoMinutos * 60000);
-                    }
-                } catch (e) {
-                     console.error("Falha ao calcular ETA, usando tempo atual.");
-                }
-            }
+            // ============== BLOCO OSRM REMOVIDO PARA ESTABILIDADE ==============
+            // const waypoints = [...];
+            // if (waypoints.length > 1) {
+            //     try {
+            //         rotaCompleta = await getRouteFromAPI(waypoints);
+            //     } catch (e) {
+            //         console.error("Falha ao calcular rota completa, pulando dados de rota para esta expedição.", e);
+            //     }
+            // }
+            // if (rotaCompleta) {
+            //     distanciaTotalKm = rotaCompleta.distance / 1000;
+            //     tempoTotalRota = rotaCompleta.duration / 60;
+            // }
+            // if (proximaLoja && proximaLoja.latitude && proximaLoja.longitude) {
+            //     try {
+            //         const rotaProximaLoja = await getRouteFromAPI(/*...*/);
+            //         // ...
+            //     } catch (e) {
+            //          console.error("Falha ao calcular ETA, usando tempo atual.", e);
+            //     }
+            // }
+            // ===================================================================
             
             return {
                 ...exp,
                 items: expItems,
                 motorista_nome: motorista?.nome || 'N/A',
-                veiculo_placa: veiculo?.placa || 'N/A', // Placa vem da expedição ativa
+                veiculo_placa: veiculo?.placa || 'N/A',
                 status_rastreio: statusAtual,
                 loja_atual: lojaAtual,
                 proxima_loja: proximaLoja,
                 progresso_rota: Math.round(progresso),
                 tempo_em_rota: Math.round(tempoDecorrido),
-                distancia_total_km: distanciaTotalKm,
-                tempo_total_rota: tempoTotalRota,
+                distancia_total_km: distanciaTotalKm, // Será 0
+                tempo_total_rota: tempoTotalRota,     // Será 0
                 coordenadas: {
                     lat: parseFloat(currentLocation.latitude),
                     lng: parseFloat(currentLocation.longitude)
@@ -3837,32 +3830,25 @@ async function loadRastreioData() {
         const promessasRetorno = motoristasRetornando.map(async m => {
             const currentLocation = returningLocations.find(loc => loc.motorista_id === m.id);
             
-            // 🚨 NOVO CÓDIGO CRÍTICO: Busca o último veículo usado pelo motorista
             const lastExpedition = await supabaseRequest(`expeditions?motorista_id=eq.${m.id}&select=veiculo_id&order=data_hora.desc&limit=1`, 'GET', null, false);
             const lastVeiculoId = lastExpedition[0]?.veiculo_id;
             const lastVehicle = lastVeiculoId ? veiculos.find(v => v.id === lastVeiculoId) : null;
-            // FIM NOVO CÓDIGO
             
             if (currentLocation && currentLocation.latitude && currentLocation.longitude) {
-                const cdCoords = { lat: selectedFilial.latitude_cd, lng: selectedFilial.longitude_cd };
-                
-                let rota = null;
-                try {
-                     rota = await getRouteFromAPI([{ lat: currentLocation.latitude, lng: currentLocation.longitude }, { lat: cdCoords.lat, lng: cdCoords.lng }]);
-                } catch (e) {
-                     console.error("Falha ao calcular rota de retorno, pulando dados de rota para este veículo.");
-                }
+                // AQUI TAMBÉM REMOVEMOS A CHAMADA OSRM DE ROTA DE RETORNO
+                // const cdCoords = { lat: selectedFilial.latitude_cd, lng: selectedFilial.longitude_cd };
+                // let rota = null;
+                // try { rota = await getRouteFromAPI(/*...*/); } catch (e) {}
 
-                const distanciaTotalKm = rota ? rota.distance / 1000 : 0;
-                const tempoEstimadoMinutos = rota ? rota.duration / 60 : 0;
-                const eta = new Date(new Date().getTime() + tempoEstimadoMinutos * 60000);
+                const distanciaTotalKm = 0;
+                const tempoEstimadoMinutos = 0;
+                const eta = new Date(); // ETA será o tempo atual
                 
                 return {
                     id: `return-${m.id}`,
                     expedition_id: null,
                     motorista_id: m.id,
                     motorista_nome: m.nome,
-                    // 🚨 ATRIBUIÇÃO CORRIGIDA DA PLACA
                     veiculo_placa: lastVehicle?.placa || 'N/A', 
                     status_rastreio: 'retornando',
                     distancia_total_km: distanciaTotalKm,
@@ -3894,7 +3880,6 @@ async function loadRastreioData() {
         rastreioData = results;
         rastreioData.push(...returningResults);
         
-        // FILTRO FINAL CRÍTICO: Filtrar nulos/undefineds APÓS TODAS AS OPERAÇÕES
         rastreioData = rastreioData.filter(Boolean);
         
         updateRastreioStats();
@@ -3902,6 +3887,7 @@ async function loadRastreioData() {
         updateLastRefreshTime();
 
     } catch (error) {
+        // Tratar erro de Supabase ou erro de conexão geral
         console.error('ERRO GERAL: Falha no loadRastreioData:', error);
         document.getElementById('rastreioList').innerHTML = `<div class="alert alert-error">Erro ao carregar dados de rastreio. Verifique o servidor.</div>`;
     }
