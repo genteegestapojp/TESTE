@@ -5750,6 +5750,8 @@ async function showTrajectoryMap(expeditionId, vehiclePlaca) {
 
 
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 // SUBSTITUIR A FUNÇÃO initTrajectoryMap COMPLETA
 async function initTrajectoryMap(expeditionId, vehiclePlaca) {
     try {
@@ -5775,7 +5777,7 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
 
         // ==========================================================
-        // 1. ROTA FEITA (GPS TRACKING) - Cor Verde (Snap-to-Road)
+        // 1. ROTA FEITA (GPS TRACKING) - Cor Verde
         // ==========================================================
         const trajectoryData = await supabaseRequest(
             `gps_tracking?expedition_id=eq.${expeditionId}&order=data_gps.asc`,
@@ -5787,26 +5789,26 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             
             let matchedCoords = null;
             try {
-                // 🚨 FIX CRÍTICO: Tenta fazer o Snap-to-Road usando a API Map Matching 🚨
+                // Tenta fazer o Snap-to-Road usando a API Map Matching
                 matchedCoords = await getMapMatchedRoute(rawGpsCoords);
             } catch(e) {
                 console.warn('Map Matching OSRM falhou. Exibindo rota GPS bruta.');
             }
             
-            const coordsToDraw = matchedCoords ? matchedCoords : rawGpsCoords; // Usa o matched ou o bruto
+            const coordsToDraw = matchedCoords ? matchedCoords : rawGpsCoords;
             
             // Desenha a rota real (verde tracejada)
-            L.polyline(coordsToDraw, {
+            const gpsPolyline = L.polyline(coordsToDraw, {
                 color: '#10B981', // Verde: Rota Real
                 weight: 5,
                 opacity: 0.8,
-                dashArray: '10, 10' // Linha tracejada
+                dashArray: '10, 10'
             }).addTo(mapInstance);
             
-            // Adiciona a rota real aos limites do mapa
-            bounds.extend(L.polyline(coordsToDraw).getBounds());
+            // 🚨 FIX CRÍTICO: Adiciona bounds do GPS para garantir zoom 🚨
+            bounds.extend(gpsPolyline.getBounds());
             
-            // Marcadores de início e fim
+            // Marcadores de início e fim (permanece igual)
             const startMarker = trajectoryData[0];
             const endMarker = trajectoryData[trajectoryData.length - 1];
             
@@ -5816,7 +5818,9 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             
             L.marker([endMarker.latitude, endMarker.longitude], { icon: L.divIcon({ className: 'custom-marker', html: '<div style="background: red; color: white; padding: 4px; border-radius: 50%; font-size: 10px; font-weight: bold;">END</div>' }) })
                 .addTo(mapInstance)
-                .bindPopup("<b>Última Posição GPS</b>");
+                .bindPopup("<b>Fim da Posição GPS</b>");
+        } else {
+             showNotification('Dados de GPS para o trajeto real indisponíveis.', 'info', 4000);
         }
         
         // 2. ROTA PLANEJADA (ORSM/WAYPOINTS) - Cor Azul
@@ -5831,7 +5835,7 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         const routingControl = L.Routing.control({
             waypoints: waypoints,
             createMarker: function(i, waypoint, n) {
-                 let iconHtml = '';
+                let iconHtml = '';
                 if (i === 0) {
                     iconHtml = '<div style="background: #0077B6; color: white; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">🏭 CD</div>';
                 } else {
@@ -5855,11 +5859,11 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         }).addTo(mapInstance);
         
         
-        // 🚨 FIX: Capturar erro de roteamento (Timeout/Falha na rota planejada) 🚨
+        // 🚨 FIX 1 (Routing Error Handling): Capturar erro de roteamento e notificar
         routingControl.on('routingerror', function(e) {
              console.error("Erro no Routing Machine:", e.error.message);
-             showNotification(`Erro ao calcular rota planejada: Falha no servidor (Timeout/429). Exibindo apenas a rota real (GPS).`, 'error', 6000);
-             // Ajusta o zoom apenas para o que foi desenhado
+             showNotification(`Erro ao calcular rota planejada: Falha no servidor (Timeout). Exibindo apenas a rota real (GPS).`, 'error', 6000);
+             // Ajusta o zoom apenas para o que foi desenhado (o GPS)
              if (bounds.isValid()) {
                 mapInstance.fitBounds(bounds, { padding: [30, 30] });
              } else {
@@ -5873,10 +5877,15 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             const distance = route.summary.totalDistance / 1000;
             const duration = route.summary.totalTime / 60;
             
-            // Adiciona a rota planejada aos limites do mapa
-            bounds.extend(routingControl.getBounds());
+            // 🚨 FIX 2 (Bounds): Adiciona a rota planejada aos limites do mapa APÓS A ROTA SER ENCONTRADA
+            try {
+                bounds.extend(routingControl.getBounds());
+            } catch (err) {
+                 // Captura o erro 'routingControl.getBounds is not a function' caso a rota falhe parcialmente
+                 console.warn("Falha ao obter bounds da rota planejada.", err);
+            }
             
-            // Cria o painel de estatísticas
+            // Cria o painel de estatísticas (permanece igual)
             const statsControl = L.control({ position: 'topright' });
             statsControl.onAdd = function() {
                 const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
@@ -5903,7 +5912,7 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         const routingAlt = document.querySelector('.leaflet-routing-alt');
         if (routingAlt) routingAlt.style.display = 'none';
 
-        // Adicionar uma legenda simples
+        // Adicionar uma legenda simples (permanece igual)
         const legend = L.control({ position: 'bottomleft' });
         legend.onAdd = function (map) {
             const div = L.DomUtil.create('div', 'info legend');
