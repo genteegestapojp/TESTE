@@ -2266,17 +2266,23 @@ await openOrdemCarregamentoModal(newExpeditionId);
             }
         }
 
-        // --- FUNCIONALIDADES DA ABA FATURAMENTO ---
-      async function loadFaturamento() {
+      // SUBSTITUIR A FUNÇÃO loadFaturamento
+async function loadFaturamento() {
     // Busca e aplica a lógica para auto-abrir a única sub-aba permitida
     const permittedFaturamentoTabs = getPermittedSubTabs('faturamento');
     
     if (permittedFaturamentoTabs.length > 0) {
         const initialSubTab = permittedFaturamentoTabs.length === 1 ? permittedFaturamentoTabs[0] : 'faturamentoAtivo';
         const initialElement = document.querySelector(`#faturamento .sub-tabs button[onclick*="'${initialSubTab}'"]`);
-        showSubTab('faturamento', initialSubTab, initialElement);
+        
+        // NOVO: Garantir que o elemento exista e que a função showSubTab seja chamada
+        if (initialElement) {
+            showSubTab('faturamento', initialSubTab, initialElement);
+        } else {
+             // Fallback: Se o botão não for encontrado (filtrado), chama a função de carregamento manual para garantir o estado
+             await loadFaturamentoData(initialSubTab);
+        }
     }
-    // A lógica de carregar estatísticas e listas fica dentro da função loadFaturamento/HistoricoFaturamento (chamada por showSubTab)
 }
 
         function renderFaturamentoList(expeditionsList) {
@@ -2549,6 +2555,7 @@ function clearHistoricoFaturamentoFilters() {
 
 
 
+// SUBSTITUIR A FUNÇÃO showSubTab (INCLUINDO A NOVA CHAMADA)
 function showSubTab(tabName, subTabName, element) {
     // Permissão lida do atributo data-permission do botão clicado
     const permission = element ? element.dataset.permission : null; 
@@ -2588,8 +2595,13 @@ function showSubTab(tabName, subTabName, element) {
         }
     } else if (tabName === 'historico' && subTabName === 'indicadores') {
         applyHistoricoFilters();
-    } else if (tabName === 'faturamento' && subTabName === 'historicoFaturamento') {
-        loadHistoricoFaturamento();
+    } else if (tabName === 'faturamento') {
+        // 🚨 NOVO: Chama a função de dados de faturamento (Faturamento Ativo ou Histórico)
+        if (subTabName === 'faturamentoAtivo') {
+            loadFaturamentoData('faturamentoAtivo');
+        } else if (subTabName === 'historicoFaturamento') {
+            loadHistoricoFaturamento();
+        }
     } else if (tabName === 'configuracoes') {
         if (subTabName === 'filiais') {
             renderFiliaisConfig();
@@ -2615,12 +2627,16 @@ function showSubTab(tabName, subTabName, element) {
         if (subTabName === 'identificacao') {
             loadIdentificacaoExpedicoes();
         }
-    } else if (tabName === 'motoristas' && subTabName === 'relatorioMotoristas') {
-        generateMotoristaReports();
+    } else if (tabName === 'motoristas') {
+        // 🚨 NOVO: Chama a função de dados de motoristas (Status da Frota ou Relatório)
+        if (subTabName === 'statusFrota') {
+            renderMotoristasStatusList(); // Função que carrega e renderiza o status da frota
+        } else if (subTabName === 'relatorioMotoristas') {
+            generateMotoristaReports();
+        }
     }
     feather.replace();
 }
-
 
 // Novo: Mapa de Permissões de Sub-Abas e Views que contêm sub-abas
 const subTabViewIds = new Set(['operacao', 'faturamento', 'motoristas', 'acompanhamento', 'historico', 'configuracoes']);
@@ -2688,11 +2704,16 @@ async function loadMotoristaTab() {
     if (permittedMotoristasTabs.length > 0) {
         const initialSubTab = permittedMotoristasTabs.length === 1 ? permittedMotoristasTabs[0] : 'statusFrota';
         const initialElement = document.querySelector(`#motoristas .sub-tabs button[onclick*="'${initialSubTab}'"]`);
-        showSubTab('motoristas', initialSubTab, initialElement);
+        
+        if (initialElement) {
+            showSubTab('motoristas', initialSubTab, initialElement);
+        } else {
+             // Fallback: Se o botão não for encontrado, chama a função de carregamento manual
+             await renderMotoristasStatusList();
+        }
     }
-    // O restante do carregamento inicial da aba motoristas deve estar dentro da função de sub-aba.
     
-    // Configurar datas padrão (mantido fora para garantir o carregamento do status)
+    // Configurar datas padrão
     const hoje = new Date();
     const ha30Dias = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
     const dataInicio = document.getElementById('relatorioMotoristaDataInicio');
@@ -2700,7 +2721,6 @@ async function loadMotoristaTab() {
     if (dataInicio && !dataInicio.value) dataInicio.value = ha30Dias.toISOString().split('T')[0];
     if (dataFim && !dataFim.value) dataFim.value = hoje.toISOString().split('T')[0];
 }
-
 
         async function renderMotoristasStatusList() {
             const container = document.getElementById('motoristasStatusList');
@@ -8034,4 +8054,43 @@ function filterSubTabs() {
             item.style.display = 'flex';
         }
     });
+}
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// NOVO CÓDIGO: Função de Carregamento de Dados de Faturamento Ativo
+async function loadFaturamentoData(subTabName = 'faturamentoAtivo') {
+    const container = document.getElementById('faturamentoList');
+    if (!container) return;
+
+    if (subTabName === 'faturamentoAtivo') {
+         container.innerHTML = `<div class="loading"><div class="spinner"></div>Carregando expedições...</div>`;
+
+        try {
+            // Busca expedições em status de faturamento (aguardando_faturamento, faturamento_iniciado, faturado)
+            const expeditions = await supabaseRequest("expeditions?status=in.(aguardando_faturamento,faturamento_iniciado,faturado)&order=data_hora.asc");
+            const items = await supabaseRequest('expedition_items');
+
+            const expeditionsWithItems = expeditions.map(exp => {
+                const veiculo = exp.veiculo_id ? veiculos.find(v => v.id === exp.veiculo_id) : null;
+                const motorista = exp.motorista_id ? motoristas.find(m => m.id === exp.motorista_id) : null;
+                const expItems = items.filter(item => item.expedition_id === exp.id);
+                
+                return {
+                    ...exp, 
+                    veiculo_placa: veiculo?.placa || 'N/A',
+                    motorista_nome: motorista?.nome || 'N/A',
+                    lojas_count: expItems.length,
+                    lojas_info: expItems.map(item => lojas.find(l => l.id === item.loja_id)?.nome || 'N/A').join(', '),
+                    total_pallets: expItems.reduce((sum, item) => sum + (item.pallets || 0), 0),
+                    total_rolltrainers: expItems.reduce((sum, item) => sum + (item.rolltrainers || 0), 0)
+                };
+            });
+            
+            updateFaturamentoStats(expeditionsWithItems);
+            renderFaturamentoList(expeditionsWithItems);
+            
+        } catch (error) {
+            container.innerHTML = `<div class="alert alert-error">Erro ao carregar lista de faturamento: ${error.message}</div>`;
+        }
+    }
 }
