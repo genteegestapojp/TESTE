@@ -41,39 +41,36 @@ async function loadUserPermissions(userId, grupoId) {
     // 1. MASTER BYPASS E CHECAGEM DE GRUPO
     if (grupoId) {
          try {
-             // Checa se o grupo é 'MASTER' (Hardcode para ambiente de teste/Admin)
+             // Checagem Master
              const grupo = await supabaseRequest(`grupos_acesso?id=eq.${grupoId}&select=nome`, 'GET', null, false);
              if (grupo && grupo.length > 0 && grupo[0].nome === 'MASTER') {
                  masterUserPermission = true;
-                 // Adiciona permissões essenciais para liberar as sub-abas de MASTER.
                  userPermissions = ['gerenciar_permissoes', 'acesso_configuracoes', 'acesso_configuracoes_acessos', 'acesso_home'];
-                 
-                 // Adiciona todas as filiais para o Master (sempre)
                  const todasFiliais = await supabaseRequest('filiais?select=nome&ativo=eq.true', 'GET', null, false);
                  todasFiliais.forEach(f => userPermissions.push(`acesso_filial_${f.nome}`));
-                 return; // Sai imediatamente, resolvendo o bloqueio do Master
+                 return; 
              }
 
-             // 2. Carrega Permissões do Grupo (Caminho normal)
-             // O BRUNO E OUTROS USUÁRIOS COM GRUPO SÃO PROCESSADOS AQUI
+             // Carrega Permissões do Grupo
              const permissoesGrupo = await supabaseRequest(`permissoes_grupo?grupo_id=eq.${grupoId}&select=permissao`, 'GET', null, false);
              
              if (permissoesGrupo && Array.isArray(permissoesGrupo)) {
-                 permissoesGrupo.forEach(p => finalPermissionsSet.add(p.permissao));
+                 // 🚨 AJUSTE CRÍTICO: Saneamento do código de permissão ao ler do BD 🚨
+                 permissoesGrupo.forEach(p => finalPermissionsSet.add(p.permissao.trim().toLowerCase()));
              }
          } catch (e) {
              console.error("ERRO CRÍTICO: Falha ao carregar permissoes_grupo.", e);
          }
     }
     
-    // 3. Permissões Individuais: REMOVIDA (Conforme solicitado)
+    // 2. Permissões Individuais: (Removido, apenas para demonstrar a ausência da lógica)
     
     userPermissions = Array.from(finalPermissionsSet);
     
-    // 4. Checagem MASTER Secundária (Baseada em permissão, para grupos não-MASTER)
+    // 3. Checagem MASTER Secundária
     if (userPermissions.includes('gerenciar_permissoes')) {
          masterUserPermission = true;
-         // Adiciona todas as filiais para o Master (se ele tiver a permissão de gerência)
+         // Adiciona todas as filiais
          try {
              const todasFiliais = await supabaseRequest('filiais?select=nome&ativo=eq.true', 'GET', null, false);
              todasFiliais.forEach(f => userPermissions.push(`acesso_filial_${f.nome}`));
@@ -83,14 +80,19 @@ async function loadUserPermissions(userId, grupoId) {
     }
 }
 
+
+// SUBSTITUIR A VERSÃO EXISTENTE DE hasPermission
 function hasPermission(permission) {
-    // Se for usuário master, sempre retorna true.
     if (masterUserPermission) {
         return true;
     }
-    // Caso contrário, verifica se a permissão existe no array do usuário.
-    return userPermissions.includes(permission);
+    // 🚨 AJUSTE CRÍTICO: Saneamento da permissão sendo verificada ('acesso_operacao' -> 'acesso_operacao') 🚨
+    const requiredPermission = permission.trim().toLowerCase();
+    
+    return userPermissions.includes(requiredPermission);
 }
+
+
 // SUBSTITUA A VERSÃO EXISTENTE DE supabaseRequest (Cerca da linha 106 do script.js)
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
     let url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
