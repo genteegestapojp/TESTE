@@ -5752,8 +5752,6 @@ async function showTrajectoryMap(expeditionId, vehiclePlaca) {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
 // SUBSTITUIR A FUNÇÃO initTrajectoryMap COMPLETA
 async function initTrajectoryMap(expeditionId, vehiclePlaca) {
     try {
@@ -5777,21 +5775,18 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         mapInstance = L.map('map');
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
 
-        // 1. DEFINIÇÃO DOS WAYPOINTS (PONTOS DE PARADA)
+        // 1. ROTA PLANEJADA (ORSM/WAYPOINTS) - Cor Azul
         const waypoints = [
             L.latLng(selectedFilial.latitude_cd, selectedFilial.longitude_cd),
             ...expeditionItems.map(item => {
                 const loja = lojas.find(l => l.id === item.loja_id);
-                // Filtra waypoints inválidos
                 return (loja && loja.latitude && loja.longitude) ? L.latLng(loja.latitude, loja.longitude) : null;
             }).filter(Boolean)
         ];
 
-        // 2. ROTA PLANEJADA (OSRM) - Desenha a linha Azul
         const routingControl = L.Routing.control({
             waypoints: waypoints,
             createMarker: function(i, waypoint, n) {
-                // Lógica de marcadores (CD e Lojas)
                  let iconHtml = '';
                 if (i === 0) {
                     iconHtml = '<div style="background: #0077B6; color: white; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">🏭 CD</div>';
@@ -5812,18 +5807,17 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             },
             routeWhileDragging: false,
             autoRoute: true,
-            // Linha única sólida e simples
+            // Rota Planejada - Corrigida para ser a única linha sólida.
             lineOptions: { styles: [{ color: '#0077B6', weight: 6, opacity: 1 }] } 
         }).addTo(mapInstance);
         
         
-        // 3. CAPTURA DE ERRO DO OSRM E AJUSTE DE ZOOM
+        // 2. CAPTURA DE ERRO DO OSRM E AJUSTE DE ZOOM
         routingControl.on('routingerror', function(e) {
              console.error("Erro no Routing Machine (Rota Planejada Falhou):", e.error.message);
              showNotification(`Erro ao calcular rota planejada: Falha no servidor (Timeout/429).`, 'error', 6000);
-             // Se a rota falha, ajusta o zoom apenas para o CD
-             const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
-             mapInstance.setView(cdCoords, 11);
+             // Ajusta o zoom apenas para os waypoints (marcadores)
+             mapInstance.fitBounds(L.latLngBounds(waypoints), { padding: [30, 30] });
         });
 
         routingControl.on('routesfound', function(e) {
@@ -5848,16 +5842,16 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
                 return div;
             };
             statsControl.addTo(mapInstance);
-            
+
             // Ajusta o zoom para a rota encontrada
              mapInstance.fitBounds(routingControl.getBounds(), { padding: [30, 30] });
         });
 
-        // 4. LIMPEZA E LEGENDAS
+        // 3. LIMPEZA E LEGENDAS
         const routingAlt = document.querySelector('.leaflet-routing-alt');
         if (routingAlt) routingAlt.style.display = 'none';
 
-        // Legenda simples para a Rota Planejada
+        // Legenda simples apenas para a Rota Planejada
         const legend = L.control({ position: 'bottomleft' });
         legend.onAdd = function (map) {
             const div = L.DomUtil.create('div', 'info legend');
