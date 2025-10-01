@@ -1531,88 +1531,128 @@ async function loadHomeData() {
             }, [ocupacaoText]);
         }
 
-       function renderFrotaProdutividadeChart(motoristasData) {
+    function renderFrotaProdutividadeChart(motoristasData) {
     if (!motoristasData || motoristasData.length === 0) {
         destroyChart('frotaProdutividadeChart');
         return;
     }
     
-    // Ordena por número de entregas (decrescente)
-    const sortedData = [...motoristasData].sort((a, b) => b.entregas - a.entregas);
+    // Pega apenas os top 5 e ordena por entregas
+    const top5 = [...motoristasData]
+        .sort((a, b) => b.entregas - a.entregas)
+        .slice(0, 5);
     
     const data = {
-        labels: sortedData.map(f => f.nome),
+        labels: top5.map(m => m.nome),
         datasets: [{
-            label: 'Total de Entregas',
-            data: sortedData.map(f => f.entregas),
-            backgroundColor: '#00D4AA',
-            borderColor: '#00B4D8',
-            borderWidth: 1,
-            borderRadius: 4,
+            label: 'Entregas',
+            data: top5.map(m => m.entregas),
+            backgroundColor: [
+                'rgba(255, 215, 0, 0.8)',    // Ouro - 1º lugar
+                'rgba(192, 192, 192, 0.8)',  // Prata - 2º lugar
+                'rgba(205, 127, 50, 0.8)',   // Bronze - 3º lugar
+                'rgba(0, 212, 170, 0.8)',    // Turquesa - 4º
+                'rgba(0, 119, 182, 0.8)'     // Azul - 5º
+            ],
+            borderColor: [
+                'rgba(255, 215, 0, 1)',
+                'rgba(192, 192, 192, 1)',
+                'rgba(205, 127, 50, 1)',
+                'rgba(0, 212, 170, 1)',
+                'rgba(0, 119, 182, 1)'
+            ],
+            borderWidth: 2,
+            borderRadius: 6,
+            barThickness: 35 // 🚨 Tamanho fixo das barras
         }]
     };
 
     renderChart('frotaProdutividadeChart', 'bar', data, {
-        indexAxis: 'y', // 🚨 CRÍTICO: Barras horizontais
+        indexAxis: 'y', // Barras horizontais
         responsive: true,
-        maintainAspectRatio: false, // 🚨 CRÍTICO: Permite que o gráfico ocupe todo o container
+        maintainAspectRatio: false,
         plugins: {
-            legend: { display: false },
-            datalabels: {
-                color: '#023047',
-                font: { 
-                    weight: 'bold',
-                    size: 14
-                },
-                anchor: 'end',
-                align: 'end',
-                offset: 5,
-                formatter: (value) => value
+            legend: { 
+                display: false 
             },
             tooltip: {
+                enabled: true, // 🚨 Habilita apenas o tooltip padrão
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                titleFont: {
+                    size: 14,
+                    weight: 'bold'
+                },
+                bodyFont: {
+                    size: 13
+                },
                 callbacks: {
                     label: function(context) {
-                        return `Total de Entregas: ${context.raw}`;
+                        return `Entregas: ${context.raw}`;
                     }
                 }
+            },
+            datalabels: {
+                display: true,
+                color: '#FFFFFF',
+                font: { 
+                    weight: 'bold',
+                    size: 16
+                },
+                anchor: 'center',
+                align: 'center',
+                formatter: (value) => value // Mostra apenas o número
             }
         },
         scales: {
             x: {
                 beginAtZero: true,
+                max: Math.max(...top5.map(m => m.entregas)) * 1.15, // 15% de margem
                 grid: {
                     display: true,
-                    color: 'rgba(0, 0, 0, 0.05)'
-                },
-                ticks: {
-                    font: {
-                        size: 12
-                    }
-                }
-            },
-            y: {
-                grid: {
-                    display: false
+                    color: 'rgba(0, 0, 0, 0.05)',
+                    drawBorder: false
                 },
                 ticks: {
                     font: {
                         size: 12
                     },
-                    autoSkip: false // Garante que todos os labels apareçam
+                    stepSize: 1
+                },
+                title: {
+                    display: false
+                }
+            },
+            y: {
+                grid: {
+                    display: false,
+                    drawBorder: false
+                },
+                ticks: {
+                    font: {
+                        size: 13,
+                        weight: '500'
+                    },
+                    color: '#374151',
+                    padding: 10,
+                    autoSkip: false
                 }
             }
         },
         layout: {
             padding: {
-                left: 10,
-                right: 30,
-                top: 10,
-                bottom: 10
+                left: 15,
+                right: 35,
+                top: 15,
+                bottom: 15
             }
+        },
+        animation: {
+            duration: 800,
+            easing: 'easeInOutQuart'
         }
     });
 }
-
         function renderLojaDesempenhoChart(lojasData) {
             if (!lojasData || lojasData.length === 0) {
                 destroyChart('lojaDesempenhoChart');
