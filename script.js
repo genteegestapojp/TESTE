@@ -3872,6 +3872,7 @@ function populateRastreioFilters() {
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
 // SUBSTITUIR A FUNÇÃO loadRastreioData COMPLETA
+// SUBSTITUIR A FUNÇÃO loadRastreioData COMPLETA (aprox. linha 3866)
 async function loadRastreioData() {
     try {
         console.log("Iniciando carregamento dos dados de rastreio...");
@@ -3880,8 +3881,8 @@ async function loadRastreioData() {
         const items = await supabaseRequest('expedition_items');
         
         let locations = [];
-        const expeditionIds = expeditionsEmRota.map(exp => exp.id);
-        if (expeditionIds.length > 0) {
+        if (expeditionsEmRota.length > 0) {
+            const expeditionIds = expeditionsEmRota.map(exp => exp.id);
             const query = `gps_tracking?expedition_id=in.(${expeditionIds.join(',')})&order=data_gps.desc`;
             locations = await supabaseRequest(query, 'GET', null, false);
         }
@@ -3896,9 +3897,13 @@ async function loadRastreioData() {
                 return null;
             }
 
+            // Ordenar itens por ordem_entrega primeiro, depois por data_inicio_descarga
             const itemsOrdenados = expItems.sort((a, b) => {
+                const aOrdem = a.ordem_entrega || 999;
+                const bOrdem = b.ordem_entrega || 999;
+                if (aOrdem !== bOrdem) return aOrdem - bOrdem;
                 const aInicio = a.data_inicio_descarga ? new Date(a.data_inicio_descarga) : new Date('2099-01-01');
-                const bInicio = b.data_inicio_descarga ? new Date(b.data_fim_descarga) : new Date('2099-01-01');
+                const bInicio = b.data_inicio_descarga ? new Date(b.data_inicio_descarga) : new Date('2099-01-01');
                 return aInicio - bInicio;
             });
 
@@ -3934,33 +3939,99 @@ async function loadRastreioData() {
             const tempoSaida = new Date(exp.data_saida_entrega);
             const tempoDecorrido = (new Date() - tempoSaida) / 60000;
             
-            // 🚨 VARIÁVEIS DE ROTA: DEFINIDAS COMO ZERO PARA EVITAR CHAMADAS OSRM BLOQUEADAS 🚨
+            // 🚨 CÁLCULO DE DISTÂNCIA E TEMPO DA ROTA COMPLETA 🚨
             let distanciaTotalKm = 0;
             let tempoTotalRota = 0;
             let eta = new Date();
             
-            // ============== BLOCO OSRM REMOVIDO PARA ESTABILIDADE ==============
-            // const waypoints = [...];
-            // if (waypoints.length > 1) {
-            //     try {
-            //         rotaCompleta = await getRouteFromAPI(waypoints);
-            //     } catch (e) {
-            //         console.error("Falha ao calcular rota completa, pulando dados de rota para esta expedição.", e);
-            //     }
-            // }
-            // if (rotaCompleta) {
-            //     distanciaTotalKm = rotaCompleta.distance / 1000;
-            //     tempoTotalRota = rotaCompleta.duration / 60;
-            // }
-            // if (proximaLoja && proximaLoja.latitude && proximaLoja.longitude) {
-            //     try {
-            //         const rotaProximaLoja = await getRouteFromAPI(/*...*/);
-            //         // ...
-            //     } catch (e) {
-            //          console.error("Falha ao calcular ETA, usando tempo atual.", e);
-            //     }
-            // }
-            // ===================================================================
+            try {
+                // Construir waypoints para a rota completa
+                const waypoints = [
+                    { lat: selectedFilial.latitude_cd, lng: selectedFilial.longitude_cd }
+                ];
+                
+                itemsOrdenados.forEach(item => {
+                    const loja = lojas.find(l => l.id === item.loja_id);
+                    if (loja && loja.latitude && loja.longitude) {
+                        waypoints.push({ 
+                            lat: parseFloat(loja.latitude), 
+                            lng: parseFloat(loja.longitude) 
+                        });
+                    }
+                });
+                
+                // Se há pelo menos 2 pontos, calcular a rota
+                if (waypoints.length >= 2) {
+                    const rotaCompleta = await getRouteFromAPI(waypoints);
+                    
+                    if (rotaCompleta) {
+                        distanciaTotalKm = rotaCompleta.distance / 1000; // Converter metros para km
+                        tempoTotalRota = rotaCompleta.duration / 60; // Converter segundos para minutos
+                    } else {
+                        // Fallback: calcular distância em linha reta
+                        let distanciaEstimada = 0;
+                        for (let i = 1; i < waypoints.length; i++) {
+                            distanciaEstimada += calculateDistance(
+                                waypoints[i-1].lat, waypoints[i-1].lng,
+                                waypoints[i].lat, waypoints[i].lng
+                            );
+                        }
+                        distanciaTotalKm = distanciaEstimada / 1000;
+                        tempoTotalRota = (distanciaEstimada / 1000) / 40 * 60; // Estimativa a 40km/h
+                    }
+                }
+                
+                // Calcular ETA para a próxima loja (se houver)
+                if (proximaLoja && proximaLoja.latitude && proximaLoja.longitude) {
+                    try {
+                        const rotaProximaLoja = await getRouteFromAPI([
+                            { lat: parseFloat(currentLocation.latitude), lng: parseFloat(currentLocation.longitude) },
+                            { lat: parseFloat(proximaLoja.latitude), lng: parseFloat(proximaLoja.longitude) }
+                        ]);
+                        
+                        if (rotaProximaLoja) {
+                            const tempoRestanteMinutos = rotaProximaLoja.duration / 60;
+                            eta = new Date(Date.now() + (tempoRestanteMinutos * 60000));
+                        } else {
+                            // Fallback: estimar baseado em distância reta
+                            const distReta = calculateDistance(
+                                parseFloat(currentLocation.latitude), parseFloat(currentLocation.longitude),
+                                parseFloat(proximaLoja.latitude), parseFloat(proximaLoja.longitude)
+                            );
+                            const tempoEstimado = (distReta / 1000) / 40 * 60; // 40 km/h
+                            eta = new Date(Date.now() + (tempoEstimado * 60000));
+                        }
+                    } catch (e) {
+                        console.warn("Falha ao calcular ETA específico:", e);
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao calcular rota completa:', error);
+                // Fallback completo: usar estimativa simples
+                let distanciaEstimada = 0;
+                const waypoints = [
+                    { lat: selectedFilial.latitude_cd, lng: selectedFilial.longitude_cd }
+                ];
+                
+                itemsOrdenados.forEach(item => {
+                    const loja = lojas.find(l => l.id === item.loja_id);
+                    if (loja && loja.latitude && loja.longitude) {
+                        waypoints.push({ 
+                            lat: parseFloat(loja.latitude), 
+                            lng: parseFloat(loja.longitude) 
+                        });
+                    }
+                });
+                
+                for (let i = 1; i < waypoints.length; i++) {
+                    distanciaEstimada += calculateDistance(
+                        waypoints[i-1].lat, waypoints[i-1].lng,
+                        waypoints[i].lat, waypoints[i].lng
+                    );
+                }
+                distanciaTotalKm = distanciaEstimada / 1000;
+                tempoTotalRota = (distanciaEstimada / 1000) / 40 * 60; // Estimativa a 40km/h
+            }
             
             return {
                 ...exp,
@@ -3972,8 +4043,8 @@ async function loadRastreioData() {
                 proxima_loja: proximaLoja,
                 progresso_rota: Math.round(progresso),
                 tempo_em_rota: Math.round(tempoDecorrido),
-                distancia_total_km: distanciaTotalKm, // Será 0
-                tempo_total_rota: tempoTotalRota,     // Será 0
+                distancia_total_km: distanciaTotalKm, // ✅ VALOR REAL
+                tempo_total_rota: tempoTotalRota,     // ✅ VALOR REAL
                 coordenadas: {
                     lat: parseFloat(currentLocation.latitude),
                     lng: parseFloat(currentLocation.longitude)
@@ -4011,14 +4082,41 @@ async function loadRastreioData() {
             const lastVehicle = lastVeiculoId ? veiculos.find(v => v.id === lastVeiculoId) : null;
             
             if (currentLocation && currentLocation.latitude && currentLocation.longitude) {
-                // AQUI TAMBÉM REMOVEMOS A CHAMADA OSRM DE ROTA DE RETORNO
-                // const cdCoords = { lat: selectedFilial.latitude_cd, lng: selectedFilial.longitude_cd };
-                // let rota = null;
-                // try { rota = await getRouteFromAPI(/*...*/); } catch (e) {}
-
-                const distanciaTotalKm = 0;
-                const tempoEstimadoMinutos = 0;
-                const eta = new Date(); // ETA será o tempo atual
+                // Calcular distância e tempo de retorno ao CD
+                let distanciaTotalKm = 0;
+                let tempoEstimadoMinutos = 0;
+                let eta = new Date();
+                
+                try {
+                    const rota = await getRouteFromAPI([
+                        { lat: parseFloat(currentLocation.latitude), lng: parseFloat(currentLocation.longitude) },
+                        { lat: selectedFilial.latitude_cd, lng: selectedFilial.longitude_cd }
+                    ]);
+                    
+                    if (rota) {
+                        distanciaTotalKm = rota.distance / 1000;
+                        tempoEstimadoMinutos = rota.duration / 60;
+                        eta = new Date(Date.now() + (tempoEstimadoMinutos * 60000));
+                    } else {
+                        // Fallback
+                        const distReta = calculateDistance(
+                            parseFloat(currentLocation.latitude), parseFloat(currentLocation.longitude),
+                            selectedFilial.latitude_cd, selectedFilial.longitude_cd
+                        );
+                        distanciaTotalKm = distReta / 1000;
+                        tempoEstimadoMinutos = (distReta / 1000) / 40 * 60;
+                        eta = new Date(Date.now() + (tempoEstimadoMinutos * 60000));
+                    }
+                } catch (error) {
+                    console.warn('Erro ao calcular rota de retorno, usando estimativa:', error);
+                    const distReta = calculateDistance(
+                        parseFloat(currentLocation.latitude), parseFloat(currentLocation.longitude),
+                        selectedFilial.latitude_cd, selectedFilial.longitude_cd
+                    );
+                    distanciaTotalKm = distReta / 1000;
+                    tempoEstimadoMinutos = (distReta / 1000) / 40 * 60;
+                    eta = new Date(Date.now() + (tempoEstimadoMinutos * 60000));
+                }
                 
                 return {
                     id: `return-${m.id}`,
@@ -4042,6 +4140,7 @@ async function loadRastreioData() {
                     },
                     eta: eta,
                     last_update: new Date(currentLocation.data_gps),
+                    velocidade_media: currentLocation.velocidade || 0,
                     pontos_proximos: checkProximityToPontosInteresse(currentLocation.latitude, currentLocation.longitude)
                 };
             }
@@ -4063,12 +4162,10 @@ async function loadRastreioData() {
         updateLastRefreshTime();
 
     } catch (error) {
-        // Tratar erro de Supabase ou erro de conexão geral
         console.error('ERRO GERAL: Falha no loadRastreioData:', error);
         document.getElementById('rastreioList').innerHTML = `<div class="alert alert-error">Erro ao carregar dados de rastreio. Verifique o servidor.</div>`;
     }
 }
-
 function updateRastreioStats() {
     const veiculosEmRota = rastreioData.length;
     const entregasAndamento = rastreioData.filter(r => r.status_rastreio === 'em_descarga').length;
