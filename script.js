@@ -3216,6 +3216,7 @@ function renderMotoristasListHtml(motoristasData) {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
+
 // SUBSTITUIR A FUNÇÃO renderMotoristaRankingChart COMPLETA
 function renderMotoristaRankingChart(motoristasData) {
     if (!motoristasData || motoristasData.length === 0) {
@@ -3241,10 +3242,10 @@ function renderMotoristaRankingChart(motoristasData) {
         }]
     }, {
         indexAxis: 'y',
-        // AJUSTE CRÍTICO: Aumentar o padding esquerdo para evitar cortar nomes
+        // AJUSTE CRÍTICO: Aumentar o padding esquerdo para 200px para garantir espaço para os nomes longos
         layout: {
             padding: {
-                left: 150 // Aumenta a área de margem para os nomes
+                left: 200 // NOVO VALOR para garantir o espaço
             }
         },
         plugins: {
