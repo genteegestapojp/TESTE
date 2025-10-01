@@ -836,7 +836,7 @@ async function loadAllTabData() {
 </div>
 `;
             
-    document.getElementById('historico').innerHTML = `
+   document.getElementById('historico').innerHTML = `
         <h1 class="text-3xl font-bold text-gray-800 mb-6">Histórico de Entregas</h1>
         <div class="sub-tabs">
             <button class="sub-tab active" onclick="showSubTab('historico', 'listaEntregas', this)" data-permission="acesso_historico_entregas">Entregas</button>
@@ -882,11 +882,15 @@ async function loadAllTabData() {
                         <label for="indicadoresFiltroDataFim">Data Fim:</label>
                         <input type="date" id="indicadoresFiltroDataFim" onchange="applyHistoricoFilters()">
                     </div>
+                     <div class="form-group md:col-span-1">
+                        <label for="indicadoresSearchInput">Pesquisar Loja/Placa:</label>
+                        <input type="text" id="indicadoresSearchInput" placeholder="Filtro nos gráficos..." onkeyup="applyHistoricoFilters()">
+                    </div>
                 </div>
             </div>
             
             <h3 class="text-xl font-semibold text-gray-700 mb-4">Volume e Eficiência</h3>
-            <div id="indicadoresVolumeStats" class="stats-grid mb-8 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+            <div id="indicadoresVolumeStats" class="stats-grid mb-8 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
                 </div>
             
             <h3 class="text-xl font-semibold text-gray-700 mb-4">Tempos Operacionais (Média)</h3>
@@ -910,27 +914,33 @@ async function loadAllTabData() {
                 </div>
             </div>
 
-            <h3 class="text-xl font-semibold text-gray-700 my-6">Produtividade e Evolução</h3>
-
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-                <div class="bg-white p-4 rounded-lg shadow-md" data-aos="fade-up">
-                    <h3 class="text-lg font-semibold text-center mb-4">Total de Entregas por Loja (Volume Total)</h3>
-                    <div class="relative" style="height: 350px;">
+                 <div class="bg-white p-4 rounded-lg shadow-md" data-aos="fade-up">
+                    <h3 class="text-lg font-semibold text-center mb-4">Total de Entregas por Loja (Volume de Saídas)</h3>
+                    <div class="relative" style="height: 400px;">
                         <canvas id="totalEntregasLojaChart"></canvas>
                     </div>
                 </div>
                 <div class="bg-white p-4 rounded-lg shadow-md" data-aos="fade-up" data-aos-delay="100">
-                    <h3 class="text-lg font-semibold text-center mb-4">Produtividade Média Diária por Loja</h3>
-                    <div class="relative" style="height: 350px;">
-                        <canvas id="mediaDiariaEntregasLojaChart"></canvas>
+                    <h3 class="text-lg font-semibold text-center mb-4">Participação % no Total de Entregas</h3>
+                    <div class="relative mx-auto" style="height: 400px; max-width: 450px;">
+                        <canvas id="participacaoEntregasLojaChart"></canvas>
                     </div>
                 </div>
             </div>
-
-            <div class="bg-white p-4 rounded-lg shadow-md mt-8" data-aos="fade-up" data-aos-delay="200">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Evolução Diária de Pallets Expedidos</h3>
-                <div class="relative" style="height: 350px;">
-                    <canvas id="evolucaoPalletsChart"></canvas>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                <div class="bg-white p-4 rounded-lg shadow-md" data-aos="fade-up">
+                    <h3 class="text-lg font-semibold text-center mb-4">Total de Pallets por Loja</h3>
+                    <div class="relative" style="height: 400px;">
+                        <canvas id="palletsPorLojaChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md" data-aos="fade-up" data-aos-delay="100">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Evolução de Entregas na Última Semana</h3>
+                    <div class="relative" style="height: 400px;">
+                        <canvas id="evolucaoEntregasDiaChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -4724,13 +4734,14 @@ function generateHistoricoIndicators(data) {
     const volumeStatsContainer = document.getElementById('indicadoresVolumeStats');
     
     if (data.length === 0) {
-        timeSummaryContainer.innerHTML = '<div class="alert alert-info md:col-span-4">Sem dados de expedições concluídas para o período selecionado.</div>';
+        timeSummaryContainer.innerHTML = '<div class="alert alert-info md:col-span-5">Sem dados de expedições concluídas para o período selecionado.</div>';
         volumeStatsContainer.innerHTML = '';
         destroyChart('lojasRankingChart');
         destroyChart('entregasChart');
         destroyChart('totalEntregasLojaChart');
-        destroyChart('mediaDiariaEntregasLojaChart');
-        destroyChart('evolucaoPalletsChart');
+        destroyChart('participacaoEntregasLojaChart');
+        destroyChart('evolucaoEntregasDiaChart'); // Novo nome
+        destroyChart('palletsPorLojaChart'); // Novo gráfico
         return;
     }
     
@@ -4739,45 +4750,38 @@ function generateHistoricoIndicators(data) {
     
     // VARIÁVEIS DE AGRUPAMENTO
     let temposAlocar = [];
-    let temposChegadaDoca = []; // Tempo entre Alocação e Chegada na Doca
-    let temposCarregamento = []; // Tempo entre Chegada Doca e Saída Pátio
+    let temposChegadaDoca = [];
+    let temposCarregamento = [];
     let temposFaturamento = []; 
     let temposEmTransito = []; 
     let temposEmLoja = [];
     
-    let lojasData = {};
+    let lojasData = {}; // Estrutura principal para Ranking e Participação
     let entregasFort = 0, entregasComper = 0;
     let totalEntregas = 0;
     let totalPallets = 0;
     let totalRolls = 0;
     let ocupacoes = [];
     let lojasAtendidas = new Set();
-    const palletsDiarios = {}; // Para o gráfico de evolução
+    const entregasDiarias = {}; // Para o gráfico de evolução
 
     // Número de dias únicos para o cálculo da média
     const datasExpedicao = new Set();
-
+    const dataFimFiltro = document.getElementById('indicadoresFiltroDataFim').value || new Date().toISOString().split('T')[0];
+    
+    // -----------------------------------------------------
+    // NOVO: Estrutura para contar Expedições (Viagens) por loja e seus totais de Pallets
+    // -----------------------------------------------------
 
     data.forEach(exp => {
         const dataExp = new Date(exp.data_hora).toISOString().split('T')[0];
         datasExpedicao.add(dataExp);
         
         // 1. CÁLCULOS DE TEMPO INTERNO (Pátio)
-        if (exp.data_alocacao_veiculo) {
-            temposAlocar.push((new Date(exp.data_alocacao_veiculo) - new Date(exp.data_hora)) / 60000);
-        }
-        
-        if (exp.data_chegada_veiculo && exp.data_alocacao_veiculo) {
-            temposChegadaDoca.push((new Date(exp.data_chegada_veiculo) - new Date(exp.data_alocacao_veiculo)) / 60000);
-        }
-        
-        if (exp.data_chegada_veiculo && exp.data_saida_veiculo) {
-            temposCarregamento.push((new Date(exp.data_saida_veiculo) - new Date(exp.data_chegada_veiculo)) / 60000);
-        }
-        
-        if (exp.data_inicio_faturamento && exp.data_fim_faturamento) {
-            temposFaturamento.push((new Date(exp.data_fim_faturamento) - new Date(exp.data_inicio_faturamento)) / 60000);
-        }
+        if (exp.data_alocacao_veiculo) temposAlocar.push((new Date(exp.data_alocacao_veiculo) - new Date(exp.data_hora)) / 60000);
+        if (exp.data_chegada_veiculo && exp.data_alocacao_veiculo) temposChegadaDoca.push((new Date(exp.data_chegada_veiculo) - new Date(exp.data_alocacao_veiculo)) / 60000);
+        if (exp.data_chegada_veiculo && exp.data_saida_veiculo) temposCarregamento.push((new Date(exp.data_saida_veiculo) - new Date(exp.data_chegada_veiculo)) / 60000);
+        if (exp.data_inicio_faturamento && exp.data_fim_faturamento) temposFaturamento.push((new Date(exp.data_fim_faturamento) - new Date(exp.data_inicio_faturamento)) / 60000);
         
         // 2. CÁLCULOS DE VOLUME E TEMPO EXTERNO
         let ultimaData = exp.data_saida_entrega ? new Date(exp.data_saida_entrega) : new Date(exp.data_saida_veiculo);
@@ -4785,23 +4789,19 @@ function generateHistoricoIndicators(data) {
         let totalLojaViagem = 0;
         
         const veiculo = exp.veiculo_id ? veiculos.find(v => v.id === exp.veiculo_id) : null;
-        let cargaPallet = 0;
-        let cargaRoll = 0;
-
+        let cargaPalletExp = 0;
+        let cargaRollExp = 0;
 
         exp.items.sort((a, b) => (a.ordem_entrega || 999) - (b.ordem_entrega || 999)).forEach(item => {
-            totalEntregas++;
+            // Conta totais GERAIS (Pallets/Rolls/Entregas)
             totalPallets += item.pallets || 0;
             totalRolls += item.rolltrainers || 0;
-            cargaPallet += item.pallets || 0;
-            cargaRoll += item.rolltrainers || 0;
+            cargaPalletExp += item.pallets || 0;
+            cargaRollExp += item.rolltrainers || 0;
             
-            // Para o gráfico de evolução
-            palletsDiarios[dataExp] = (palletsDiarios[dataExp] || 0) + (item.pallets || 0);
-
+            // Para o cálculo de tempos de loja e trânsito
             const t_chegada = item.data_inicio_descarga ? new Date(item.data_inicio_descarga) : null;
             const t_saida = item.data_fim_descarga ? new Date(item.data_fim_descarga) : null;
-            
             const tempoEmLoja = t_saida && t_chegada ? (t_saida - t_chegada) / 60000 : 0;
             const tempoTransito = ultimaData && t_chegada ? (t_chegada - ultimaData) / 60000 : 0;
             
@@ -4810,9 +4810,12 @@ function generateHistoricoIndicators(data) {
                 const loja = lojas.find(l => l.id === item.loja_id);
                 if(loja) {
                     lojasAtendidas.add(loja.id);
-                    if (!lojasData[loja.id]) lojasData[loja.id] = { nome: `${loja.codigo} - ${loja.nome}`, totalEntregas: 0, totalTempo: 0 };
-                    lojasData[loja.id].totalEntregas++;
+                    // Acumula tempos e volumes para a loja
+                    if (!lojasData[loja.id]) {
+                        lojasData[loja.id] = { nome: `${loja.codigo} - ${loja.nome}`, totalEntregas: 0, totalTempo: 0, totalPallets: 0 };
+                    }
                     lojasData[loja.id].totalTempo += tempoEmLoja;
+                    lojasData[loja.id].totalPallets += item.pallets || 0;
 
                     if (loja.nome.toLowerCase().includes('fort')) entregasFort++;
                     else if (loja.nome.toLowerCase().includes('comper')) entregasComper++;
@@ -4822,17 +4825,32 @@ function generateHistoricoIndicators(data) {
             if (t_saida) ultimaData = t_saida;
         });
         
+        // --------------------------------------------------------------------
+        // NOVO CÁLCULO DE ENTREGAS: Se a expedição foi entregue, conta como 1 "entrega" por loja
+        // --------------------------------------------------------------------
+        if (exp.status === 'entregue') {
+            exp.items.forEach(item => {
+                const loja = lojas.find(l => l.id === item.loja_id);
+                if (loja && item.status_descarga === 'descarregado') {
+                     // Cada item finalizado conta como 1 "entrega" (saída/viagem) para a loja
+                    lojasData[loja.id].totalEntregas++; 
+                    totalEntregas++; // Reconta o total de entregas baseado na expedição/item
+                }
+            });
+            // Para o gráfico de evolução de Entregas Dia
+            entregasDiarias[dataExp] = (entregasDiarias[dataExp] || 0) + exp.items.length;
+        }
+
         if (totalLojaViagem > 0) temposEmLoja.push(totalLojaViagem);
         if (totalTransitoViagem > 0) temposEmTransito.push(totalTransitoViagem);
 
         if (veiculo && veiculo.capacidade_pallets > 0) {
-            const cargaTotal = cargaPallet + (cargaRoll / 2);
+            const cargaTotal = cargaPalletExp + (cargaRollExp / 2);
             ocupacoes.push((cargaTotal / veiculo.capacidade_pallets) * 100);
         }
     });
     
     // CÁLCULO DAS MÉDIAS FINAIS
-    const numDias = datasExpedicao.size || 1;
     const mediaAlocar = calcularMedia(temposAlocar);
     const mediaChegadaDoca = calcularMedia(temposChegadaDoca);
     const mediaCarregamento = calcularMedia(temposCarregamento);
@@ -4841,21 +4859,20 @@ function generateHistoricoIndicators(data) {
     const mediaEmLoja = calcularMedia(temposEmLoja);
     const mediaOcupacao = calcularMedia(ocupacoes);
     
-    // Ociosidade = Lançamento -> Alocação.
-    // T.M. Carregamento = Chegada Doca -> Saída Pátio
-    // T.M. TOTAL INTERNO (NOVO CÁLCULO): Ociosidade + Chegada Doca + Carregamento + Faturamento
-    // Nota: O faturamento é um processo paralelo, mas para o KPI de TEMPO TOTAL INTERNO (End-to-End), o tempo é somado.
+    // T.M. TOTAL INTERNO (E2E): Ociosidade + Chegada Doca + Carregamento + Faturamento
     const mediaTempoInternoTotal = mediaAlocar + mediaChegadaDoca + mediaCarregamento + mediaFaturamento;
 
     
-    // PROCESSAMENTO PARA NOVOS GRÁFICOS
+    // PROCESSAMENTO PARA GRÁFICOS
     const lojasRankingData = Object.values(lojasData).map(loja => ({
         ...loja,
-        tempoMedio: loja.totalTempo / loja.totalEntregas,
-        mediaDiaria: loja.totalEntregas / numDias
-    }));
+        // Garante que o tempo médio só é calculado se houve alguma entrega
+        tempoMedio: loja.totalEntregas > 0 ? loja.totalTempo / loja.totalEntregas : 0 
+    })).filter(l => l.totalEntregas > 0); // Filtra lojas que não tiveram entregas concluídas no período
     
+    // -----------------------------------------------------
     // RENDERIZAÇÃO
+    // -----------------------------------------------------
     
     // 1. Bloco de Volume e Eficiência (6 Indicadores)
     volumeStatsContainer.innerHTML = `
@@ -4888,22 +4905,22 @@ function generateHistoricoIndicators(data) {
     // 2. Bloco de Tempos por Grupo (5 Colunas)
     timeSummaryContainer.innerHTML = `
         <div class="bg-white p-4 rounded-xl shadow-lg border-t-4 border-blue-600 historico-time-card" data-aos="fade-up">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">⏰ Tempo Interno (CD)</h3>
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">⏱️ Tempo Interno (E2E)</h3>
             <div class="time-stat-card" style="background: linear-gradient(135deg, #0077B6, #00B4D8); margin-bottom: 15px;">
                 <div class="stat-number text-3xl">${minutesToHHMM(mediaTempoInternoTotal)}</div>
-                <div class="stat-label">T.M. TOTAL INTERNO (E2E)</div>
+                <div class="stat-label">T.M. TOTAL PÁTIO</div>
             </div>
             
             <div class="text-sm space-y-2">
                 <div class="flex justify-between border-b pb-1"><span>T.M. Ociosidade (Lanç. → Aloc.)</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaAlocar)}</span></div>
                 <div class="flex justify-between border-b pb-1"><span>T.M. Chegada Doca (Aloc. → Cheg.)</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaChegadaDoca)}</span></div>
-                <div class="flex justify-between border-b pb-1"><span>T.M. Carregamento (Cheg. → Saída Pátio)</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaCarregamento)}</span></div>
+                <div class="flex justify-between border-b pb-1"><span>T.M. Carregamento (Cheg. → Saída P.)</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaCarregamento)}</span></div>
                 <div class="flex justify-between pb-1"><span>T.M. Faturamento</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaFaturamento)}</span></div>
             </div>
         </div>
         
         <div class="bg-white p-4 rounded-xl shadow-lg border-t-4 border-yellow-600 historico-time-card" data-aos="fade-up" data-aos-delay="100">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">⚓ Tempo de Carregamento</h3>
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">⚓ T.M. Carregamento (Doca)</h3>
             <div class="time-stat-card" style="background: linear-gradient(135deg, #FFD700, #F77F00); height: 100%;">
                 <div class="stat-number text-5xl">${minutesToHHMM(mediaCarregamento)}</div>
                 <div class="stat-label text-xl">T.M. EM DOCA</div>
@@ -4911,7 +4928,7 @@ function generateHistoricoIndicators(data) {
         </div>
         
         <div class="bg-white p-4 rounded-xl shadow-lg border-t-4 border-purple-600 historico-time-card" data-aos="fade-up" data-aos-delay="200">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">📄 Tempo de Faturamento</h3>
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">📄 T.M. Faturamento</h3>
             <div class="time-stat-card" style="background: linear-gradient(135deg, #7209B7, #A663CC); height: 100%;">
                 <div class="stat-number text-5xl">${minutesToHHMM(mediaFaturamento)}</div>
                 <div class="stat-label text-xl">T.M. EM PROCESSO</div>
@@ -4919,7 +4936,7 @@ function generateHistoricoIndicators(data) {
         </div>
 
         <div class="bg-white p-4 rounded-xl shadow-lg border-t-4 border-orange-600 historico-time-card" data-aos="fade-up" data-aos-delay="300">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">🛣️ Tempo em Trânsito</h3>
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">🛣️ T.M. em Trânsito</h3>
             <div class="time-stat-card" style="background: linear-gradient(135deg, #F77F00, #FCBF49); height: 100%;">
                 <div class="stat-number text-5xl">${minutesToHHMM(mediaEmTransito)}</div>
                 <div class="stat-label text-xl">T.M. ENTRE LOJAS</div>
@@ -4927,7 +4944,7 @@ function generateHistoricoIndicators(data) {
         </div>
         
         <div class="bg-white p-4 rounded-xl shadow-lg border-t-4 border-green-600 historico-time-card" data-aos="fade-up" data-aos-delay="400">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">🏬 Tempo em Loja</h3>
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">🏬 T.M. em Loja</h3>
             <div class="time-stat-card" style="background: linear-gradient(135deg, #00D4AA, #10B981); height: 100%;">
                 <div class="stat-number text-5xl">${minutesToHHMM(mediaEmLoja)}</div>
                 <div class="stat-label text-xl">T.M. TOTAL DESCARGA</div>
@@ -4936,12 +4953,14 @@ function generateHistoricoIndicators(data) {
     `;
 
     // 3. Renderização dos Gráficos
-    renderLojasRankingChart(lojasRankingData.filter(l => l.totalEntregas > 0).sort((a, b) => b.tempoMedio - a.tempoMedio).slice(0, 10));
+    renderLojasRankingChart(lojasRankingData.filter(l => l.tempoMedio > 0).sort((a, b) => b.tempoMedio - a.tempoMedio).slice(0, 10));
     renderEntregasChart(entregasFort, entregasComper);
     
+    // NOVOS GRÁFICOS
     renderTotalEntregasLojaChart(lojasRankingData);
-    renderMediaDiariaEntregasLojaChart(lojasRankingData, numDias);
-    renderEvolucaoPalletsChart(palletsDiarios);
+    renderParticipacaoEntregasLojaChart(lojasRankingData); // Novo gráfico de Pizza
+    renderPalletsPorLojaChart(lojasRankingData); // Novo gráfico
+    renderEvolucaoEntregasDiaChart(entregasDiarias, dataFimFiltro); // Gráfico de Evolução ajustado
 }
 
 // =======================================================
@@ -4976,7 +4995,7 @@ function renderTotalEntregasLojaChart(lojasData) {
             tooltip: {
                 callbacks: {
                     label: function(context) {
-                        return `Entregas: ${context.raw}`;
+                        return `Saídas: ${context.raw}`;
                     }
                 }
             }
@@ -4984,20 +5003,69 @@ function renderTotalEntregasLojaChart(lojasData) {
     });
 }
 
-function renderMediaDiariaEntregasLojaChart(lojasData, numDias) {
-    const dataFiltrada = lojasData.filter(l => l.mediaDiaria > 0).sort((a, b) => b.mediaDiaria - a.mediaDiaria).slice(0, 10);
+
+function renderParticipacaoEntregasLojaChart(lojasData) {
+    const dataFiltrada = lojasData.filter(l => l.totalEntregas > 0).sort((a, b) => b.totalEntregas - a.totalEntregas);
     if (dataFiltrada.length === 0) {
-        destroyChart('mediaDiariaEntregasLojaChart');
+        destroyChart('participacaoEntregasLojaChart');
+        return;
+    }
+
+    const totalGeral = dataFiltrada.reduce((sum, l) => sum + l.totalEntregas, 0);
+    
+    // Limitar o número de fatias para melhor visualização (Top 5 + Outros)
+    const topN = 5;
+    const topLojas = dataFiltrada.slice(0, topN);
+    const outrosEntregas = dataFiltrada.slice(topN).reduce((sum, l) => sum + l.totalEntregas, 0);
+    
+    let labels = topLojas.map(l => l.nome);
+    let data = topLojas.map(l => l.totalEntregas);
+    let colors = topLojas.map(l => l.nome.toLowerCase().includes('fort') ? 'rgba(239, 68, 68, 0.8)' : 'rgba(0, 180, 216, 0.8)');
+
+    if (outrosEntregas > 0) {
+        labels.push('Outras Lojas');
+        data.push(outrosEntregas);
+        colors.push('#9CA3AF'); // Cinza para "Outros"
+    }
+
+    renderChart('participacaoEntregasLojaChart', 'pie', {
+        labels: labels,
+        datasets: [{ 
+            label: 'Total de Entregas', 
+            data: data,
+            backgroundColor: colors
+        }]
+    }, {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            datalabels: {
+                color: 'white',
+                font: { weight: 'bold', size: 14 },
+                formatter: (value) => {
+                    if (totalGeral === 0) return '0%';
+                    let percentage = (value * 100 / totalGeral).toFixed(1) + '%';
+                    return percentage;
+                }
+            }
+        }
+    });
+}
+
+function renderPalletsPorLojaChart(lojasData) {
+    const dataFiltrada = lojasData.filter(l => l.totalPallets > 0).sort((a, b) => b.totalPallets - a.totalPallets).slice(0, 10);
+    if (dataFiltrada.length === 0) {
+        destroyChart('palletsPorLojaChart');
         return;
     }
     
     const labels = dataFiltrada.map(l => l.nome);
-    const data = dataFiltrada.map(l => l.mediaDiaria);
-    const colors = dataFiltrada.map(l => l.nome.toLowerCase().includes('fort') ? 'rgba(239, 68, 68, 0.8)' : 'rgba(0, 180, 216, 0.8)');
+    const data = dataFiltrada.map(l => l.totalPallets);
+    const colors = dataFiltrada.map(l => l.nome.toLowerCase().includes('fort') ? 'rgba(247, 127, 0, 0.7)' : 'rgba(255, 215, 0, 0.7)');
 
-    renderChart('mediaDiariaEntregasLojaChart', 'bar', {
+    renderChart('palletsPorLojaChart', 'bar', {
         labels: labels,
-        datasets: [{ label: 'Entregas por Dia', data: data, backgroundColor: colors }]
+        datasets: [{ label: 'Total de Pallets', data: data, backgroundColor: colors }]
     }, { 
         indexAxis: 'y',
         responsive: true,
@@ -5007,55 +5075,58 @@ function renderMediaDiariaEntregasLojaChart(lojasData, numDias) {
                 anchor: 'end',
                 align: 'end',
                 color: '#333',
-                formatter: (value) => value.toFixed(1)
+                formatter: (value) => value
             },
             tooltip: {
                 callbacks: {
                     label: function(context) {
-                        return `Média/Dia: ${context.raw.toFixed(1)}`;
+                        return `Pallets: ${context.raw}`;
                     }
                 }
             }
         }
     });
 }
-
-function renderEvolucaoPalletsChart(palletsDiarios) {
-    const dataOrdenada = Object.keys(palletsDiarios).sort().map(data => ({
-        data: data,
-        pallets: palletsDiarios[data]
-    }));
-
-    if (dataOrdenada.length === 0) {
-        destroyChart('evolucaoPalletsChart');
-        return;
+        function renderEvolucaoEntregasDiaChart(entregasDiarias, dataFimFiltro) {
+    // 1. Gera os últimos 7 dias (incluindo o dia final do filtro, se houver)
+    const endDate = new Date(dataFimFiltro);
+    const dates = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(endDate);
+        d.setDate(endDate.getDate() - i);
+        dates.push(d.toISOString().split('T')[0]);
     }
 
-    const labels = dataOrdenada.map(d => d.data);
-    const data = dataOrdenada.map(d => d.pallets);
+    const labels = dates.map(d => new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }));
+    const data = dates.map(d => entregasDiarias[d] || 0);
 
-    renderChart('evolucaoPalletsChart', 'line', {
+    // 2. Renderiza o gráfico
+    renderChart('evolucaoEntregasDiaChart', 'line', {
         labels: labels,
         datasets: [{ 
-            label: 'Total de Pallets Expedidos', 
+            label: 'Total de Entregas', 
             data: data, 
-            borderColor: '#0077B6',
-            backgroundColor: 'rgba(0, 119, 182, 0.1)',
+            borderColor: '#10B981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
             fill: true,
             tension: 0.3,
-            pointBackgroundColor: '#0077B6'
+            pointBackgroundColor: '#10B981'
         }]
     }, { 
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
             datalabels: {
-                display: false
+                display: true,
+                color: '#333',
+                anchor: 'end',
+                align: 'top',
+                formatter: (value) => value > 0 ? value : null
             },
             tooltip: {
                 callbacks: {
-                    title: (context) => context[0].label.split('-').reverse().join('/'),
-                    label: (context) => ` Pallets: ${context.raw}`
+                    title: (context) => `Dia: ${context[0].label}`,
+                    label: (context) => ` Entregas: ${context.raw}`
                 }
             },
             legend: {
@@ -5067,13 +5138,13 @@ function renderEvolucaoPalletsChart(palletsDiarios) {
                 beginAtZero: true,
                 title: {
                     display: true,
-                    text: 'Nº de Pallets'
+                    text: 'Nº de Entregas (Saídas)'
                 }
             }
         }
     });
 }
-        
+
        function renderLojasRankingChart(lojasData) {
             const ranking = Object.values(lojasData)
                 .map(loja => ({ ...loja, tempoMedio: (loja.tempos && loja.tempos.length > 0) ? loja.tempos.reduce((a, b) => a + b, 0) / loja.tempos.length : 0 }))
