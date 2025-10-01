@@ -319,9 +319,26 @@ async function loadFiliais() {
 // SUBSTITUIR A FUNÇÃO selectFilial COMPLETA
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
-// SUBSTITUIR A FUNÇÃO selectFilial COMPLETA (adicionando a chamada no final)
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// SUBSTITUIR A FUNÇÃO selectFilial COMPLETA (ADICIONANDO A CHAMADA NO FINAL)
 async function selectFilial(filial) {
-    // ... (código existente da função selectFilial)
+    // Verificar permissão para a filial
+    if (!hasPermission(`acesso_filial_${filial.nome}`)) {
+        showNotification('Você não tem permissão para acessar esta filial.', 'error');
+        return;
+    }
+
+    try {
+        // Busca os dados completos da filial (sem filtro de filial na busca)
+        const fullFilialData = await supabaseRequest(`filiais?nome=eq.${filial.nome}`, 'GET', null, false);
+        selectedFilial = fullFilialData[0];
+    } catch (error) {
+        showNotification('Erro ao carregar dados da filial. Verifique as configurações.', 'error');
+        return;
+    }
+    
+    document.getElementById('sidebarFilial').textContent = selectedFilial.nome;
     
     // 1. Inicia a transição para a tela principal
     await showMainSystem();
@@ -337,15 +354,36 @@ async function selectFilial(filial) {
     const firstPermittedViewId = filterNavigationMenu(); 
 
     if (firstPermittedViewId) {
-        // ... (código para mostrar a primeira aba permitida)
+        // Mostra a primeira aba permitida
+        const firstNavItem = document.querySelector(`.nav-item[href="#${firstPermittedViewId}"]`);
+        
+        // NOVO AJUSTE: Se a aba principal for carregada, mas todas as sub-abas forem filtradas,
+        // garantimos que o conteúdo da aba principal (que agora é o container de sub-abas)
+        // ainda mostre alguma mensagem se necessário.
+        
+        showView(firstPermittedViewId, firstNavItem);
+        
+        // Configura o refresh automático da Home (se for a primeira aba permitida)
+        if (firstPermittedViewId === 'home') {
+             setTimeout(() => {
+                const homeAutoRefreshCheckbox = document.getElementById('homeAutoRefresh');
+                if (homeAutoRefreshCheckbox) {
+                    homeAutoRefreshCheckbox.checked = true;
+                    toggleHomeAutoRefresh();
+                }
+            }, 2000);
+        }
+        
     } else {
-        // ... (código para mostrar erro de permissão)
+        // Se não houver nenhuma permissão de aba (erro de acesso final)
+        document.getElementById('home').classList.add('active'); // Garante que a div está visível
+        document.getElementById('home').innerHTML = '<div class="alert alert-error">Seu grupo de acesso não possui permissão para visualizar nenhuma aba. Contate o administrador.</div>';
     }
     
     showNotification(`Bem-vindo à filial: ${selectedFilial.nome}!`, 'success');
     
-    // 🚨 NOVO: Verifica se o link deve ser exibido após a seleção e filtragem 🚨
-    toggleFilialLinkVisibility(); 
+    // 🚨 CHAMADA FINAL PARA GARANTIR VISIBILIDADE 🚨
+    toggleFilialLinkVisibility();
 }
 
 // SUBSTITUIR A FUNÇÃO loadAllTabData COMPLETA
@@ -8039,7 +8077,7 @@ async function showMainSystem() {
     // Exibe a tela principal
     document.getElementById('mainSystem').style.display = 'flex';
     
- 
+    // 🚨 NOVO: Garante que a visibilidade do link 'Trocar Filial' seja checada no momento da exibição
     toggleFilialLinkVisibility();
 }
 
@@ -8905,7 +8943,7 @@ function toggleFilialLinkVisibility() {
     // 1. Identifica todas as filiais permitidas para o usuário
     const allowedFiliais = filiais.filter(f => hasPermission(`acesso_filial_${f.nome}`));
 
-    // 2. Torna o link visível se o usuário puder acessar mais de uma filial
+    // 2. Torna o link visível se o usuário puder acessar mais de uma filial (SUA REGRA)
     if (allowedFiliais.length > 1) {
         link.style.display = 'flex'; // Torna visível (usando 'flex' para manter o layout do nav-item)
     } else {
