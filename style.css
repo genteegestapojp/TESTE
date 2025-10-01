@@ -858,3 +858,35 @@ th { background-color: #f9fafb; font-weight: 600; color: #374151; }
         transform: translateY(0);
     }
 }
+
+
+/* Correção específica para o gráfico de ranking de motoristas */
+#frotaProdutividadeChart {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
+/* Remove qualquer padding ou margin indesejada do canvas */
+canvas#frotaProdutividadeChart {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* Força o container a manter a altura */
+.relative[style*="height: 350px"] {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Remove tooltips duplicados do ChartDataLabels */
+.chartjs-render-monitor {
+    position: relative !important;
+}
+
+/* Estilo para o card do gráfico */
+.bg-white.rounded-xl.shadow-md.p-6 {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 119, 182, 0.1);
+}
