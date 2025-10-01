@@ -916,3 +916,29 @@ canvas#motoristasRankingChart {
 .bg-white.p-4.rounded-lg.shadow-md {
     overflow: visible !important;
 }
+
+/* Esconder painel de instruções do Leaflet Routing */
+.leaflet-routing-container {
+    display: none !important;
+}
+
+.leaflet-routing-alt {
+    display: none !important;
+}
+
+/* Estilo para linha de fallback */
+.leaflet-interactive[stroke-dasharray] {
+    animation: dashAnimation 1s linear infinite;
+}
+
+@keyframes dashAnimation {
+    to {
+        stroke-dashoffset: -20;
+    }
+}
+
+/* Painel de estatísticas customizado */
+.leaflet-control.leaflet-bar {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    border-radius: 8px !important;
+}
