@@ -1531,55 +1531,87 @@ async function loadHomeData() {
             }, [ocupacaoText]);
         }
 
-        function renderFrotaProdutividadeChart(motoristasData) {
-            if (!motoristasData || motoristasData.length === 0) {
-                destroyChart('frotaProdutividadeChart');
-                return;
-            }
-            const data = {
-                labels: motoristasData.map(f => f.nome),
-                datasets: [{
-                    label: 'Total de Entregas',
-                    data: motoristasData.map(f => f.entregas),
-                    backgroundColor: '#00D4AA',
-                    borderColor: '#00B4D8',
-                    borderWidth: 1,
-                    borderRadius: 4,
-                }]
-            };
+       function renderFrotaProdutividadeChart(motoristasData) {
+    if (!motoristasData || motoristasData.length === 0) {
+        destroyChart('frotaProdutividadeChart');
+        return;
+    }
+    
+    // Ordena por número de entregas (decrescente)
+    const sortedData = [...motoristasData].sort((a, b) => b.entregas - a.entregas);
+    
+    const data = {
+        labels: sortedData.map(f => f.nome),
+        datasets: [{
+            label: 'Total de Entregas',
+            data: sortedData.map(f => f.entregas),
+            backgroundColor: '#00D4AA',
+            borderColor: '#00B4D8',
+            borderWidth: 1,
+            borderRadius: 4,
+        }]
+    };
 
-            renderChart('frotaProdutividadeChart', 'bar', data, {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    datalabels: {
-                        color: '#023047',
-                        font: { weight: 'bold' },
-                        anchor: 'end',
-                        align: 'end',
-                        offset: 5,
-                        formatter: (value) => value
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `Total de Entregas: ${context.raw}`;
-                            }
-                        }
-                    }
+    renderChart('frotaProdutividadeChart', 'bar', data, {
+        indexAxis: 'y', // 🚨 CRÍTICO: Barras horizontais
+        responsive: true,
+        maintainAspectRatio: false, // 🚨 CRÍTICO: Permite que o gráfico ocupe todo o container
+        plugins: {
+            legend: { display: false },
+            datalabels: {
+                color: '#023047',
+                font: { 
+                    weight: 'bold',
+                    size: 14
                 },
-                scales: {
-                    y: {
-                        display: false,
-                        beginAtZero: true
-                    },
-                    x: {
-                        title: { display: true, text: 'Motorista' }
+                anchor: 'end',
+                align: 'end',
+                offset: 5,
+                formatter: (value) => value
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return `Total de Entregas: ${context.raw}`;
                     }
                 }
-            });
+            }
+        },
+        scales: {
+            x: {
+                beginAtZero: true,
+                grid: {
+                    display: true,
+                    color: 'rgba(0, 0, 0, 0.05)'
+                },
+                ticks: {
+                    font: {
+                        size: 12
+                    }
+                }
+            },
+            y: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    font: {
+                        size: 12
+                    },
+                    autoSkip: false // Garante que todos os labels apareçam
+                }
+            }
+        },
+        layout: {
+            padding: {
+                left: 10,
+                right: 30,
+                top: 10,
+                bottom: 10
+            }
         }
+    });
+}
 
         function renderLojaDesempenhoChart(lojasData) {
             if (!lojasData || lojasData.length === 0) {
