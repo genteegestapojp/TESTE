@@ -8950,3 +8950,60 @@ function toggleFilialLinkVisibility() {
         link.style.display = 'none'; // Esconde o link
     }
 }
+
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// ... (Adicionar no final do arquivo)
+
+// ========================================
+// NOVAS FUNÇÕES DE CONTROLE (LOGOUT / REFRESH)
+// ========================================
+
+/**
+ * Força a atualização de todos os dados da view ativa e recarrega selects.
+ */
+async function forceRefresh() {
+    showNotification('Atualizando dados e selects...', 'info');
+    
+    // 1. Recarrega dados estáticos (Lojas, Veículos, etc.)
+    await loadSelectData();
+
+    // 2. Garante que a view atual seja recarregada
+    const activeNavItem = document.querySelector('.nav-item.active');
+    const activeViewId = activeNavItem ? activeNavItem.getAttribute('href').substring(1) : 'home';
+    
+    // Chamamos showView novamente para recarregar os dados da aba ativa
+    // Passamos o elemento ativo para que o showView não mude o foco
+    showView(activeViewId, activeNavItem); 
+    
+    showNotification('Dados atualizados com sucesso!', 'success');
+}
+
+
+/**
+ * Desloga o usuário e volta para a tela de autenticação inicial.
+ */
+function logOut() {
+    // 1. Limpa o estado global
+    selectedFilial = null;
+    currentUser = null;
+    userPermissions = [];
+    masterUserPermission = false;
+    
+    // 2. Limpa timers
+    if (rastreioTimer) clearInterval(rastreioTimer);
+    if (homeMapTimer) clearInterval(homeMapTimer);
+    Object.values(activeTimers).forEach(clearInterval);
+    activeTimers = {};
+    
+    // 3. Oculta telas do sistema
+    document.getElementById('mainSystem').style.display = 'none';
+    document.getElementById('filialSelectionContainer').style.display = 'none';
+
+    // 4. Exibe a tela de login inicial
+    document.getElementById('initialAuthContainer').style.display = 'flex';
+    document.getElementById('initialLoginForm').reset();
+    document.getElementById('initialLoginAlert').innerHTML = '';
+
+    showNotification('Sessão encerrada.', 'info');
+}
