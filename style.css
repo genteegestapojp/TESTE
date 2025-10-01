@@ -890,3 +890,29 @@ canvas#frotaProdutividadeChart {
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 119, 182, 0.1);
 }
+
+/* Otimização do gráfico de ranking de motoristas */
+#motoristasRankingChart {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 350px;
+}
+
+/* Container do gráfico de ranking */
+.relative[style*="height: 350px"] {
+    position: relative;
+    overflow: visible !important;
+    min-height: 350px;
+}
+
+/* Força o canvas a ocupar todo o espaço */
+canvas#motoristasRankingChart {
+    display: block !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+}
+
+/* Remove scroll indesejado */
+.bg-white.p-4.rounded-lg.shadow-md {
+    overflow: visible !important;
+}
