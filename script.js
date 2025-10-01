@@ -3293,66 +3293,120 @@ function renderMotoristaRankingChart(motoristasData) {
         destroyChart('motoristasRankingChart');
         return;
     }
-
-    const backgroundColors = motoristasData.map((_, index) => {
-        if (index === 0) return 'rgba(255, 215, 0, 0.8)'; // Ouro para 1º lugar
-        if (index === 1) return 'rgba(192, 192, 192, 0.8)'; // Prata para 2º lugar  
-        if (index === 2) return 'rgba(205, 127, 50, 0.8)'; // Bronze para 3º lugar
-        return 'rgba(0, 119, 182, 0.7)'; // Azul padrão para os demais
-    });
-
-    renderChart('motoristasRankingChart', 'bar', {
-        labels: motoristasData.map(m => m.nome),
+    
+    // Pega apenas os top 10 e ordena por entregas
+    const top10 = [...motoristasData]
+        .sort((a, b) => b.entregas - a.entregas)
+        .slice(0, 10);
+    
+    const data = {
+        labels: top10.map(m => m.nome),
         datasets: [{
-            label: 'Número de Entregas',
-            data: motoristasData.map(m => m.entregas),
-            backgroundColor: backgroundColors,
-            borderColor: backgroundColors.map(color => color.replace('0.7', '1').replace('0.8', '1')),
-            borderWidth: 2
+            label: 'Entregas',
+            data: top10.map(m => m.entregas),
+            backgroundColor: [
+                'rgba(255, 215, 0, 0.8)',    // Ouro - 1º
+                'rgba(192, 192, 192, 0.8)',  // Prata - 2º
+                'rgba(205, 127, 50, 0.8)',   // Bronze - 3º
+                'rgba(0, 212, 170, 0.8)',    // 4º
+                'rgba(0, 180, 216, 0.8)',    // 5º
+                'rgba(0, 119, 182, 0.8)',    // 6º
+                'rgba(114, 9, 183, 0.8)',    // 7º
+                'rgba(166, 99, 204, 0.8)',   // 8º
+                'rgba(247, 127, 0, 0.8)',    // 9º
+                'rgba(252, 191, 73, 0.8)'    // 10º
+            ],
+            borderColor: 'rgba(255, 255, 255, 1)',
+            borderWidth: 2,
+            borderRadius: 8
         }]
-    }, {
-        indexAxis: 'y',
-        // Mantém a margem interna para os nomes longos
-        layout: {
-            padding: {
-                left: 200 
-            }
-        },
+    };
+
+    renderChart('motoristasRankingChart', 'bar', data, {
+        indexAxis: 'y', // Barras horizontais
+        responsive: true,
+        maintainAspectRatio: false,
         plugins: {
-            datalabels: {
-                anchor: 'end',
-                align: 'end',
-                color: '#333',
-                font: { weight: 'bold' }
+            legend: { 
+                display: false 
             },
             tooltip: {
+                enabled: true,
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                titleFont: {
+                    size: 14,
+                    weight: 'bold'
+                },
+                bodyFont: {
+                    size: 13
+                },
                 callbacks: {
                     label: function(context) {
-                        const motorista = motoristasData[context.dataIndex];
+                        const motorista = top10[context.dataIndex];
                         return [
                             `Entregas: ${context.raw}`,
                             `Viagens: ${motorista.viagens}`,
-                            `Tempo Médio: ${minutesToHHMM(motorista.tempoMedioViagem)}`
+                            `Entregas/Viagem: ${motorista.entregasPorViagem}`
                         ];
                     }
                 }
             },
-            legend: {
-                display: false
+            datalabels: {
+                display: true,
+                color: '#FFFFFF',
+                font: { 
+                    weight: 'bold',
+                    size: 14
+                },
+                anchor: 'end',
+                align: 'start',
+                offset: 10,
+                formatter: (value) => value
             }
         },
         scales: {
             x: {
                 beginAtZero: true,
-                title: {
+                max: Math.max(...top10.map(m => m.entregas)) * 1.2,
+                grid: {
                     display: true,
-                    text: 'Número de Entregas'
+                    color: 'rgba(0, 0, 0, 0.05)',
+                    drawBorder: false
+                },
+                ticks: {
+                    font: {
+                        size: 12
+                    },
+                    stepSize: 1
                 }
+            },
+            y: {
+                grid: {
+                    display: false,
+                    drawBorder: false
+                },
+                ticks: {
+                    font: {
+                        size: 12,
+                        weight: '500'
+                    },
+                    color: '#374151',
+                    padding: 8,
+                    autoSkip: false
+                }
+            }
+        },
+        layout: {
+            padding: {
+                left: 10,
+                right: 40,
+                top: 10,
+                bottom: 10
             }
         }
     });
 }
-
 
         function renderMotoristaTable(motoristasData) {
             const container = document.getElementById('motoristaTableContainer');
@@ -6370,51 +6424,7 @@ async function deletePontoInteresse(pontoId) {
     }
 }
 
-// === DADOS SIMULADOS PARA DEMONSTRAÇÃO ===
-function generateMockGPSTrajectory(expeditionId) {
-    // Gerar trajeto simulado com pontos GPS
-    const baseTime = new Date();
-    const points = [];
-    
-    // Trajeto simulado saindo do CD e visitando algumas lojas
-    const route = [
-        { lat: -15.6014, lng: -56.0979, desc: "CD - Saída" },
-        { lat: -15.5950, lng: -56.0920, desc: "Trânsito" },
-        { lat: -15.5880, lng: -56.0860, desc: "Próximo à Loja Fort" },
-        { lat: -15.5850, lng: -56.0850, desc: "Loja Fort - Descarga" },
-        { lat: -15.5820, lng: -56.0800, desc: "Saindo da Loja Fort" },
-        { lat: -15.5900, lng: -56.0700, desc: "Trânsito" },
-        { lat: -15.6100, lng: -56.0650, desc: "Próximo à Loja Comper" },
-        { lat: -15.6150, lng: -56.0680, desc: "Loja Comper - Descarga" },
-        { lat: -15.6180, lng: -56.0720, desc: "Retorno" },
-        { lat: -15.6080, lng: -56.0850, desc: "Trânsito" },
-        { lat: -15.6014, lng: -56.0979, desc: "CD - Chegada" }
-    ];
-    
-    route.forEach((point, index) => {
-        const timeOffset = index * 15 * 60 * 1000; // 15 minutos entre pontos
-        const timestamp = new Date(baseTime.getTime() + timeOffset);
-        
-        // Velocidade simulada
-        let velocidade = 0;
-        if (point.desc.includes('Trânsito')) velocidade = Math.random() * 30 + 40; // 40-70 km/h
-        else if (point.desc.includes('Próximo')) velocidade = Math.random() * 20 + 20; // 20-40 km/h
-        else velocidade = Math.random() * 10; // 0-10 km/h (parado/descarga)
-        
-        points.push({
-            expedition_id: expeditionId,
-            latitude: point.lat + (Math.random() - 0.5) * 0.002, // Pequena variação
-            longitude: point.lng + (Math.random() - 0.5) * 0.002,
-            data_gps: timestamp.toISOString(),
-            velocidade: Math.round(velocidade),
-            precisao: Math.random() * 20 + 5, // 5-25 metros
-            descricao: point.desc
-        });
-    });
-    
-    return points;
-}
-// === FUNÇÕES PARA GERENCIAMENTO DE LOJAS COM ENDEREÇOS ===
+
 
 async function showLojasConfig() {
     await renderLojasConfig();
@@ -6861,25 +6871,7 @@ function calculateRouteToLoja(lojaId) {
     }, 300);
 }
 
-// Cerca da linha 2269
-function showSimulatedRoute(loja) {
-    if (mapInstance) {
-        mapInstance.remove();
-    }
-    
-    // Ponto de partida dinâmico da filial
-    const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979]; 
-    const lojaCoords = [parseFloat(loja.latitude), parseFloat(loja.longitude)];
-    
-    const bounds = L.latLngBounds([cdCoords, lojaCoords]);
-    mapInstance = L.map('map').fitBounds(bounds, { padding: [50, 50] });
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(mapInstance);
-    
-    // Resto da implementação da função...
-}
+
 // Novas funções para geolocalização da filial
 async function geocodeAddressFilial() {
     const endereco = document.getElementById('add_endereco_cd').value.trim();
@@ -6925,27 +6917,7 @@ function getCurrentLocationFilial() {
         showNotification('Geolocalização não suportada pelo navegador.', 'error');
     }
 }
-// --- NOVO: FUNÇÃO PARA CALCULAR ROTA SIMULADA ---
-async function calculateSimulatedRoute(startLat, startLng, endLat, endLng) {
-    const R = 6371e3;
-    const φ1 = parseFloat(startLat) * Math.PI / 180;
-    const φ2 = parseFloat(endLat) * Math.PI / 180;
-    const Δφ = (parseFloat(endLat) - parseFloat(startLat)) * Math.PI / 180;
-    const Δλ = (parseFloat(endLng) - parseFloat(startLng)) * Math.PI / 180;
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const distance = R * c;
 
-    const averageSpeedMetersPerSecond = 40 * 1000 / 3600;
-    const duration = distance / averageSpeedMetersPerSecond;
-
-    return {
-        distance: distance,
-        duration: duration
-    };
-}
-
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
 // SUBSTITUIR A VERSÃO EXISTENTE DE getRouteFromAPI
 async function getRouteFromAPI(waypoints) {
