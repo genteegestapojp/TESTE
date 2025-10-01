@@ -5750,6 +5750,8 @@ async function showTrajectoryMap(expeditionId, vehiclePlaca) {
 
 
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 // SUBSTITUIR A FUNÇÃO initTrajectoryMap COMPLETA
 async function initTrajectoryMap(expeditionId, vehiclePlaca) {
     try {
@@ -5761,7 +5763,7 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             `expedition_items?expedition_id=eq.${expeditionId}&order=data_inicio_descarga.asc`,
             'GET', null, false
         );
-
+        
         if (!expeditionItems || expeditionItems.length === 0) {
             showNotification('Não há pontos de entrega para traçar a rota.', 'info');
             const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
@@ -5769,9 +5771,6 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
             return;
         }
-        
-        mapInstance = L.map('map');
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
 
         // 1. ROTA PLANEJADA (OSRM/WAYPOINTS) - Cor Azul
         const waypoints = [
@@ -5782,6 +5781,9 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             }).filter(Boolean)
         ];
 
+        mapInstance = L.map('map');
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
+        
         const routingControl = L.Routing.control({
             waypoints: waypoints,
             createMarker: function(i, waypoint, n) {
@@ -5805,7 +5807,6 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             },
             routeWhileDragging: false,
             autoRoute: true,
-            // Rota Planejada - Linha sólida e simples.
             lineOptions: { styles: [{ color: '#0077B6', weight: 6, opacity: 1 }] } 
         }).addTo(mapInstance);
         
@@ -5813,7 +5814,8 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         // 2. CAPTURA DE ERRO DO OSRM E AJUSTE DE ZOOM
         routingControl.on('routingerror', function(e) {
              console.error("Erro no Routing Machine (Rota Planejada Falhou):", e.error.message);
-             // Apenas ajusta o zoom para os waypoints (marcadores)
+             // Supressão da notificação no painel para evitar flood de erros externos.
+             // Ajusta o zoom para os waypoints (marcadores)
              const boundsWaypoints = L.latLngBounds(waypoints);
              if (boundsWaypoints.isValid()) {
                  mapInstance.fitBounds(boundsWaypoints, { padding: [30, 30] });
@@ -5846,21 +5848,16 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             };
             statsControl.addTo(mapInstance);
 
-            // 🚨 FIX CRÍTICO: Isola a chamada getBounds com try/catch 🚨
-            try {
-                mapInstance.fitBounds(routingControl.getBounds(), { padding: [30, 30] });
-            } catch (err) {
-                 console.error("Erro no ajuste de zoom após rota encontrada:", err);
-                 // Fallback para os waypoints se o getBounds falhar
-                 mapInstance.fitBounds(L.latLngBounds(waypoints), { padding: [30, 30] });
-            }
+            // Ajusta o zoom para a rota encontrada
+            // O código do usuário original é usado aqui, pois a rota foi encontrada com sucesso
+             mapInstance.fitBounds(routingControl.getBounds(), { padding: [30, 30] });
         });
 
         // 3. LIMPEZA E LEGENDAS
         const routingAlt = document.querySelector('.leaflet-routing-alt');
         if (routingAlt) routingAlt.style.display = 'none';
 
-        // Legenda simples apenas para a Rota Planejada
+        // Legenda simples para a Rota Planejada
         const legend = L.control({ position: 'bottomleft' });
         legend.onAdd = function (map) {
             const div = L.DomUtil.create('div', 'info legend');
