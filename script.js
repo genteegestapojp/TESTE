@@ -4529,65 +4529,140 @@ async function loadHistorico() {
             applyHistoricoFilters();
         }
 
-        function renderHistorico(data) {
-            const container = document.getElementById('historicoList');
-            if (data.length === 0) {
-                container.innerHTML = '<div class="alert alert-success">Nenhum registro encontrado para os filtros.</div>';
-                return;
-            }
+        // SUBSTITUIR A FUNÇÃO renderHistorico COMPLETA
+function renderHistorico(data) {
+    const container = document.getElementById('historicoList');
+    if (data.length === 0) {
+        container.innerHTML = '<div class="alert alert-success">Nenhum registro encontrado para os filtros.</div>';
+        return;
+    }
 
-            container.innerHTML = data.map(exp => {
-                 const tempos = {
-                    patio: (exp.data_saida_veiculo && exp.data_hora) ? minutesToHHMM((new Date(exp.data_saida_veiculo) - new Date(exp.data_hora)) / 60000) : '-',
-                    carregamento: (exp.data_chegada_veiculo && exp.data_saida_veiculo) ? minutesToHHMM((new Date(exp.data_saida_veiculo) - new Date(exp.data_chegada_veiculo)) / 60000) : '-',
-                };
+    container.innerHTML = data.map(exp => {
+        // 1. CÁLCULO DE TEMPOS DA EXPEDIÇÃO (Tudo em minutos)
+        const tempos = {
+            patio: (exp.data_saida_veiculo && exp.data_hora) ? minutesToHHMM((new Date(exp.data_saida_veiculo) - new Date(exp.data_hora)) / 60000) : 'N/A',
+            alocacao: (exp.data_alocacao_veiculo && exp.data_hora) ? minutesToHHMM((new Date(exp.data_alocacao_veiculo) - new Date(exp.data_hora)) / 60000) : 'N/A',
+            carregamento: (exp.data_chegada_veiculo && exp.data_saida_veiculo) ? minutesToHHMM((new Date(exp.data_saida_veiculo) - new Date(exp.data_chegada_veiculo)) / 60000) : 'N/A',
+            faturamento: (exp.data_inicio_faturamento && exp.data_fim_faturamento) ? minutesToHHMM((new Date(exp.data_fim_faturamento) - new Date(exp.data_inicio_faturamento)) / 60000) : 'N/A',
+        };
+        
+        let roteiroHtml = '';
+        let totalTempoEmTransito = 0;
+        let totalTempoEmLoja = 0;
+        let lastDeparture = exp.data_saida_entrega ? new Date(exp.data_saida_entrega) : new Date(exp.data_saida_veiculo);
 
-                let roteiroHtml = '<div class="mt-4 space-y-2">';
-                if (exp.items && exp.items.length > 0) {
-                     exp.items.sort((a,b) => new Date(a.data_inicio_descarga) - new Date(b.data_inicio_descarga)).forEach((item, index) => {
-                        const loja = lojas.find(l => l.id === item.loja_id);
-                        const t_chegada = item.data_inicio_descarga ? new Date(item.data_inicio_descarga) : null;
-                        const t_saida = item.data_fim_descarga ? new Date(item.data_fim_descarga) : null;
-                        const tempoEmLoja = t_saida && t_chegada ? (t_saida - t_chegada) / 60000 : null;
 
-                        roteiroHtml += `
-                            <div class="loja-descarga-card" style="padding: 10px; margin-bottom: 8px;">
-                                <strong class="text-sm">${index + 1}. ${loja.codigo} - ${loja.nome}</strong>
-                                ${tempoEmLoja !== null ? `<div class="time-display good text-xs p-1"><strong>Em Loja:</strong> ${minutesToHHMM(tempoEmLoja)}</div>` : ''}
-                            </div>`;
-                     });
+        // 2. ROTEIRO DE ENTREGAS E CÁLCULO DE TEMPOS DE TRÂNSITO/LOJA
+        if (exp.items && exp.items.length > 0) {
+             // Ordena para garantir a ordem correta na renderização e cálculo
+             exp.items.sort((a, b) => (a.ordem_entrega || 999) - (b.ordem_entrega || 999)).forEach((item, index) => {
+                const loja = lojas.find(l => l.id === item.loja_id);
+                const t_chegada = item.data_inicio_descarga ? new Date(item.data_inicio_descarga) : null;
+                const t_saida = item.data_fim_descarga ? new Date(item.data_fim_descarga) : null;
+                
+                let tempoEmLojaMin = 0;
+                let tempoTransitoMin = 0;
+
+                // Calcula o Tempo em Trânsito (do último ponto de saída até a chegada atual)
+                if (t_chegada && lastDeparture) {
+                    tempoTransitoMin = (t_chegada - lastDeparture) / 60000;
+                    totalTempoEmTransito += tempoTransitoMin;
                 }
-                roteiroHtml += '</div>';
+                
+                // Calcula o Tempo em Loja (descarga)
+                if (t_saida && t_chegada) {
+                    tempoEmLojaMin = (t_saida - t_chegada) / 60000;
+                    totalTempoEmLoja += tempoEmLojaMin;
+                    lastDeparture = t_saida; // Atualiza o último ponto de saída
+                }
 
-                return `
-                    <div class="historico-card">
-                        <div class="flex justify-between items-start">
-                           <div>
-                                <h3 class="text-lg font-bold">${new Date(exp.data_hora).toLocaleDateString('pt-BR')} - ${exp.veiculo_placa}</h3>
-                                <p class="text-sm text-gray-500">Motorista: ${exp.motorista_nome}</p>
-                                ${exp.numeros_carga && exp.numeros_carga.length > 0 ? `<p class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded mt-1 inline-block">📦 ${exp.numeros_carga.join(', ')}</p>` : ''}
+                // Determina a cor da badge de tempo em loja (descarga)
+                let tempoLojaClass = '';
+                if (tempoEmLojaMin > 60) tempoLojaClass = 'bg-red-100 text-red-800'; // Vermelho se > 1h
+                else if (tempoEmLojaMin > 30) tempoLojaClass = 'bg-yellow-100 text-yellow-800'; // Amarelo se > 30min
+                else if (tempoEmLojaMin > 0) tempoLojaClass = 'bg-green-100 text-green-800'; // Verde
+
+                roteiroHtml += `
+                    <div class="p-3 border-b border-dashed border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <strong class="text-sm text-gray-800">${index + 1}. ${loja?.codigo || 'N/A'} - ${loja?.nome || 'N/A'}</strong>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs font-semibold ${tempoLojaClass} px-2 py-1 rounded">
+                                    ${tempoEmLojaMin > 0 ? `Descarga: ${minutesToHHMM(tempoEmLojaMin)}` : 'Descarga: N/A'}
+                                </span>
+                                <span class="text-xs text-gray-500">${item.pallets || 0}P / ${item.rolltrainers || 0}R</span>
                             </div>
-                            <div class="flex flex-col items-end gap-2">
-    <span class="status-badge status-entregue">Entregue</span>
-    <div class="flex gap-2">
-        <button class="btn btn-success btn-small" onclick="showTrajectoryMap('${exp.id}', '${exp.veiculo_placa}')">Ver Trajeto</button>
-        <button class="btn btn-danger btn-small" onclick="deleteHistoricoExpedition('${exp.id}')">Excluir</button>
-    </div>
-</div>
                         </div>
-                        <div class="mt-2 grid grid-cols-2 gap-4 text-sm">
-                            <div><strong>Ocupação:</strong> <span class="font-bold">${exp.ocupacao}%</span></div>
-                            <div><strong>Pallets:</strong> <span class="font-bold">${exp.total_pallets}</span></div>
-                        </div>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4 text-xs">
-                            <div class="time-display"><strong>T. Pátio:</strong> ${tempos.patio}</div>
-                            <div class="time-display"><strong>T. Carga:</strong> ${tempos.carregamento}</div>
-                        </div>
-                        ${roteiroHtml}
+                        ${tempoTransitoMin > 0 ? `
+                            <div class="text-xs text-gray-500 mt-1 pl-4">
+                                ↳ T. Trânsito: ${minutesToHHMM(tempoTransitoMin)}
+                            </div>
+                        ` : ''}
                     </div>
                 `;
-            }).join('');
+             });
         }
+
+        // 3. RENDERIZAÇÃO DO CARD COMPLETO
+        
+        // Define a cor da ocupação
+        const ocupacaoPerc = Math.round(exp.ocupacao || 0);
+        let ocupacaoColor = 'text-green-600';
+        if (ocupacaoPerc > 90) ocupacaoColor = 'text-orange-600';
+        if (ocupacaoPerc > 100) ocupacaoColor = 'text-red-600';
+
+        return `
+            <div class="historico-card" data-aos="fade-up">
+                <div class="flex justify-between items-start mb-4 border-b pb-3">
+                   <div>
+                        <h3 class="text-xl font-bold text-gray-800">${new Date(exp.data_hora).toLocaleDateString('pt-BR')} - ${exp.veiculo_placa}</h3>
+                        <p class="text-sm text-gray-600">Motorista: <span class="font-semibold">${exp.motorista_nome}</span></p>
+                        ${exp.numeros_carga && exp.numeros_carga.length > 0 ? `<p class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded mt-1 inline-block">📦 Cargas: ${exp.numeros_carga.join(', ')}</p>` : ''}
+                    </div>
+                    <div class="text-right">
+                        <span class="status-badge status-entregue">ENTREGUE</span>
+                        <div class="mt-2 flex gap-2">
+                            <button class="btn btn-primary btn-small" onclick="showDetalhesExpedicao('${exp.id}')">Detalhes</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteHistoricoExpedition('${exp.id}')">Excluir</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm font-semibold">
+                    <div class="p-3 bg-gray-50 rounded-lg text-center">
+                        <div class="text-2xl font-bold text-blue-600">${exp.total_pallets}P / ${exp.total_rolltrainers}R</div>
+                        <div class="text-xs text-gray-500">Carga Total</div>
+                    </div>
+                    <div class="p-3 bg-gray-50 rounded-lg text-center">
+                        <div class="text-2xl font-bold ${ocupacaoColor}">${ocupacaoPerc}%</div>
+                        <div class="text-xs text-gray-500">Ocupação</div>
+                    </div>
+                    <div class="p-3 bg-gray-50 rounded-lg text-center">
+                        <div class="text-2xl font-bold text-green-600">${minutesToHHMM(totalTempoEmLoja)}</div>
+                        <div class="text-xs text-gray-500">T.M. Descarga Total</div>
+                    </div>
+                    <div class="p-3 bg-gray-50 rounded-lg text-center">
+                        <div class="text-2xl font-bold text-orange-600">${minutesToHHMM(totalTempoEmTransito)}</div>
+                        <div class="text-xs text-gray-500">T.M. Trânsito Total</div>
+                    </div>
+                </div>
+
+                <h4 class="font-bold text-gray-700 mb-2 border-t pt-3">Tempos de Pátio e Faturamento</h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-center mb-4">
+                    <div class="time-display" style="background:#e0e7ff; border-left-color:#3730a3;"><strong>T. Alocação:</strong> ${tempos.alocacao}</div>
+                    <div class="time-display" style="background:#cffafe; border-left-color:#0e7490;"><strong>T. Carga:</strong> ${tempos.carregamento}</div>
+                    <div class="time-display" style="background:#fee2e2; border-left-color:#991b1b;"><strong>T. Pátio Total:</strong> ${tempos.patio}</div>
+                    <div class="time-display" style="background:#d1fae5; border-left-color:#065f46;"><strong>T. Faturamento:</strong> ${tempos.faturamento}</div>
+                </div>
+
+                <h4 class="font-bold text-gray-700 mb-2 border-t pt-3">Roteiro Detalhado (${exp.lojas_count} Paradas)</h4>
+                <div class="space-y-1 bg-white p-2 border rounded-lg">
+                    ${roteiroHtml}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
         
         async function deleteHistoricoExpedition(expeditionId) {
             const confirmed = await showYesNoModal('Deseja excluir permanentemente esta expedição do histórico?');
