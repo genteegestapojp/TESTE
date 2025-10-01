@@ -3214,7 +3214,9 @@ function renderMotoristasListHtml(motoristasData) {
             summaryContainer.style.display = 'grid';
         }
 
-       // SUBSTITUIR A FUNÇÃO renderMotoristaRankingChart COMPLETA
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// SUBSTITUIR A FUNÇÃO renderMotoristaRankingChart COMPLETA
 function renderMotoristaRankingChart(motoristasData) {
     if (!motoristasData || motoristasData.length === 0) {
         destroyChart('motoristasRankingChart');
