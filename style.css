@@ -172,7 +172,10 @@ th { background-color: #f9fafb; font-weight: 600; color: #374151; }
 .status-cancelado { background-color: #e5e7eb; color: #4b5563; }
 .status-manutencao { background-color: #fde68a; color: #92400e; }
 .status-em_uso { background-color: #fef3c7; color: #92400e; }
-
+.status-aguardando_faturamento { background-color: #e0e7ff; color: #3730a3; }
+.status-faturamento_iniciado { background-color: #fef3c7; color: #92400e; }
+.status-em_carregamento_faturando { background-color: #fef3c7; color: #92400e; } 
+.status-faturado { background-color: #d1fae5; color: #065f46; }
 
 .modal-overlay {
     display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6);
