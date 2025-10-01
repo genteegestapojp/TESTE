@@ -642,7 +642,68 @@ async function loadAllTabData() {
                  <div class="loading"><div class="spinner"></div>Carregando status...</div>
             </div>
         </div>
-    `;
+
+        <div id="relatorioMotoristas" class="sub-tab-content">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Relatório de Produtividade</h2>
+            
+            <div class="filters-section">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Filtros de Período</h3>
+                <div class="filters-grid">
+                    <div class="form-group">
+                        <label for="relatorioMotoristaDataInicio">Data Início:</label>
+                        <input type="date" id="relatorioMotoristaDataInicio" onchange="generateMotoristaReports()">
+                    </div>
+                    <div class="form-group">
+                        <label for="relatorioMotoristaDataFim">Data Fim:</label>
+                        <input type="date" id="relatorioMotoristaDataFim" onchange="generateMotoristaReports()">
+                    </div>
+                </div>
+                <div class="text-right mt-4">
+                    <button class="btn btn-primary btn-small" onclick="generateMotoristaReports()">Gerar Relatório</button>
+                </div>
+            </div>
+
+            <div id="motoristaReportSummary" class="stats-grid">
+                 <div class="stat-card"><div class="stat-number">0</div><div class="stat-label">Motoristas Ativos</div></div>
+                <div class="stat-card" style="background: var(--secondary-gradient);"><div class="stat-number">0</div><div class="stat-label">Total Viagens</div></div>
+                <div class="stat-card" style="background: var(--accent-gradient);"><div class="stat-number">0</div><div class="stat-label">Total Entregas</div></div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #7209B7, #A663CC);"><div class="stat-number">0</div><div class="stat-label">Total Pallets</div></div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #F77F00, #FCBF49);"><div class="stat-number">0</div><div class="stat-label">Média Entregas/Motorista</div></div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                <div class="bg-white p-4 rounded-lg shadow-md">
+                    <h3 class="text-lg font-semibold text-center mb-4">Ranking de Entregas (Top 10)</h3>
+                    <div class="relative" style="height: 350px;">
+                        <canvas id="motoristasRankingChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md">
+                    <h3 class="text-lg font-semibold text-center mb-4">Detalhes da Produtividade</h3>
+                    <div class="table-container bg-white rounded-lg shadow-md" id="motoristaTableContainer">
+                         <table class="w-full">
+                            <thead>
+                                <tr>
+                                    <th class="text-left p-3">Ranking</th>
+                                    <th class="text-left p-3">Nome</th>
+                                    <th class="text-left p-3">Produtivo</th>
+                                    <th class="text-left p-3">Viagens</th>
+                                    <th class="text-left p-3">Entregas</th>
+                                    <th class="text-left p-3">Entregas/Viagem</th>
+                                    <th class="text-left p-3">Total Pallets</th>
+                                    <th class="text-left p-3">Tempo Médio Viagem</th>
+                                    <th class="text-left p-3">Ocupação Média</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="9" class="text-center py-8 text-gray-500">Aguardando geração do relatório...</td></tr>
+                            </tbody>
+                         </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
 
     document.getElementById('acompanhamento').innerHTML = `
          <h1 class="text-3xl font-bold text-gray-800 mb-6">Acompanhamento de Tempos</h1>
@@ -2688,7 +2749,7 @@ function getPermittedSubTabs(viewId) {
 
 
 
-      // SUBSTITUIR A FUNÇÃO loadMotoristaTab
+   // SUBSTITUIR A FUNÇÃO loadMotoristaTab
 async function loadMotoristaTab() {
     // Busca e aplica a lógica para auto-abrir a única sub-aba permitida
     const permittedMotoristasTabs = getPermittedSubTabs('motoristas');
@@ -2707,18 +2768,13 @@ async function loadMotoristaTab() {
     
     // Configurar datas padrão
     const hoje = new Date();
-    const ha30Dias = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
+    // Inicia com o dia de hoje, não os últimos 30 dias para evitar sobrecarga inicial
+    const hojeFormatado = hoje.toISOString().split('T')[0];
     const dataInicio = document.getElementById('relatorioMotoristaDataInicio');
     const dataFim = document.getElementById('relatorioMotoristaDataFim');
-    if (dataInicio && !dataInicio.value) dataInicio.value = ha30Dias.toISOString().split('T')[0];
-    if (dataFim && !dataFim.value) dataFim.value = hoje.toISOString().split('T')[0];
+    if (dataInicio && !dataInicio.value) dataInicio.value = hojeFormatado;
+    if (dataFim && !dataFim.value) dataFim.value = hojeFormatado;
 }
-
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
 // SUBSTITUIR A FUNÇÃO renderMotoristasStatusList COMPLETA (aproximadamente linha 2246)
 async function renderMotoristasStatusList() {
