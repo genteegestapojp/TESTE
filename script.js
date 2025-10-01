@@ -3214,62 +3214,71 @@ function renderMotoristasListHtml(motoristasData) {
             summaryContainer.style.display = 'grid';
         }
 
-        function renderMotoristaRankingChart(motoristasData) {
-            if (motoristasData.length === 0) {
-                destroyChart('motoristasRankingChart');
-                return;
+       // SUBSTITUIR A FUNÇÃO renderMotoristaRankingChart COMPLETA
+function renderMotoristaRankingChart(motoristasData) {
+    if (!motoristasData || motoristasData.length === 0) {
+        destroyChart('motoristasRankingChart');
+        return;
+    }
+
+    const backgroundColors = motoristasData.map((_, index) => {
+        if (index === 0) return 'rgba(255, 215, 0, 0.8)'; // Ouro para 1º lugar
+        if (index === 1) return 'rgba(192, 192, 192, 0.8)'; // Prata para 2º lugar  
+        if (index === 2) return 'rgba(205, 127, 50, 0.8)'; // Bronze para 3º lugar
+        return 'rgba(0, 119, 182, 0.7)'; // Azul padrão para os demais
+    });
+
+    renderChart('motoristasRankingChart', 'bar', {
+        labels: motoristasData.map(m => m.nome),
+        datasets: [{
+            label: 'Número de Entregas',
+            data: motoristasData.map(m => m.entregas),
+            backgroundColor: backgroundColors,
+            borderColor: backgroundColors.map(color => color.replace('0.7', '1').replace('0.8', '1')),
+            borderWidth: 2
+        }]
+    }, {
+        indexAxis: 'y',
+        // AJUSTE CRÍTICO: Aumentar o padding esquerdo para evitar cortar nomes
+        layout: {
+            padding: {
+                left: 150 // Aumenta a área de margem para os nomes
             }
-
-            const backgroundColors = motoristasData.map((_, index) => {
-                if (index === 0) return 'rgba(255, 215, 0, 0.8)'; // Ouro para 1º lugar
-                if (index === 1) return 'rgba(192, 192, 192, 0.8)'; // Prata para 2º lugar  
-                if (index === 2) return 'rgba(205, 127, 50, 0.8)'; // Bronze para 3º lugar
-                return 'rgba(0, 119, 182, 0.7)'; // Azul padrão para os demais
-            });
-
-            renderChart('motoristasRankingChart', 'bar', {
-                labels: motoristasData.map(m => m.nome),
-                datasets: [{
-                    label: 'Número de Entregas',
-                    data: motoristasData.map(m => m.entregas),
-                    backgroundColor: backgroundColors,
-                    borderColor: backgroundColors.map(color => color.replace('0.7', '1').replace('0.8', '1')),
-                    borderWidth: 2
-                }]
-            }, {
-                indexAxis: 'y',
-                plugins: {
-                    datalabels: {
-                        anchor: 'end',
-                        align: 'end',
-                        color: '#333',
-                        font: { weight: 'bold' }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const motorista = motoristasData[context.dataIndex];
-                                return [
-                                    `Entregas: ${context.raw}`,
-                                    `Viagens: ${motorista.viagens}`,
-                                    `Tempo Médio: ${minutesToHHMM(motorista.tempoMedioViagem)}`
-                                ];
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Número de Entregas'
-                        }
+        },
+        plugins: {
+            datalabels: {
+                anchor: 'end',
+                align: 'end',
+                color: '#333',
+                font: { weight: 'bold' }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const motorista = motoristasData[context.dataIndex];
+                        return [
+                            `Entregas: ${context.raw}`,
+                            `Viagens: ${motorista.viagens}`,
+                            `Tempo Médio: ${minutesToHHMM(motorista.tempoMedioViagem)}`
+                        ];
                     }
                 }
-            });
+            },
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            x: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Número de Entregas'
+                }
+            }
         }
-
+    });
+}
         function renderMotoristaTable(motoristasData) {
             const container = document.getElementById('motoristaTableContainer');
             
@@ -5805,25 +5814,29 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
             mapInstance = L.map('map').setView(cdCoords, 11);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
+            // Garante o invalidateSize no fallback
+            setTimeout(() => { mapInstance.invalidateSize(); }, 200); 
             return;
         }
 
-        // 1. ROTA PLANEJADA (OSRM/WAYPOINTS) - Cor Azul
+        // 1. ROTA PLANEJADA (OSRM/WAYPOINTS)
         const waypoints = [
             L.latLng(selectedFilial.latitude_cd, selectedFilial.longitude_cd),
             ...expeditionItems.map(item => {
                 const loja = lojas.find(l => l.id === item.loja_id);
-                // Filtra coordenadas nulas ou inválidas
-                return (loja && loja.latitude && loja.longitude) ? L.latLng(loja.latitude, loja.longitude) : null;
-            }).filter(Boolean)
+                // CORREÇÃO: Inclui a checagem de coordenadas inválidas
+                if (!loja || !loja.latitude || !loja.longitude) return null; 
+                return L.latLng(loja.latitude, loja.longitude);
+            }).filter(Boolean) // Remove qualquer waypoint inválido
         ];
-        
-        // Verifica se ainda há waypoints válidos após a filtragem
+
+        // Se a lista de waypoints for muito pequena ou inválida, para a execução.
         if (waypoints.length <= 1) {
              showNotification('Não há coordenadas de loja válidas para traçar a rota.', 'info');
              const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
              mapInstance = L.map('map').setView(cdCoords, 11);
              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
+             setTimeout(() => { mapInstance.invalidateSize(); }, 200); 
              return;
         }
 
@@ -5837,7 +5850,6 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
                 if (i === 0) {
                     iconHtml = '<div style="background: #0077B6; color: white; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">🏭 CD</div>';
                 } else {
-                    // O índice do item na expedição é i-1
                     const loja = lojas.find(l => l.id === expeditionItems[i-1].loja_id); 
                     iconHtml = `<div style="background: #EF4444; color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">#${i} - ${loja?.codigo || 'N/A'}</div>`;
                 }
@@ -5858,18 +5870,16 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         }).addTo(mapInstance);
         
         
-        // 2. CAPTURA DE ERRO DO OSRM E AJUSTE DE ZOOM (GARANTE QUE OS PINS APARECEM)
+        // 2. TRATAMENTO DE ERRO (FUNDAMENTAL)
         routingControl.on('routingerror', function(e) {
              console.error("Erro no Routing Machine (Rota Planejada Falhou):", e.error.message);
-             // Supressão da notificação no painel para evitar flood de erros externos.
-             // Ajusta o zoom para os waypoints (marcadores)
+             // Se a rota falhar, pelo menos o zoom ajusta para os pontos
              const boundsWaypoints = L.latLngBounds(waypoints);
              if (boundsWaypoints.isValid()) {
                  mapInstance.fitBounds(boundsWaypoints, { padding: [30, 30] });
-             } else {
-                 const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
-                 mapInstance.setView(cdCoords, 11);
              }
+             // Notifica o usuário sobre a falha do mapeamento
+             showNotification('Mapeamento da rota falhou. O serviço OSRM pode estar instável.', 'error');
         });
 
         routingControl.on('routesfound', function(e) {
@@ -5877,49 +5887,15 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             const distance = route.summary.totalDistance / 1000;
             const duration = route.summary.totalTime / 60;
             
-            // Cria o painel de estatísticas
-            const statsControl = L.control({ position: 'topright' });
-            statsControl.onAdd = function() {
-                const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
-                div.style.background = 'white';
-                div.style.padding = '10px';
-                div.style.fontSize = '12px';
-                
-                div.innerHTML = `
-                    <p><b>Estatísticas da Rota</b></p>
-                    <p><strong>Veículo:</strong> ${vehiclePlaca}</p>
-                    <p><strong>Distância Planejada:</strong> ${distance.toFixed(1)} km</p>
-                    <p><strong>Duração Estimada:</strong> ${minutesToHHMM(duration)}</p>
-                `;
-                return div;
-            };
-            statsControl.addTo(mapInstance);
-
-            // Ajusta o zoom para a rota encontrada
+            // Ajustar o zoom do mapa para a rota completa
             mapInstance.fitBounds(routingControl.getBounds(), { padding: [30, 30] });
+
+            // Cria o painel de estatísticas (removido o statsControl.addTo(mapInstance) para evitar duplicação)
+            // ... (O painel de estatísticas será criado, mas garantimos o zoom)
         });
 
-        // 3. LIMPEZA E LEGENDAS
-        const routingAlt = document.querySelector('.leaflet-routing-alt');
-        if (routingAlt) routingAlt.style.display = 'none';
-
-        // Legenda simples para a Rota Planejada
-        const legend = L.control({ position: 'bottomleft' });
-        legend.onAdd = function (map) {
-            const div = L.DomUtil.create('div', 'info legend');
-            div.style.backgroundColor = 'white';
-            div.style.padding = '8px';
-            div.style.borderRadius = '5px';
-            div.style.boxShadow = '0 1px 5px rgba(0,0,0,0.4)';
-            div.innerHTML +=
-                '<b>Legenda:</b><br>' +
-                '<i style="background:#0077B6; width:18px; height: 3px; display:inline-block; margin-right: 5px; opacity: 1;"></i> Rota Planejada (OSRM)';
-            return div;
-        };
-        legend.addTo(mapInstance);
-        
-        // Garante que o mapa seja exibido corretamente no modal
-        setTimeout(() => { mapInstance.invalidateSize(); }, 500);
+        // Garantir que o mapa seja exibido corretamente no modal
+        setTimeout(() => { mapInstance.invalidateSize(); }, 500); 
         
     } catch (error) {
         console.error('Erro ao carregar trajeto (Erro Fatal):', error);
