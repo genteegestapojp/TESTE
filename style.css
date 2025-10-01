@@ -1139,10 +1139,16 @@ canvas#motoristasRankingChart {
 
 /* Ajusta o grid para 4 colunas em telas grandes */
 @media (min-width: 1024px) {
+    /* 5 Colunas para os Tempos Operacionais */
     #indicadoresTimeSummary {
-        grid-template-columns: repeat(4, 1fr) !important;
-    }
-    #indicadoresVolumeStats {
         grid-template-columns: repeat(5, 1fr) !important;
     }
+    /* 6 Colunas para Volume e Eficiência */
+    #indicadoresVolumeStats {
+        grid-template-columns: repeat(6, 1fr) !important;
+    }
+}
+/* CORREÇÃO GERAL DE CHART: Adiciona padding para evitar que os datalabels sejam cortados */
+.bg-white.p-4.rounded-lg.shadow-md {
+    padding: 20px !important; /* Aumenta o padding do container do gráfico */
 }
