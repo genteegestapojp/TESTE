@@ -600,7 +600,7 @@ async function loadAllTabData() {
     </div>
 `;
 
-    document.getElementById('motoristas').innerHTML = `
+   document.getElementById('motoristas').innerHTML = `
         <h1 class="text-3xl font-bold text-gray-800 mb-6">Painel de Motoristas</h1>
         <div class="sub-tabs">
             <button class="sub-tab active" onclick="showSubTab('motoristas', 'statusFrota', this)" data-permission="acesso_motoristas_status">Status da Frota</button>
@@ -624,31 +624,23 @@ async function loadAllTabData() {
                 <div id="resultadosMotorista" class="mt-4"></div>
             </div>
             
-             <div id="motoristasStatusList">
-                 <div class="loading"><div class="spinner"></div>Carregando status...</div>
-            </div>
-        </div>
-       
-        <div id="relatorioMotoristas" class="sub-tab-content">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Relatório de Desempenho dos Motoristas</h2>
-            <div class="filters-section">
-                <div class="filters-grid">
-                    <div class="form-group">
-                        <label for="relatorioMotoristaDataInicio">Data Início:</label>
-                        <input type="date" id="relatorioMotoristaDataInicio" onchange="generateMotoristaReports()">
-                    </div>
-                    <div class="form-group">
-                        <label for="relatorioMotoristaDataFim">Data Fim:</label>
-                        <input type="date" id="relatorioMotoristaDataFim" onchange="generateMotoristaReports()">
+             <div class="filters-section my-4" style="padding: 12px;">
+                <div class="filters-grid" style="grid-template-columns: 1fr;">
+                     <div class="form-group" style="grid-column: span 1 / span 1; margin-bottom: 0;">
+                        <label for="motoristaStatusFilter">Filtrar por Status:</label>
+                        <select id="motoristaStatusFilter" onchange="applyMotoristaStatusFilter()" class="w-full">
+                            <option value="">Todos os Status</option>
+                            <option value="disponivel">Disponível</option>
+                            <option value="em_viagem,saiu_para_entrega">Em Atividade (Viagem/Descarga)</option>
+                            <option value="retornando_cd,retornando_com_imobilizado,descarregando_imobilizado">Retornando/Desc. Imobilizado</option>
+                            <option value="folga">Folga</option>
+                        </select>
                     </div>
                 </div>
             </div>
-            <div id="motoristaReportSummary" class="stats-grid" style="display:none;"></div>
-            <div class="bg-white p-4 rounded-lg shadow-md mt-8">
-                 <h3 class="text-lg font-semibold text-center mb-4">Ranking de Motoristas por Entregas</h3>
-                <canvas id="motoristasRankingChart"></canvas>
+            <div id="motoristasStatusList">
+                 <div class="loading"><div class="spinner"></div>Carregando status...</div>
             </div>
-            <div id="motoristaTableContainer" class="table-container bg-white rounded-lg shadow-md mt-8"></div>
         </div>
     `;
 
@@ -2726,7 +2718,9 @@ async function loadMotoristaTab() {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
-// SUBSTITUIR A FUNÇÃO renderMotoristasStatusList COMPLETA
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// SUBSTITUIR A FUNÇÃO renderMotoristasStatusList COMPLETA (aproximadamente linha 2246)
 async function renderMotoristasStatusList() {
     const container = document.getElementById('motoristasStatusList');
     if (!container) return;
@@ -2775,7 +2769,7 @@ async function renderMotoristasStatusList() {
 
     motoristasComStatus.sort((a, b) => a.nome.localeCompare(b.nome));
 
-    // HTML principal com filtro
+    // HTML principal (sem o filtro, que foi movido)
     let html = `
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-number">${dispCount}</div><div class="stat-label">Disponíveis</div></div>
@@ -2784,21 +2778,6 @@ async function renderMotoristasStatusList() {
             <div class="stat-card" style="background: linear-gradient(135deg, #7209B7, #A663CC);"><div class="stat-number">${motoristas.filter(m => m.status === 'folga').length}</div><div class="stat-label">Em Folga</div></div>
         </div>
         
-        <div class="filters-section my-4" style="padding: 12px;">
-            <div class="filters-grid" style="grid-template-columns: 1fr;">
-                 <div class="form-group" style="grid-column: span 1 / span 1; margin-bottom: 0;">
-                    <label for="motoristaStatusFilter">Filtrar por Status:</label>
-                    <select id="motoristaStatusFilter" onchange="applyMotoristaStatusFilter()" class="w-full">
-                        <option value="">Todos os Status</option>
-                        <option value="disponivel">Disponível</option>
-                        <option value="em_viagem,saiu_para_entrega">Em Atividade (Viagem/Descarga)</option>
-                        <option value="retornando_cd,retornando_com_imobilizado,descarregando_imobilizado">Retornando/Desc. Imobilizado</option>
-                        <option value="folga">Folga</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
         <h3 class="text-xl font-semibold text-gray-800 my-4">Status dos Motoristas</h3>
         <div id="motoristaListFiltered">
             ${renderMotoristasListHtml(motoristasComStatus)}
@@ -2818,7 +2797,9 @@ async function renderMotoristasStatusList() {
 }
 
 
-// SUBSTITUIR A FUNÇÃO renderMotoristasListHtml COMPLETA
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// SUBSTITUIR A FUNÇÃO renderMotoristasListHtml COMPLETA (aproximadamente linha 2378)
 function renderMotoristasListHtml(motoristasData) {
     if (motoristasData.length === 0) {
         return '<div class="alert alert-info mt-4">Nenhum motorista encontrado com o filtro selecionado.</div>';
@@ -2827,8 +2808,7 @@ function renderMotoristasListHtml(motoristasData) {
     return motoristasData.map(m => {
         let actionButton = '';
         
-        // 🚨 FIX: Placa como Card Animado 🚨
-        // Verifica se a placa é válida e aplica a classe CSS.
+        // 🚨 AJUSTE SOLICITADO: Placa animada e destacada 🚨
         const veiculoPlacaNoNome = m.veiculoPlaca && m.veiculoPlaca !== 'N/A' ? 
             `<span class="placa-animada">${m.veiculoPlaca}</span>` : '';
 
@@ -2864,7 +2844,7 @@ function renderMotoristasListHtml(motoristasData) {
         return `
             <div class="motorista-status-item">
                 <div>
-                    <strong class="text-gray-800">${m.nome}</strong> ${veiculoPlacaNoNome}
+                    <strong class="text-gray-800">${m.nome} ${veiculoPlacaNoNome}</strong>
                     ${timeInfo}
                 </div>
                 <div class="flex items-center gap-4">
