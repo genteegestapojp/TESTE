@@ -5752,6 +5752,8 @@ async function showTrajectoryMap(expeditionId, vehiclePlaca) {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 // SUBSTITUIR A FUNÇÃO initTrajectoryMap COMPLETA
 async function initTrajectoryMap(expeditionId, vehiclePlaca) {
     try {
@@ -5815,7 +5817,7 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         // 2. CAPTURA DE ERRO DO OSRM E AJUSTE DE ZOOM
         routingControl.on('routingerror', function(e) {
              console.error("Erro no Routing Machine (Rota Planejada Falhou):", e.error.message);
-             showNotification(`Erro ao calcular rota planejada: Falha no servidor (Timeout/429).`, 'error', 6000);
+             // 🚨 FIX CRÍTICO: Removida a notificação de usuário. 🚨
              // Ajusta o zoom para o centro (CD)
              const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
              mapInstance.setView(cdCoords, 11);
@@ -5852,7 +5854,7 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         const routingAlt = document.querySelector('.leaflet-routing-alt');
         if (routingAlt) routingAlt.style.display = 'none';
 
-        // Legenda simples apenas para a Rota Planejada
+        // Legenda simples para a Rota Planejada
         const legend = L.control({ position: 'bottomleft' });
         legend.onAdd = function (map) {
             const div = L.DomUtil.create('div', 'info legend');
