@@ -1235,18 +1235,16 @@ async function loadAllTabData() {
 }
         
         function getStatusLabel(status) {
-            const labels = {
-                'pendente': 'Pendente', 'aguardando_agrupamento': 'Aguard. Agrupamento', 'aguardando_doca': 'Aguard. Doca',
-                'aguardando_veiculo': 'Aguard. Veículo', 'em_carregamento': 'Carregando', 'carregado': 'Carregado',
-                'aguardando_faturamento': 'Aguard. Faturamento', 'faturamento_iniciado': 'Faturando', 'faturado': 'Faturado',
-                'saiu_para_entrega': 'Saiu p/ Entrega', 'entregue': 'Entregue', 'retornando_cd': 'Retornando CD',
-                'cancelado': 'Cancelado', 'disponivel': 'Disponível', 'em_viagem': 'Em Viagem', 'folga': 'Folga',
-                'retornando_com_imobilizado': 'Ret. c/ Imobilizado', 'descarregando_imobilizado': 'Desc. Imobilizado',
-                'em_uso': 'Em Uso', 'manutencao': 'Manutenção'
-            };
-            return labels[status] || status.replace(/_/g, ' ');
-        }
-        
+    const labels = {
+        // ... (seus status existentes)
+        'faturamento_iniciado': 'Faturando', 'faturado': 'Faturado',
+        // NOVO STATUS COMBINADO
+        'em_carregamento_faturando': 'Carregando/Faturando',
+        // ... (o resto dos status)
+    };
+    return labels[status] || status.replace(/_/g, ' ');
+}
+
         function minutesToHHMM(minutes) {
             if (minutes === null || isNaN(minutes) || minutes < 0) return '-';
             const hours = Math.floor(minutes / 60);
@@ -2412,80 +2410,128 @@ async function loadFaturamento() {
     }
 }
 
-        function renderFaturamentoList(expeditionsList) {
-            const container = document.getElementById('faturamentoList');
+       function renderFaturamentoList(expeditionsList) {
+    const container = document.getElementById('faturamentoList');
 
-            if (expeditionsList.length === 0) {
-                container.innerHTML = '<div class="alert alert-success">Nenhuma expedição pendente de faturamento!</div>';
-                return;
+    if (expeditionsList.length === 0) {
+        container.innerHTML = '<div class="alert alert-success">Nenhuma expedição pendente de faturamento!</div>';
+        return;
+    }
+
+    container.innerHTML = expeditionsList.map(exp => {
+        // Usa a data de saída do veículo (fim do carregamento) se existir, senão usa a data de criação
+        const carregadoEm = exp.data_saida_veiculo ? new Date(exp.data_saida_veiculo) : new Date(exp.data_hora);
+        const tempoEspera = Math.round((new Date() - carregadoEm) / 60000);
+        
+        let actionButtons = '', statusInfo = '';
+        
+        // 1. STATUS DE CARREGAMENTO (permissão para faturar antecipadamente)
+        if (exp.status === 'em_carregamento') {
+            statusInfo = `<div class="text-gray-600 font-semibold mb-2">🚚 Carregando (Permite Faturamento Antecipado)</div>`;
+            actionButtons = `<button class="btn btn-success" onclick="iniciarFaturamento('${exp.id}')">Iniciar Faturamento (Antecipado)</button>`;
+        } else if (exp.status === 'carregado' || exp.status === 'aguardando_faturamento') {
+            // 2. STATUS DE PRONTO PARA FATURAR
+            statusInfo = `<div class="text-blue-600 font-semibold mb-2">📄 Pronto para iniciar faturamento</div>`;
+            actionButtons = `<button class="btn btn-success" onclick="iniciarFaturamento('${exp.id}')">Iniciar Faturamento</button>`;
+        } else if (exp.status === 'faturamento_iniciado' || exp.status === 'em_carregamento_faturando') { 
+            // 3. STATUS DE FATURANDO (Inclui o status combinado)
+            const iniciadoEm = exp.data_inicio_faturamento ? new Date(exp.data_inicio_faturamento) : null;
+            const tempoFaturamento = iniciadoEm ? Math.round((new Date() - iniciadoEm) / 60000) : 0;
+            
+            const faturandoTexto = exp.status === 'em_carregamento_faturando' ? 'Carregando/Faturando' : 'Faturamento em andamento';
+            statusInfo = `<div class="text-yellow-600 font-semibold mb-2">📄 ${faturandoTexto} há ${minutesToHHMM(tempoFaturamento)}</div>`;
+            actionButtons = `<button class="btn btn-primary" onclick="finalizarFaturamento('${exp.id}')">Finalizar Faturamento</button>`;
+        } else if (exp.status === 'faturado') {
+            // 4. STATUS FATURADO (Com bloqueio de saída)
+            statusInfo = `<div class="text-green-600 font-semibold mb-2">✅ Faturado</div>`;
+            
+            // AJUSTE CRÍTICO: 'Marcar Saída' liberado apenas se carregamento finalizado (`data_saida_veiculo` presente)
+            if (exp.data_saida_veiculo) {
+                actionButtons = `<button class="btn btn-warning" onclick="marcarSaiuEntrega('${exp.id}')">Marcar Saída</button>`;
+            } else {
+                // Botão desabilitado com dica, forçando a finalização do carregamento antes de liberar a saída.
+                actionButtons = `<button class="btn btn-secondary" disabled title="Aguardando Finalização do Carregamento (data_saida_veiculo)">Marcar Saída</button>`;
             }
-
-            container.innerHTML = expeditionsList.map(exp => {
-                const carregadoEm = exp.data_saida_veiculo ? new Date(exp.data_saida_veiculo) : new Date(exp.data_hora);
-                const tempoEspera = Math.round((new Date() - carregadoEm) / 60000);
-                
-                let actionButtons = '', statusInfo = '';
-                if (exp.status === 'aguardando_faturamento') {
-                    statusInfo = `<div class="text-blue-600 font-semibold mb-2">📄 Pronto para iniciar faturamento</div>`;
-                    actionButtons = `<button class="btn btn-success" onclick="iniciarFaturamento('${exp.id}')">Iniciar Faturamento</button>`;
-                } else if (exp.status === 'faturamento_iniciado') {
-                    const iniciadoEm = exp.data_inicio_faturamento ? new Date(exp.data_inicio_faturamento) : null;
-                    const tempoFaturamento = iniciadoEm ? Math.round((new Date() - iniciadoEm) / 60000) : 0;
-                    statusInfo = `<div class="text-yellow-600 font-semibold mb-2">📄 Faturamento em andamento há ${minutesToHHMM(tempoFaturamento)}</div>`;
-                    actionButtons = `<button class="btn btn-primary" onclick="finalizarFaturamento('${exp.id}')">Finalizar Faturamento</button>`;
-                } else if (exp.status === 'faturado') {
-                    statusInfo = `<div class="text-green-600 font-semibold mb-2">✅ Faturado</div>`;
-                    actionButtons = `<button class="btn btn-warning" onclick="marcarSaiuEntrega('${exp.id}')">Marcar Saída</button>`;
-                }
-
-                return `
-                    <div class="faturamento-card">
-                       <h3 class="text-lg font-bold text-gray-800">${exp.lojas_count} loja${exp.lojas_count > 1 ? 's' : ''} - ${exp.veiculo_placa || 'N/A'}</h3>
-                        <p class="text-sm text-gray-500 mb-2">${exp.lojas_info}</p>
-                        ${exp.numeros_carga && exp.numeros_carga.length > 0 ? `<p class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded mb-2 inline-block">📦 Cargas: ${exp.numeros_carga.join(', ')}</p>` : ''}
-                        ${statusInfo}
-                        <div class="time-display">
-                            <strong>Carregado há:</strong> ${minutesToHHMM(tempoEspera)}
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 my-4 text-sm">
-                            <p><strong>Pallets:</strong> ${exp.total_pallets}</p>
-                            <p><strong>RollTrainers:</strong> ${exp.total_rolltrainers}</p>
-                            <p><strong>Motorista:</strong> ${exp.motorista_nome || 'N/A'}</p>
-                            <p><strong>Líder:</strong> ${exp.lider_nome || 'N/A'}</p>
-                        </div>
-                        <div class="text-center mt-4">
-                            ${actionButtons}
-                        </div>
-                    </div>
-                `;
-            }).join('');
         }
+
+        return `
+            <div class="faturamento-card">
+               <h3 class="text-lg font-bold text-gray-800">${exp.lojas_count} loja${exp.lojas_count > 1 ? 's' : ''} - ${exp.veiculo_placa || 'N/A'}</h3>
+                <p class="text-sm text-gray-500 mb-2">${exp.lojas_info}</p>
+                ${exp.numeros_carga && exp.numeros_carga.length > 0 ? `<p class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded mb-2 inline-block">📦 Cargas: ${exp.numeros_carga.join(', ')}</p>` : ''}
+                ${statusInfo}
+                <div class="time-display">
+                    <strong>Tempo de Espera/Carregamento:</strong> ${minutesToHHMM(tempoEspera)}
+                </div>
+                <div class="grid grid-cols-2 gap-4 my-4 text-sm">
+                    <p><strong>Pallets:</strong> ${exp.total_pallets}</p>
+                    <p><strong>RollTrainers:</strong> ${exp.total_rolltrainers}</p>
+                    <p><strong>Motorista:</strong> ${exp.motorista_nome || 'N/A'}</p>
+                    <p><strong>Líder:</strong> ${exp.lider_nome || 'N/A'}</p>
+                </div>
+                <div class="text-center mt-4">
+                    ${actionButtons}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
 
         function updateFaturamentoStats(expeditions) {
-            document.getElementById('totalCarregadas').textContent = expeditions.filter(e => e.status === 'aguardando_faturamento').length;
-            document.getElementById('emFaturamento').textContent = expeditions.filter(e => e.status === 'faturamento_iniciado').length;
-            document.getElementById('faturadas').textContent = expeditions.filter(e => e.status === 'faturado').length;
-            
-            const expedicoesComFaturamento = expeditions.filter(e => e.data_inicio_faturamento && e.data_fim_faturamento);
-            if (expedicoesComFaturamento.length > 0) {
-                const tempos = expedicoesComFaturamento.map(e => (new Date(e.data_fim_faturamento) - new Date(e.data_inicio_faturamento)) / 60000);
-                const tempoMedio = tempos.reduce((a, b) => a + b, 0) / tempos.length;
-                document.getElementById('tempoMedioFaturamento').textContent = minutesToHHMM(tempoMedio);
-            } else {
-                document.getElementById('tempoMedioFaturamento').textContent = '-';
-            }
-        }
+    // NOVO: Conta a partir de 'em_carregamento' e 'carregado' que aguardam faturamento
+    document.getElementById('totalCarregadas').textContent = expeditions.filter(e => 
+        e.status === 'em_carregamento' || 
+        e.status === 'carregado' || 
+        e.status === 'aguardando_faturamento'
+    ).length;
+    
+    // NOVO: Inclui o status combinado 'em_carregamento_faturando'
+    document.getElementById('emFaturamento').textContent = expeditions.filter(e => 
+        e.status === 'faturamento_iniciado' || 
+        e.status === 'em_carregamento_faturando'
+    ).length;
+    
+    document.getElementById('faturadas').textContent = expeditions.filter(e => e.status === 'faturado').length;
+    
+    const expedicoesComFaturamento = expeditions.filter(e => e.data_inicio_faturamento && e.data_fim_faturamento);
+    if (expedicoesComFaturamento.length > 0) {
+        const tempos = expedicoesComFaturamento.map(e => (new Date(e.data_fim_faturamento) - new Date(e.data_inicio_faturamento)) / 60000);
+        const tempoMedio = tempos.reduce((a, b) => a + b, 0) / tempos.length;
+        document.getElementById('tempoMedioFaturamento').textContent = minutesToHHMM(tempoMedio);
+    } else {
+        document.getElementById('tempoMedioFaturamento').textContent = '-';
+    }
+}
 
-        async function iniciarFaturamento(expeditionId) {
-            try {
-                const updateData = { status: 'faturamento_iniciado', data_inicio_faturamento: new Date().toISOString() };
-                await supabaseRequest(`expeditions?id=eq.${expeditionId}`, 'PATCH', updateData);
-                showNotification(`Faturamento iniciado!`, 'success');
-                loadFaturamento();
-            } catch (error) {
-                showNotification('Erro ao iniciar faturamento: ' + error.message, 'error');
-            }
+    async function iniciarFaturamento(expeditionId) {
+    try {
+        const currentExp = await supabaseRequest(`expeditions?id=eq.${expeditionId}&select=status`);
+        const currentStatus = currentExp[0].status;
+        
+        let newStatus;
+        if (currentStatus === 'em_carregamento') {
+             // NOVO: Define o status combinado se o carregamento estiver em andamento
+             newStatus = 'em_carregamento_faturando'; 
+        } else if (currentStatus === 'carregado' || currentStatus === 'aguardando_faturamento') {
+             // Fluxo normal: inicia o faturamento após o carregamento
+             newStatus = 'faturamento_iniciado';
+        } else if (currentStatus === 'em_carregamento_faturando' || currentStatus === 'faturamento_iniciado') {
+             showNotification('Faturamento já está em andamento!', 'info');
+             return;
+        } else {
+             showNotification(`Não é possível iniciar faturamento no status atual: ${getStatusLabel(currentStatus)}`, 'error');
+             return;
         }
+        
+        const updateData = { status: newStatus, data_inicio_faturamento: new Date().toISOString() };
+        await supabaseRequest(`expeditions?id=eq.${expeditionId}`, 'PATCH', updateData);
+        
+        showNotification(`Faturamento iniciado! Status: ${getStatusLabel(newStatus)}`, 'success');
+        loadFaturamentoData(); 
+    } catch (error) {
+        showNotification('Erro ao iniciar faturamento: ' + error.message, 'error');
+    }
+}
 
         async function finalizarFaturamento(expeditionId) {
              try {
@@ -8400,9 +8446,7 @@ function filterSubTabs() {
         }
     });
 }
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
-// NOVO CÓDIGO: Função de Carregamento de Dados de Faturamento Ativo
 async function loadFaturamentoData(subTabName = 'faturamentoAtivo') {
     const container = document.getElementById('faturamentoList');
     if (!container) return;
@@ -8411,9 +8455,10 @@ async function loadFaturamentoData(subTabName = 'faturamentoAtivo') {
          container.innerHTML = `<div class="loading"><div class="spinner"></div>Carregando expedições...</div>`;
 
         try {
-            // Busca expedições em status de faturamento (aguardando_faturamento, faturamento_iniciado, faturado)
-            const expeditions = await supabaseRequest("expeditions?status=in.(aguardando_faturamento,faturamento_iniciado,faturado)&order=data_hora.asc");
+            // AJUSTE CRÍTICO: Incluir 'em_carregamento' e 'carregado' (e o novo status)
+            const expeditions = await supabaseRequest("expeditions?status=in.(em_carregamento,carregado,aguardando_faturamento,faturamento_iniciado,faturado,em_carregamento_faturando)&order=data_hora.asc");
             const items = await supabaseRequest('expedition_items');
+
 
             const expeditionsWithItems = expeditions.map(exp => {
                 const veiculo = exp.veiculo_id ? veiculos.find(v => v.id === exp.veiculo_id) : null;
