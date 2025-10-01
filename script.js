@@ -2938,19 +2938,18 @@ function renderMotoristasListHtml(motoristasData) {
     return motoristasData.map(m => {
         let actionButton = '';
         
-        // 🚨 NOVO: Determinar classe CSS baseada no status
-        let placaClass = 'placa-destaque';
-        if (m.displayStatus === 'saiu_para_entrega' || m.displayStatus === 'em_viagem') {
-            placaClass += ' em-viagem';
-        } else if (m.displayStatus === 'retornando_cd' || m.displayStatus === 'retornando_com_imobilizado') {
-            placaClass += ' retornando';
-        } else if (m.displayStatus === 'disponivel') {
-            placaClass += ' disponivel';
-        }
-        
-        // Placa animada com destaque
-        const veiculoPlacaNoNome = m.veiculoPlaca && m.veiculoPlaca !== 'N/A' ? 
-            `<span class="${placaClass}" title="Veículo: ${m.veiculoPlaca}">${m.veiculoPlaca}</span>` : '';
+       let placaClass = 'placa-destaque';
+if (m.displayStatus === 'saiu_para_entrega' || m.displayStatus === 'em_viagem') {
+    placaClass += ' em-viagem';
+} else if (m.displayStatus === 'retornando_cd' || m.displayStatus === 'retornando_com_imobilizado') {
+    placaClass += ' retornando';
+} else if (m.displayStatus === 'disponivel') {
+    placaClass += ' disponivel';
+}
+
+// Placa animada com destaque
+const veiculoPlacaNoNome = m.veiculoPlaca && m.veiculoPlaca !== 'N/A' ? 
+    `<span class="${placaClass}" title="Veículo: ${m.veiculoPlaca}">${m.veiculoPlaca}</span>` : '';
 
         // Restauração dos botões de ação
         if ((m.displayStatus === 'retornando_cd' || m.displayStatus === 'retornando_com_imobilizado') && m.veiculoId) {
@@ -8519,7 +8518,7 @@ function startMotoristaTimer(m) {
 }
 
 
-// NOVO CÓDIGO: Função para renderizar a lista de motoristas após o filtro
+// SUBSTITUIR A FUNÇÃO renderMotoristasListHtml COMPLETA
 function renderMotoristasListHtml(motoristasData) {
     if (motoristasData.length === 0) {
         return '<div class="alert alert-info mt-4">Nenhum motorista encontrado com o filtro selecionado.</div>';
@@ -8527,14 +8526,37 @@ function renderMotoristasListHtml(motoristasData) {
     
     return motoristasData.map(m => {
         let actionButton = '';
-        // Placa no nome (Requisito)
-        const veiculoPlacaNoNome = m.veiculoPlaca && m.veiculoPlaca !== 'N/A' ? `(${m.veiculoPlaca})` : '';
+        
+        // 🚨 FIX CRÍTICO: Determinar classe CSS baseada no status
+        let placaClass = 'placa-destaque';
+        if (m.displayStatus === 'saiu_para_entrega' || m.displayStatus === 'em_viagem') {
+            placaClass += ' em-viagem';
+        } else if (m.displayStatus === 'retornando_cd' || m.displayStatus === 'retornando_com_imobilizado') {
+            placaClass += ' retornando';
+        } else if (m.displayStatus === 'disponivel') {
+            placaClass += ' disponivel';
+        }
+        
+        // Placa animada com destaque
+        const veiculoPlacaNoNome = m.veiculoPlaca && m.veiculoPlaca !== 'N/A' ? 
+            `<span class="${placaClass}" title="Veículo: ${m.veiculoPlaca}">${m.veiculoPlaca}</span>` : '';
 
-        // 🚨 RESTAURAÇÃO DOS BOTÕES DE AÇÃO 🚨
+        // Restauração dos botões de ação
         if ((m.displayStatus === 'retornando_cd' || m.displayStatus === 'retornando_com_imobilizado') && m.veiculoId) {
             actionButton = `<button class="btn btn-primary btn-small" onclick="marcarRetornoCD('${m.id}', '${m.veiculoId}')">Cheguei no CD</button>`;
         } else if (m.displayStatus === 'descarregando_imobilizado' && m.veiculoId) {
             actionButton = `<button class="btn btn-warning btn-small" onclick="finalizarDescargaImobilizado('${m.id}', '${m.veiculoId}')">Finalizar Descarga</button>`;
+        }
+        
+        // Se estiver em rota e em doca, mostra os botões de carregamento
+        if (m.activeExp && m.displayStatus !== 'saiu_para_entrega') {
+             const doca = docas.find(d => d.id === m.activeExp.doca_id);
+             const coddocaValue = doca?.coddoca || 'N/A';
+             if (m.displayStatus === 'aguardando_veiculo') {
+                  actionButton = `<button class="btn btn-success" onclick="openQrModal('iniciar', '${m.activeExp.id}', '${coddocaValue}')">Iniciar Carregamento</button>`;
+             } else if (m.displayStatus === 'em_carregamento') {
+                  actionButton = `<button class="btn btn-primary" onclick="openQrModal('finalizar', '${m.activeExp.id}', '${coddocaValue}')">Finalizar Carregamento</button>`;
+             }
         }
 
         let timeInfo = '';
