@@ -674,7 +674,7 @@ async function loadAllTabData() {
             <div class="space-y-8 mt-8">
                 <div class="bg-white p-4 rounded-lg shadow-md">
                     <h3 class="text-lg font-semibold text-center mb-4">Ranking de Entregas (Top 10)</h3>
-                    <div class="relative" style="height: 350px;">
+                    <div class="relative" style="height: 350px; width: 100%;">
                         <canvas id="motoristasRankingChart"></canvas>
                     </div>
                 </div>
