@@ -5775,7 +5775,7 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         mapInstance = L.map('map');
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
 
-        // 1. ROTA PLANEJADA (ORSM/WAYPOINTS) - Cor Azul
+        // 1. ROTA PLANEJADA (OSRM/WAYPOINTS) - Cor Azul
         const waypoints = [
             L.latLng(selectedFilial.latitude_cd, selectedFilial.longitude_cd),
             ...expeditionItems.map(item => {
@@ -5807,7 +5807,7 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             },
             routeWhileDragging: false,
             autoRoute: true,
-            // Rota Planejada - Corrigida para ser a única linha sólida.
+            // Rota Planejada - Linha sólida e simples.
             lineOptions: { styles: [{ color: '#0077B6', weight: 6, opacity: 1 }] } 
         }).addTo(mapInstance);
         
@@ -5816,8 +5816,9 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         routingControl.on('routingerror', function(e) {
              console.error("Erro no Routing Machine (Rota Planejada Falhou):", e.error.message);
              showNotification(`Erro ao calcular rota planejada: Falha no servidor (Timeout/429).`, 'error', 6000);
-             // Ajusta o zoom apenas para os waypoints (marcadores)
-             mapInstance.fitBounds(L.latLngBounds(waypoints), { padding: [30, 30] });
+             // Ajusta o zoom para o centro (CD)
+             const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
+             mapInstance.setView(cdCoords, 11);
         });
 
         routingControl.on('routesfound', function(e) {
