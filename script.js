@@ -4529,7 +4529,7 @@ async function loadHistorico() {
             applyHistoricoFilters();
         }
 
-        // SUBSTITUIR A FUNÇÃO renderHistorico COMPLETA
+      // SUBSTITUIR A FUNÇÃO renderHistorico COMPLETA (CORRIGIDA)
 function renderHistorico(data) {
     const container = document.getElementById('historicoList');
     if (data.length === 0) {
@@ -4581,6 +4581,10 @@ function renderHistorico(data) {
                 if (tempoEmLojaMin > 60) tempoLojaClass = 'bg-red-100 text-red-800'; // Vermelho se > 1h
                 else if (tempoEmLojaMin > 30) tempoLojaClass = 'bg-yellow-100 text-yellow-800'; // Amarelo se > 30min
                 else if (tempoEmLojaMin > 0) tempoLojaClass = 'bg-green-100 text-green-800'; // Verde
+                
+                // Garante que rolltrainers e pallets sejam exibidos como 0 se nulos
+                const palletsDisplay = item.pallets || 0;
+                const rollsDisplay = item.rolltrainers || 0;
 
                 roteiroHtml += `
                     <div class="p-3 border-b border-dashed border-gray-200">
@@ -4590,12 +4594,12 @@ function renderHistorico(data) {
                                 <span class="text-xs font-semibold ${tempoLojaClass} px-2 py-1 rounded">
                                     ${tempoEmLojaMin > 0 ? `Descarga: ${minutesToHHMM(tempoEmLojaMin)}` : 'Descarga: N/A'}
                                 </span>
-                                <span class="text-xs text-gray-500">${item.pallets || 0}P / ${item.rolltrainers || 0}R</span>
+                                <span class="text-xs text-gray-500">${palletsDisplay}P / ${rollsDisplay}R</span>
                             </div>
                         </div>
                         ${tempoTransitoMin > 0 ? `
                             <div class="text-xs text-gray-500 mt-1 pl-4">
-                                ↳ T. Trânsito: ${minutesToHHMM(tempoTransitoMin)}
+                                ↳ T. Desloc.: ${minutesToHHMM(tempoTransitoMin)}
                             </div>
                         ` : ''}
                     </div>
@@ -4630,7 +4634,7 @@ function renderHistorico(data) {
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm font-semibold">
                     <div class="p-3 bg-gray-50 rounded-lg text-center">
-                        <div class="text-2xl font-bold text-blue-600">${exp.total_pallets}P / ${exp.total_rolltrainers}R</div>
+                        <div class="text-2xl font-bold text-blue-600">${exp.total_pallets}P / ${exp.total_rolltrainers || 0}R</div>
                         <div class="text-xs text-gray-500">Carga Total</div>
                     </div>
                     <div class="p-3 bg-gray-50 rounded-lg text-center">
@@ -4639,19 +4643,18 @@ function renderHistorico(data) {
                     </div>
                     <div class="p-3 bg-gray-50 rounded-lg text-center">
                         <div class="text-2xl font-bold text-green-600">${minutesToHHMM(totalTempoEmLoja)}</div>
-                        <div class="text-xs text-gray-500">T.M. Descarga Total</div>
+                        <div class="text-xs text-gray-500">T. Descarga Total</div>
                     </div>
                     <div class="p-3 bg-gray-50 rounded-lg text-center">
                         <div class="text-2xl font-bold text-orange-600">${minutesToHHMM(totalTempoEmTransito)}</div>
-                        <div class="text-xs text-gray-500">T.M. Trânsito Total</div>
+                        <div class="text-xs text-gray-500">T. Trânsito Total</div>
                     </div>
                 </div>
 
                 <h4 class="font-bold text-gray-700 mb-2 border-t pt-3">Tempos de Pátio e Faturamento</h4>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-center mb-4">
+                <div class="grid grid-cols-3 gap-2 text-xs text-center mb-4">
                     <div class="time-display" style="background:#e0e7ff; border-left-color:#3730a3;"><strong>T. Alocação:</strong> ${tempos.alocacao}</div>
                     <div class="time-display" style="background:#cffafe; border-left-color:#0e7490;"><strong>T. Carga:</strong> ${tempos.carregamento}</div>
-                    <div class="time-display" style="background:#fee2e2; border-left-color:#991b1b;"><strong>T. Pátio Total:</strong> ${tempos.patio}</div>
                     <div class="time-display" style="background:#d1fae5; border-left-color:#065f46;"><strong>T. Faturamento:</strong> ${tempos.faturamento}</div>
                 </div>
 
