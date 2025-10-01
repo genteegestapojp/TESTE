@@ -5814,7 +5814,6 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
             mapInstance = L.map('map').setView(cdCoords, 11);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
-            // Garante o invalidateSize no fallback
             setTimeout(() => { mapInstance.invalidateSize(); }, 200); 
             return;
         }
@@ -5824,10 +5823,10 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             L.latLng(selectedFilial.latitude_cd, selectedFilial.longitude_cd),
             ...expeditionItems.map(item => {
                 const loja = lojas.find(l => l.id === item.loja_id);
-                // CORREÇÃO: Inclui a checagem de coordenadas inválidas
-                if (!loja || !loja.latitude || !loja.longitude) return null; 
+                // AJUSTE CRÍTICO: Checa se a loja e as coordenadas são válidas antes de criar o ponto
+                if (!loja || !loja.latitude || !loja.longitude) return null;
                 return L.latLng(loja.latitude, loja.longitude);
-            }).filter(Boolean) // Remove qualquer waypoint inválido
+            }).filter(Boolean) // Remove os nulos (lojas sem GPS) da lista
         ];
 
         // Se a lista de waypoints for muito pequena ou inválida, para a execução.
@@ -5870,7 +5869,7 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         }).addTo(mapInstance);
         
         
-        // 2. TRATAMENTO DE ERRO (FUNDAMENTAL)
+        // 2. TRATAMENTO DE ERRO (FUNDAMENTAL: Garante o zoom e os pins, mesmo se a linha falhar)
         routingControl.on('routingerror', function(e) {
              console.error("Erro no Routing Machine (Rota Planejada Falhou):", e.error.message);
              // Se a rota falhar, pelo menos o zoom ajusta para os pontos
@@ -5879,7 +5878,7 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
                  mapInstance.fitBounds(boundsWaypoints, { padding: [30, 30] });
              }
              // Notifica o usuário sobre a falha do mapeamento
-             showNotification('Mapeamento da rota falhou. O serviço OSRM pode estar instável.', 'error');
+             showNotification('A linha da rota falhou. O serviço OSRM pode estar instável ou a rota é muito longa.', 'error');
         });
 
         routingControl.on('routesfound', function(e) {
@@ -5890,11 +5889,30 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             // Ajustar o zoom do mapa para a rota completa
             mapInstance.fitBounds(routingControl.getBounds(), { padding: [30, 30] });
 
-            // Cria o painel de estatísticas (removido o statsControl.addTo(mapInstance) para evitar duplicação)
-            // ... (O painel de estatísticas será criado, mas garantimos o zoom)
+            // Cria o painel de estatísticas
+            const statsControl = L.control({ position: 'topright' });
+            statsControl.onAdd = function() {
+                const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
+                div.style.background = 'white';
+                div.style.padding = '10px';
+                div.style.fontSize = '12px';
+                
+                div.innerHTML = `
+                    <p><b>Estatísticas da Rota</b></p>
+                    <p><strong>Veículo:</strong> ${vehiclePlaca}</p>
+                    <p><strong>Distância Planejada:</strong> ${distance.toFixed(1)} km</p>
+                    <p><strong>Duração Estimada:</strong> ${minutesToHHMM(duration)}</p>
+                `;
+                return div;
+            };
+            statsControl.addTo(mapInstance);
         });
 
-        // Garantir que o mapa seja exibido corretamente no modal
+        // 3. LIMPEZA E GARANTIA
+        const routingAlt = document.querySelector('.leaflet-routing-alt');
+        if (routingAlt) routingAlt.style.display = 'none';
+
+        // Garante que o mapa seja exibido corretamente no modal
         setTimeout(() => { mapInstance.invalidateSize(); }, 500); 
         
     } catch (error) {
