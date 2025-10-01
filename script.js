@@ -5934,7 +5934,7 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         }
 
         const expeditionItems = await supabaseRequest(
-            `expedition_items?expedition_id=eq.${expeditionId}&order=data_inicio_descarga.asc`,
+            `expedition_items?expedition_id=eq.${expeditionId}&order=ordem_entrega.asc,data_inicio_descarga.asc`,
             'GET', null, false
         );
         
@@ -5947,19 +5947,20 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             return;
         }
 
-        // 1. ROTA PLANEJADA (OSRM/WAYPOINTS)
+        // 1. CONSTRUIR WAYPOINTS (CD + LOJAS)
         const waypoints = [
-            L.latLng(selectedFilial.latitude_cd, selectedFilial.longitude_cd),
-            ...expeditionItems.map(item => {
-                const loja = lojas.find(l => l.id === item.loja_id);
-                // AJUSTE CRÍTICO: Checa se a loja e as coordenadas são válidas antes de criar o ponto
-                if (!loja || !loja.latitude || !loja.longitude) return null;
-                return L.latLng(loja.latitude, loja.longitude);
-            }).filter(Boolean) // Remove os nulos (lojas sem GPS) da lista
+            L.latLng(selectedFilial.latitude_cd, selectedFilial.longitude_cd)
         ];
+        
+        expeditionItems.forEach(item => {
+            const loja = lojas.find(l => l.id === item.loja_id);
+            if (loja && loja.latitude && loja.longitude) {
+                waypoints.push(L.latLng(loja.latitude, loja.longitude));
+            }
+        });
 
-        // Se a lista de waypoints for muito pequena ou inválida, para a execução.
-        if (waypoints.length <= 1) {
+        // Se não houver pontos suficientes para traçar rota
+        if (waypoints.length < 2) {
              showNotification('Não há coordenadas de loja válidas para traçar a rota.', 'info');
              const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
              mapInstance = L.map('map').setView(cdCoords, 11);
@@ -5968,9 +5969,13 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
              return;
         }
 
+        // 2. CRIAR MAPA
         mapInstance = L.map('map');
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(mapInstance);
         
+        // 3. CRIAR ROTEAMENTO COM TRATAMENTO DE ERRO ROBUSTO
         const routingControl = L.Routing.control({
             waypoints: waypoints,
             createMarker: function(i, waypoint, n) {
@@ -5990,33 +5995,37 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
                 });
                 return L.marker(waypoint.latLng, {
                     icon: markerIcon
-                }).bindPopup(`<b>${waypoint.name}</b>`);
+                }).bindPopup(`<b>${waypoint.name || `Ponto ${i+1}`}</b>`);
             },
             routeWhileDragging: false,
             autoRoute: true,
-            lineOptions: { styles: [{ color: '#0077B6', weight: 6, opacity: 1 }] } 
+            lineOptions: { 
+                styles: [{ color: '#0077B6', weight: 6, opacity: 0.8 }] 
+            },
+            router: L.Routing.osrmv1({
+                serviceUrl: 'https://router.project-osrm.org/route/v1',
+                timeout: 30000 // 30 segundos de timeout
+            }),
+            showAlternatives: false,
+            fitSelectedRoutes: true,
+            show: false // Esconde o painel de instruções
         }).addTo(mapInstance);
         
-        
-        // 2. TRATAMENTO DE ERRO (FUNDAMENTAL: Garante o zoom e os pins, mesmo se a linha falhar)
-        routingControl.on('routingerror', function(e) {
-             console.error("Erro no Routing Machine (Rota Planejada Falhou):", e.error.message);
-             // Se a rota falhar, pelo menos o zoom ajusta para os pontos
-             const boundsWaypoints = L.latLngBounds(waypoints);
-             if (boundsWaypoints.isValid()) {
-                 mapInstance.fitBounds(boundsWaypoints, { padding: [30, 30] });
-             }
-             // Notifica o usuário sobre a falha do mapeamento
-             showNotification('A linha da rota falhou. O serviço OSRM pode estar instável ou a rota é muito longa.', 'error');
-        });
-
+        // 4. TRATAMENTO DE SUCESSO
         routingControl.on('routesfound', function(e) {
             const route = e.routes[0];
             const distance = route.summary.totalDistance / 1000;
             const duration = route.summary.totalTime / 60;
             
             // Ajustar o zoom do mapa para a rota completa
-            mapInstance.fitBounds(routingControl.getBounds(), { padding: [30, 30] });
+            try {
+                const bounds = route.bounds || L.latLngBounds(waypoints);
+                mapInstance.fitBounds(bounds, { padding: [30, 30] });
+            } catch (err) {
+                console.warn('Erro ao ajustar bounds, usando waypoints:', err);
+                const fallbackBounds = L.latLngBounds(waypoints);
+                mapInstance.fitBounds(fallbackBounds, { padding: [30, 30] });
+            }
 
             // Cria o painel de estatísticas
             const statsControl = L.control({ position: 'topright' });
@@ -6029,28 +6038,82 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
                 div.innerHTML = `
                     <p><b>Estatísticas da Rota</b></p>
                     <p><strong>Veículo:</strong> ${vehiclePlaca}</p>
-                    <p><strong>Distância Planejada:</strong> ${distance.toFixed(1)} km</p>
-                    <p><strong>Duração Estimada:</strong> ${minutesToHHMM(duration)}</p>
+                    <p><strong>Distância:</strong> ${distance.toFixed(1)} km</p>
+                    <p><strong>Tempo Estimado:</strong> ${minutesToHHMM(duration)}</p>
+                    <p><strong>Paradas:</strong> ${waypoints.length - 1}</p>
                 `;
                 return div;
             };
             statsControl.addTo(mapInstance);
+            
+            showNotification('Rota calculada com sucesso!', 'success', 2000);
+        });
+        
+        // 5. TRATAMENTO DE ERRO CRÍTICO
+        routingControl.on('routingerror', function(e) {
+             console.error("Erro no Routing Machine:", e.error);
+             
+             // Remove o controle com erro
+             try {
+                 mapInstance.removeControl(routingControl);
+             } catch (err) {
+                 console.warn('Erro ao remover controle:', err);
+             }
+             
+             // Ajusta zoom para os waypoints mesmo sem rota
+             const boundsWaypoints = L.latLngBounds(waypoints);
+             if (boundsWaypoints.isValid()) {
+                 mapInstance.fitBounds(boundsWaypoints, { padding: [30, 30] });
+             }
+             
+             // Adiciona linha reta entre os pontos como fallback
+             const fallbackPolyline = L.polyline(waypoints, {
+                 color: '#F59E0B',
+                 weight: 4,
+                 opacity: 0.6,
+                 dashArray: '10, 10'
+             }).addTo(mapInstance);
+             
+             // Painel de aviso
+             const warningControl = L.control({ position: 'topright' });
+             warningControl.onAdd = function() {
+                 const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
+                 div.style.background = '#FEF3C7';
+                 div.style.border = '2px solid #F59E0B';
+                 div.style.padding = '10px';
+                 div.style.fontSize = '12px';
+                 div.style.maxWidth = '250px';
+                 
+                 div.innerHTML = `
+                     <p><b>⚠️ Rota Simplificada</b></p>
+                     <p style="margin: 5px 0;">O serviço OSRM falhou. Linha reta exibida.</p>
+                     <p><strong>Veículo:</strong> ${vehiclePlaca}</p>
+                     <p><strong>Paradas:</strong> ${waypoints.length - 1}</p>
+                 `;
+                 return div;
+             };
+             warningControl.addTo(mapInstance);
+             
+             showNotification('Rota simplificada: Serviço OSRM instável. Linha reta exibida.', 'error', 5000);
         });
 
-        // 3. LIMPEZA E GARANTIA
+        // 6. ESCONDER PAINEL DE INSTRUÇÕES
         const routingAlt = document.querySelector('.leaflet-routing-alt');
         if (routingAlt) routingAlt.style.display = 'none';
 
-        // Garante que o mapa seja exibido corretamente no modal
-        setTimeout(() => { mapInstance.invalidateSize(); }, 500); 
+        // 7. GARANTIA DE EXIBIÇÃO
+        setTimeout(() => { 
+            if (mapInstance) {
+                mapInstance.invalidateSize(); 
+            }
+        }, 500); 
         
     } catch (error) {
-        console.error('Erro ao carregar trajeto (Erro Fatal):', error);
+        console.error('Erro fatal ao carregar trajeto:', error);
         closeMapModal();
         showNotification('Erro fatal ao carregar dados do trajeto.', 'error');
     }
 }
-
 // A função calculateTripStats também precisa ser ajustada para usar os dados do GPS
 function calculateTripStats(trajectoryData) {
     let distanciaTotal = 0;
