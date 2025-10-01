@@ -3214,74 +3214,64 @@ function renderMotoristasListHtml(motoristasData) {
             summaryContainer.style.display = 'grid';
         }
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
-
-// SUBSTITUIR A FUNÇÃO renderMotoristaRankingChart COMPLETA
 function renderMotoristaRankingChart(motoristasData) {
-    if (!motoristasData || motoristasData.length === 0) {
-        destroyChart('motoristasRankingChart');
-        return;
-    }
-
-    const backgroundColors = motoristasData.map((_, index) => {
-        if (index === 0) return 'rgba(255, 215, 0, 0.8)'; // Ouro para 1º lugar
-        if (index === 1) return 'rgba(192, 192, 192, 0.8)'; // Prata para 2º lugar  
-        if (index === 2) return 'rgba(205, 127, 50, 0.8)'; // Bronze para 3º lugar
-        return 'rgba(0, 119, 182, 0.7)'; // Azul padrão para os demais
-    });
-
-    renderChart('motoristasRankingChart', 'bar', {
-        labels: motoristasData.map(m => m.nome),
-        datasets: [{
-            label: 'Número de Entregas',
-            data: motoristasData.map(m => m.entregas),
-            backgroundColor: backgroundColors,
-            borderColor: backgroundColors.map(color => color.replace('0.7', '1').replace('0.8', '1')),
-            borderWidth: 2
-        }]
-    }, {
-        indexAxis: 'y',
-        // AJUSTE CRÍTICO: Aumentar o padding esquerdo para 200px para garantir espaço para os nomes longos
-        layout: {
-            padding: {
-                left: 200 // NOVO VALOR para garantir o espaço
+            if (motoristasData.length === 0) {
+                destroyChart('motoristasRankingChart');
+                return;
             }
-        },
-        plugins: {
-            datalabels: {
-                anchor: 'end',
-                align: 'end',
-                color: '#333',
-                font: { weight: 'bold' }
-            },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        const motorista = motoristasData[context.dataIndex];
-                        return [
-                            `Entregas: ${context.raw}`,
-                            `Viagens: ${motorista.viagens}`,
-                            `Tempo Médio: ${minutesToHHMM(motorista.tempoMedioViagem)}`
-                        ];
+
+            const backgroundColors = motoristasData.map((_, index) => {
+                if (index === 0) return 'rgba(255, 215, 0, 0.8)'; // Ouro para 1º lugar
+                if (index === 1) return 'rgba(192, 192, 192, 0.8)'; // Prata para 2º lugar  
+                if (index === 2) return 'rgba(205, 127, 50, 0.8)'; // Bronze para 3º lugar
+                return 'rgba(0, 119, 182, 0.7)'; // Azul padrão para os demais
+            });
+
+            renderChart('motoristasRankingChart', 'bar', {
+                labels: motoristasData.map(m => m.nome),
+                datasets: [{
+                    label: 'Número de Entregas',
+                    data: motoristasData.map(m => m.entregas),
+                    backgroundColor: backgroundColors,
+                    borderColor: backgroundColors.map(color => color.replace('0.7', '1').replace('0.8', '1')),
+                    borderWidth: 2
+                }]
+            }, {
+                indexAxis: 'y',
+                plugins: {
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'end',
+                        color: '#333',
+                        font: { weight: 'bold' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const motorista = motoristasData[context.dataIndex];
+                                return [
+                                    `Entregas: ${context.raw}`,
+                                    `Viagens: ${motorista.viagens}`,
+                                    `Tempo Médio: ${minutesToHHMM(motorista.tempoMedioViagem)}`
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Número de Entregas'
+                        }
                     }
                 }
-            },
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            x: {
-                beginAtZero: true,
-                title: {
-                    display: true,
-                    text: 'Número de Entregas'
-                }
-            }
+            });
         }
-    });
-}
+
+
+
         function renderMotoristaTable(motoristasData) {
             const container = document.getElementById('motoristaTableContainer');
             
