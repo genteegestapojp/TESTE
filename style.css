@@ -827,3 +827,34 @@ th { background-color: #f9fafb; font-weight: 600; color: #374151; }
     50% { transform: scale(1.02); opacity: 0.9; }
     100% { transform: scale(1); opacity: 1; }
 }
+
+/* Garantir que os gráficos ocupem todo o espaço disponível */
+#frotaProdutividadeChart,
+#lojaDesempenhoChart,
+#ocupacaoTotalChart,
+#fleetUtilizationChart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Container dos gráficos com altura fixa */
+.relative[style*="height"] canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Força o Chart.js a respeitar o tamanho do container */
+.chartjs-render-monitor {
+    animation: chartFadeIn 0.3s ease-in-out;
+}
+
+@keyframes chartFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
