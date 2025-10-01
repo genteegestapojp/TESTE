@@ -671,7 +671,7 @@ async function loadAllTabData() {
                 <div class="stat-card" style="background: linear-gradient(135deg, #F77F00, #FCBF49);"><div class="stat-number">0</div><div class="stat-label">Média Entregas/Motorista</div></div>
             </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+            <div class="space-y-8 mt-8">
                 <div class="bg-white p-4 rounded-lg shadow-md">
                     <h3 class="text-lg font-semibold text-center mb-4">Ranking de Entregas (Top 10)</h3>
                     <div class="relative" style="height: 350px;">
@@ -703,7 +703,7 @@ async function loadAllTabData() {
                 </div>
             </div>
         </div>
-        `;
+    `;
 
     document.getElementById('acompanhamento').innerHTML = `
          <h1 class="text-3xl font-bold text-gray-800 mb-6">Acompanhamento de Tempos</h1>
@@ -1153,6 +1153,8 @@ async function loadAllTabData() {
     // Carregar dados para os selects
     await loadSelectData();
 }
+
+
 
         async function loadSelectData() {
     try {
@@ -5786,8 +5788,6 @@ async function showTrajectoryMap(expeditionId, vehiclePlaca) {
 
 
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
 // SUBSTITUIR A FUNÇÃO initTrajectoryMap COMPLETA
 async function initTrajectoryMap(expeditionId, vehiclePlaca) {
     try {
@@ -5813,9 +5813,19 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             L.latLng(selectedFilial.latitude_cd, selectedFilial.longitude_cd),
             ...expeditionItems.map(item => {
                 const loja = lojas.find(l => l.id === item.loja_id);
+                // Filtra coordenadas nulas ou inválidas
                 return (loja && loja.latitude && loja.longitude) ? L.latLng(loja.latitude, loja.longitude) : null;
             }).filter(Boolean)
         ];
+        
+        // Verifica se ainda há waypoints válidos após a filtragem
+        if (waypoints.length <= 1) {
+             showNotification('Não há coordenadas de loja válidas para traçar a rota.', 'info');
+             const cdCoords = [selectedFilial.latitude_cd || -15.6014, selectedFilial.longitude_cd || -56.0979];
+             mapInstance = L.map('map').setView(cdCoords, 11);
+             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
+             return;
+        }
 
         mapInstance = L.map('map');
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
@@ -5827,7 +5837,8 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
                 if (i === 0) {
                     iconHtml = '<div style="background: #0077B6; color: white; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">🏭 CD</div>';
                 } else {
-                    const loja = lojas.find(l => l.id === expeditionItems[i-1].loja_id);
+                    // O índice do item na expedição é i-1
+                    const loja = lojas.find(l => l.id === expeditionItems[i-1].loja_id); 
                     iconHtml = `<div style="background: #EF4444; color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">#${i} - ${loja?.codigo || 'N/A'}</div>`;
                 }
                 
@@ -5847,7 +5858,7 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
         }).addTo(mapInstance);
         
         
-        // 2. CAPTURA DE ERRO DO OSRM E AJUSTE DE ZOOM
+        // 2. CAPTURA DE ERRO DO OSRM E AJUSTE DE ZOOM (GARANTE QUE OS PINS APARECEM)
         routingControl.on('routingerror', function(e) {
              console.error("Erro no Routing Machine (Rota Planejada Falhou):", e.error.message);
              // Supressão da notificação no painel para evitar flood de erros externos.
@@ -5885,8 +5896,7 @@ async function initTrajectoryMap(expeditionId, vehiclePlaca) {
             statsControl.addTo(mapInstance);
 
             // Ajusta o zoom para a rota encontrada
-            // O código do usuário original é usado aqui, pois a rota foi encontrada com sucesso
-             mapInstance.fitBounds(routingControl.getBounds(), { padding: [30, 30] });
+            mapInstance.fitBounds(routingControl.getBounds(), { padding: [30, 30] });
         });
 
         // 3. LIMPEZA E LEGENDAS
