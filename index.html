@@ -407,7 +407,40 @@
             <input type="hidden" id="permissionsTargetType">
         </div>
     </div>
+<input type="hidden" id="permissionsTargetType">
+    </div>
+</div>
 
+<div id="printIdentificationModal" class="modal-overlay">
+    <div class="modal-content" style="width: 90vw; max-width: 600px;">
+        <h3 class="text-xl font-semibold mb-4">Opções de Impressão de Identificação</h3>
+        <p class="text-gray-600 mb-4">Selecione o que deseja imprimir para a Expedição: <span id="printExpeditionIdDisplay" class="font-bold"></span></p>
+        
+        <div class="flex gap-4 mb-6">
+            <button id="printAllBtn" class="btn btn-primary flex-1" onclick="handlePrintChoice(null)">
+                🖨️ Imprimir TODAS as Lojas
+            </button>
+            <button class="btn btn-secondary flex-1" onclick="document.getElementById('lojaSelectionContainer').style.display='block'; this.style.display='none';">
+                Escolher Loja Específica
+            </button>
+        </div>
+
+        <div id="lojaSelectionContainer" style="display: none;" class="bg-gray-50 p-4 rounded-lg">
+            <h4 class="font-semibold mb-3">Lojas na Expedição:</h4>
+            <div id="printLojaList" class="space-y-2 max-h-64 overflow-y-auto">
+                </div>
+        </div>
+
+        <div class="flex gap-4 mt-6">
+            <button type="button" class="btn btn-danger flex-1" onclick="closePrintIdentificationModal()">Cancelar</button>
+        </div>
+        <input type="hidden" id="currentPrintExpeditionId">
+    </div>
+</div>
+
+<div id="notificationContainer"></div>
+    
+<script src="script.js"></script>
     <div id="notificationContainer"></div>
     
     <script src="script.js"></script>
