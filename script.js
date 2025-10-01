@@ -871,7 +871,7 @@ async function loadAllTabData() {
         </div>
 
         <div id="indicadores" class="sub-tab-content">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Indicadores de Desempenho</h2>
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Revisão de Indicadores (KPI Review)</h2>
             <div class="filters-section">
                  <div class="filters-grid">
                     <div class="form-group">
@@ -885,20 +885,23 @@ async function loadAllTabData() {
                 </div>
             </div>
             
-            <div id="indicadoresTimeSummary" class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Volume e Eficiência</h3>
+            <div id="indicadoresVolumeStats" class="stats-grid mb-8 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
                 </div>
             
-            <div id="indicadoresTotalViagens" class="stats-grid mb-8">
-                 </div>
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Tempos Operacionais (Média)</h3>
+            <div id="indicadoresTimeSummary" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 mb-8">
+                </div>
             
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Análise Detalhada</h3>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-                <div class="bg-white p-4 rounded-lg shadow-md">
+                <div class="bg-white p-4 rounded-lg shadow-md" data-aos="fade-right">
                     <h3 class="text-lg font-semibold text-center mb-4">Ranking de Lojas por Tempo de Descarga</h3>
                     <div class="relative" style="height: 350px;">
                         <canvas id="lojasRankingChart"></canvas>
                     </div>
                 </div>
-                <div class="bg-white p-4 rounded-lg shadow-md">
+                <div class="bg-white p-4 rounded-lg shadow-md" data-aos="fade-left">
                     <h3 class="text-lg font-semibold text-center mb-4">Distribuição de Entregas (Fort x Comper)</h3>
                     <div class="relative mx-auto" style="height: 350px; max-width: 400px;">
                         <canvas id="entregasChart"></canvas>
@@ -4690,25 +4693,25 @@ function renderHistorico(data) {
             }
         }
 
-        // SUBSTITUIR A FUNÇÃO generateHistoricoIndicators COMPLETA
+  // SUBSTITUIR A FUNÇÃO generateHistoricoIndicators COMPLETA
 function generateHistoricoIndicators(data) {
     const timeSummaryContainer = document.getElementById('indicadoresTimeSummary');
-    const totalStatsContainer = document.getElementById('indicadoresTotalViagens');
+    const volumeStatsContainer = document.getElementById('indicadoresVolumeStats');
     
     if (data.length === 0) {
-        timeSummaryContainer.innerHTML = '<div class="alert alert-info md:col-span-4">Sem dados para exibir indicadores.</div>';
-        totalStatsContainer.innerHTML = '';
+        timeSummaryContainer.innerHTML = '<div class="alert alert-info md:col-span-4">Sem dados de expedições concluídas para o período selecionado.</div>';
+        volumeStatsContainer.innerHTML = '';
         destroyChart('lojasRankingChart');
         destroyChart('entregasChart');
         return;
     }
     
     const calcularMedia = (arr) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+    const totalViagens = data.length;
     
     // VARIÁVEIS DE AGRUPAMENTO
-    let temposOciosidade = [];
     let temposAlocar = [];
-    let temposChegadaDoca = []; // Novo: Tempo entre Alocação e Chegada na Doca
+    let temposChegadaDoca = []; // Tempo entre Alocação e Chegada na Doca
     let temposCarregamento = []; 
     let temposFaturamento = [];
     let temposEmTransito = []; 
@@ -4716,25 +4719,23 @@ function generateHistoricoIndicators(data) {
     
     let lojasData = {};
     let entregasFort = 0, entregasComper = 0;
-    let totalViagens = data.length;
     let totalEntregas = 0;
+    let totalPallets = 0;
+    let totalRolls = 0;
+    let ocupacoes = [];
+    let lojasAtendidas = new Set();
+
 
     data.forEach(exp => {
         // 1. CÁLCULOS DE TEMPO INTERNO (Pátio)
         if (exp.data_alocacao_veiculo) {
-            const t_alocacao = (new Date(exp.data_alocacao_veiculo) - new Date(exp.data_hora)) / 60000;
-            temposAlocar.push(t_alocacao);
+            temposAlocar.push((new Date(exp.data_alocacao_veiculo) - new Date(exp.data_hora)) / 60000);
         }
         
         if (exp.data_chegada_veiculo && exp.data_alocacao_veiculo) {
-            const t_chegadaDoca = (new Date(exp.data_chegada_veiculo) - new Date(exp.data_alocacao_veiculo)) / 60000;
-            temposChegadaDoca.push(t_chegadaDoca);
-        } else if (exp.data_chegada_veiculo && exp.data_hora) {
-             // Fallback: Se não há alocação, usa o tempo desde a criação até a chegada
-            const t_ociosidadeSimples = (new Date(exp.data_chegada_veiculo) - new Date(exp.data_hora)) / 60000;
-             temposOciosidade.push(t_ociosidadeSimples);
+            temposChegadaDoca.push((new Date(exp.data_chegada_veiculo) - new Date(exp.data_alocacao_veiculo)) / 60000);
         }
-
+        
         if (exp.data_chegada_veiculo && exp.data_saida_veiculo) {
             temposCarregamento.push((new Date(exp.data_saida_veiculo) - new Date(exp.data_chegada_veiculo)) / 60000);
         }
@@ -4747,9 +4748,19 @@ function generateHistoricoIndicators(data) {
         let ultimaData = exp.data_saida_entrega ? new Date(exp.data_saida_entrega) : new Date(exp.data_saida_veiculo);
         let totalTransitoViagem = 0;
         let totalLojaViagem = 0;
+        
+        // CÁLCULO DE OCUPAÇÃO DA FROTA
+        const veiculo = exp.veiculo_id ? veiculos.find(v => v.id === exp.veiculo_id) : null;
+        let cargaPallet = 0;
+        let cargaRoll = 0;
+
 
         exp.items.sort((a, b) => (a.ordem_entrega || 999) - (b.ordem_entrega || 999)).forEach(item => {
             totalEntregas++;
+            totalPallets += item.pallets || 0;
+            totalRolls += item.rolltrainers || 0;
+            cargaPallet += item.pallets || 0;
+            cargaRoll += item.rolltrainers || 0;
             
             const t_chegada = item.data_inicio_descarga ? new Date(item.data_inicio_descarga) : null;
             const t_saida = item.data_fim_descarga ? new Date(item.data_fim_descarga) : null;
@@ -4761,6 +4772,7 @@ function generateHistoricoIndicators(data) {
                 totalLojaViagem += tempoEmLoja;
                 const loja = lojas.find(l => l.id === item.loja_id);
                 if(loja) {
+                    lojasAtendidas.add(loja.id);
                     if (!lojasData[loja.id]) lojasData[loja.id] = { nome: `${loja.codigo} - ${loja.nome}`, tempos: [], entregas: 0 };
                     lojasData[loja.id].tempos.push(tempoEmLoja);
                     lojasData[loja.id].entregas++;
@@ -4774,42 +4786,61 @@ function generateHistoricoIndicators(data) {
         
         if (totalLojaViagem > 0) temposEmLoja.push(totalLojaViagem);
         if (totalTransitoViagem > 0) temposEmTransito.push(totalTransitoViagem);
+
+        // CÁLCULO DA OCUPAÇÃO (Feito por expedição)
+        if (veiculo && veiculo.capacidade_pallets > 0) {
+            const cargaTotal = cargaPallet + (cargaRoll / 2);
+            ocupacoes.push((cargaTotal / veiculo.capacidade_pallets) * 100);
+        }
     });
     
-    // CÁLCULO DAS MÉDIAS
+    // CÁLCULO DAS MÉDIAS FINAIS
     const mediaAlocar = calcularMedia(temposAlocar);
     const mediaChegadaDoca = calcularMedia(temposChegadaDoca);
     const mediaCarregamento = calcularMedia(temposCarregamento);
     const mediaFaturamento = calcularMedia(temposFaturamento);
     const mediaEmTransito = calcularMedia(temposEmTransito);
     const mediaEmLoja = calcularMedia(temposEmLoja);
+    const mediaOcupacao = calcularMedia(ocupacoes);
     
     // CÁLCULO DO TEMPO INTERNO TOTAL MÉDIO
-    // Ociosidade Média (do lançamento até a alocação)
-    const mediaOciosidade = mediaAlocar; // Reutilizando o valor de T.M. Alocar
-    
-    // Tempo Interno Total = (T.M. Ociosidade) + (T.M. Chegada Doca) + (T.M. Carregamento)
-    // Tempo de Faturamento é um processo paralelo, então é contabilizado separadamente.
+    const mediaOciosidade = mediaAlocar; // T.M. Lançamento -> Alocação
     const mediaTempoInternoTotal = mediaOciosidade + mediaChegadaDoca + mediaCarregamento;
 
 
     // RENDERIZAÇÃO
     
-    // 1. Resumo de Viagens e Entregas (NOVO BLOCO - Antigo indicadoresSummary)
-    totalStatsContainer.innerHTML = `
-        <div class="stat-card" style="background: var(--secondary-gradient);">
+    // 1. Bloco de Volume e Eficiência
+    volumeStatsContainer.innerHTML = `
+        <div class="stat-card" style="background: linear-gradient(135deg, #00D4AA, #00B4D8);">
             <div class="stat-number">${totalViagens}</div>
             <div class="stat-label">Viagens Concluídas</div>
         </div>
-        <div class="stat-card" style="background: var(--accent-gradient);">
+        <div class="stat-card" style="background: linear-gradient(135deg, #00B4D8, #0077B6);">
             <div class="stat-number">${totalEntregas}</div>
-            <div class="stat-label">Total de Entregas</div>
+            <div class="stat-label">Entregas Realizadas</div>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #FFD700, #F77F00);">
+            <div class="stat-number">${totalPallets}</div>
+            <div class="stat-label">Total Pallets</div>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #9C27B0, #7209B7);">
+            <div class="stat-number">${totalRolls}</div>
+            <div class="stat-label">Total RollTrainers</div>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #DC143C, #D62828);">
+            <div class="stat-number">${mediaOcupacao.toFixed(1)}%</div>
+            <div class="stat-label">Ocupação Média</div>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #3B82F6, #1D4ED8);">
+            <div class="stat-number">${lojasAtendidas.size}</div>
+            <div class="stat-label">Lojas Atendidas</div>
         </div>
     `;
 
-    // 2. Resumo de Tempos por Grupo (NOVO LAYOUT)
+    // 2. Bloco de Tempos por Grupo (NOVO LAYOUT)
     timeSummaryContainer.innerHTML = `
-        <div class="bg-white p-4 rounded-lg shadow-md border-t-4 border-blue-600" data-aos="fade-up">
+        <div class="bg-white p-4 rounded-xl shadow-lg border-t-4 border-blue-600 historico-time-card" data-aos="fade-up">
             <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">⏰ Tempo Interno (CD)</h3>
             <div class="time-stat-card" style="background: linear-gradient(135deg, #0077B6, #00B4D8); margin-bottom: 15px;">
                 <div class="stat-number text-3xl">${minutesToHHMM(mediaTempoInternoTotal)}</div>
@@ -4817,13 +4848,13 @@ function generateHistoricoIndicators(data) {
             </div>
             
             <div class="text-sm space-y-2">
-                <div class="flex justify-between border-b pb-1"><span>T.M. Ociosidade (Lançamento → Alocação)</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaOciosidade)}</span></div>
-                <div class="flex justify-between border-b pb-1"><span>T.M. Chegada na Doca (Alocação → Chegada)</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaChegadaDoca)}</span></div>
-                <div class="flex justify-between border-b pb-1"><span>T.M. Carregamento (Chegada → Saída Pátio)</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaCarregamento)}</span></div>
+                <div class="flex justify-between border-b pb-1"><span>Ociosidade (Lanç. → Aloc.)</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaOciosidade)}</span></div>
+                <div class="flex justify-between border-b pb-1"><span>Chegada Doca (Aloc. → Cheg.)</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaChegadaDoca)}</span></div>
+                <div class="flex justify-between pb-1"><span>Carregamento (Cheg. → Saída Pátio)</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaCarregamento)}</span></div>
             </div>
         </div>
         
-        <div class="bg-white p-4 rounded-lg shadow-md border-t-4 border-purple-600" data-aos="fade-up" data-aos-delay="100">
+        <div class="bg-white p-4 rounded-xl shadow-lg border-t-4 border-purple-600 historico-time-card" data-aos="fade-up" data-aos-delay="100">
             <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">📄 Tempo de Faturamento</h3>
             <div class="time-stat-card" style="background: linear-gradient(135deg, #7209B7, #A663CC); height: 100%;">
                 <div class="stat-number text-5xl">${minutesToHHMM(mediaFaturamento)}</div>
@@ -4831,16 +4862,16 @@ function generateHistoricoIndicators(data) {
             </div>
         </div>
         
-        <div class="bg-white p-4 rounded-lg shadow-md border-t-4 border-orange-600" data-aos="fade-up" data-aos-delay="200">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">🛣️ Tempo em Trânsito (Total)</h3>
+        <div class="bg-white p-4 rounded-xl shadow-lg border-t-4 border-orange-600 historico-time-card" data-aos="fade-up" data-aos-delay="200">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">🛣️ Tempo em Trânsito</h3>
             <div class="time-stat-card" style="background: linear-gradient(135deg, #F77F00, #FCBF49); height: 100%;">
                 <div class="stat-number text-5xl">${minutesToHHMM(mediaEmTransito)}</div>
                 <div class="stat-label text-xl">T.M. ENTRE LOJAS</div>
             </div>
         </div>
         
-        <div class="bg-white p-4 rounded-lg shadow-md border-t-4 border-green-600" data-aos="fade-up" data-aos-delay="300">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">🏬 Tempo em Loja (Descarga)</h3>
+        <div class="bg-white p-4 rounded-xl shadow-lg border-t-4 border-green-600 historico-time-card" data-aos="fade-up" data-aos-delay="300">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">🏬 Tempo em Loja</h3>
             <div class="time-stat-card" style="background: linear-gradient(135deg, #00D4AA, #10B981); height: 100%;">
                 <div class="stat-number text-5xl">${minutesToHHMM(mediaEmLoja)}</div>
                 <div class="stat-label text-xl">T.M. TOTAL DESCARGA</div>
@@ -4848,7 +4879,7 @@ function generateHistoricoIndicators(data) {
         </div>
     `;
 
-    // 3. Renderização dos Gráficos (mantida)
+    // 3. Renderização dos Gráficos
     renderLojasRankingChart(lojasData);
     renderEntregasChart(entregasFort, entregasComper);
 }
