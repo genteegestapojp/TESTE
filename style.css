@@ -24,6 +24,9 @@ body {
     background: var(--darker);
     color: white;
     flex-shrink: 0;
+    /* CORREÇÃO: Garante que o sidebar tenha altura total e scroll, se necessário */
+    height: 100vh; 
+    overflow-y: auto;
 }
 
 @media (max-width: 768px) {
