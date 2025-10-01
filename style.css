@@ -1118,3 +1118,31 @@ canvas#motoristasRankingChart {
         margin-left: 6px;
     }
 }
+
+/* Adicionar no final do CSS existente para forçar o alinhamento */
+/* NOVO: Estilo para cartões de tempo no histórico */
+.historico-time-card {
+    /* Garante que o cartão ocupe o espaço e não se sobreponha */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.historico-time-card .time-stat-card {
+    /* Garante que o cartão interno preencha o espaço restante */
+    flex-grow: 1; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Ajusta o grid para 4 colunas em telas grandes */
+@media (min-width: 1024px) {
+    #indicadoresTimeSummary {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+    #indicadoresVolumeStats {
+        grid-template-columns: repeat(5, 1fr) !important;
+    }
+}
