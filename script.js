@@ -3259,8 +3259,14 @@ const veiculoPlacaNoNome = m.veiculoPlaca && m.veiculoPlaca !== 'N/A' ?
 
             try {
                 // Buscar expedições entregues no período
-                const expeditions = await supabaseRequest('expeditions?status=eq.entregue&order=data_hora.desc');
-                const items = await supabaseRequest('expedition_items');
+               // ... (dentro da função loadHistorico, APROX. LINHA 4268)
+    const container = document.getElementById('historicoList');
+    container.innerHTML = `<div class="loading"><div class="spinner"></div>Carregando histórico...</div>`;
+    try {
+        // CORREÇÃO: Adicionar &limit=30 para garantir que as últimas 30 entregas sejam buscadas
+        const expeditions = await supabaseRequest('expeditions?status=eq.entregue&order=data_hora.desc&limit=30'); 
+        const items = await supabaseRequest('expedition_items');
+// ...
                 
                 // Filtrar por período
                 const expedicoesFiltradas = expeditions.filter(exp => {
