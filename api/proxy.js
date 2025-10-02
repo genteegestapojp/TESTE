@@ -22,8 +22,7 @@ export default async (req, res) => {
     // 🚨 FIX CRÍTICO: Remove filtros de filial para requisições de escrita/exclusão (POST, PATCH, PUT, DELETE) 🚨
     // Isso evita o erro 500 no DELETE e o conflito de coluna 'nome_filial'.
     if (req.method === 'POST' || req.method === 'PATCH' || req.method === 'PUT' || req.method === 'DELETE') {
-        searchParams.delete('filial'); 
-        searchParams.delete('nome_filial'); 
+        searchParams.delete('filial');  
     }
 
     const fullUrl = `${url}?${searchParams.toString()}`;
