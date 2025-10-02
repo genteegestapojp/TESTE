@@ -243,7 +243,40 @@ th { background-color: #f9fafb; font-weight: 600; color: #374151; }
 .availability-stat .stat-number { font-size: 1.5rem; font-weight: 700; color: var(--dark); }
 .availability-stat .stat-label { font-size: 0.85rem; color: var(--secondary); }
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
-.stat-card { background: var(--primary-gradient); color: white; padding: 15px; border-radius: 12px; text-align: center; }
+
+/* NOVO ESTILO PROFISSIONAL PARA CARDS DE STATUS (TOTAL, PENDENTES, ETC.) */
+.stats-grid .stat-card {
+    /* Sobrescreve o estilo original para ser mais clean */
+    background: white !important;
+    color: var(--dark) !important;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+.stats-grid .stat-card .stat-number {
+    color: var(--dark);
+    font-size: 2rem;
+}
+.stats-grid .stat-card .stat-label {
+    color: var(--secondary);
+    font-weight: 600;
+}
+/* Reaplicação de cores institucionais (apenas bordas) */
+/* Total (Verde) */
+.stats-grid .stat-card:nth-child(1) { border-left: 5px solid var(--primary); } 
+.stats-grid .stat-card:nth-child(1) .stat-number { color: var(--primary); }
+/* Pendentes (Vermelho/Laranja) */
+.stats-grid .stat-card:nth-child(2) { border-left: 5px solid #D62828; } 
+.stats-grid .stat-card:nth-child(2) .stat-number { color: #D62828; }
+/* Em Andamento (Laranja) */
+.stats-grid .stat-card:nth-child(3) { border-left: 5px solid #F77F00; } 
+.stats-grid .stat-card:nth-child(3) .stat-number { color: #F77F00; }
+
+/* FIM NOVO ESTILO PROFISSIONAL PARA CARDS DE STATUS */
+
+
 .stat-number { font-size: 1.8rem; font-weight: 700; margin-bottom: 4px; }
 .stat-label { font-size: 0.8rem; opacity: 0.9; }
 .loading { text-align: center; padding: 40px 20px; color: var(--secondary); }
@@ -252,10 +285,45 @@ th { background-color: #f9fafb; font-weight: 600; color: #374151; }
 .form-group.selected { background: rgba(144, 224, 239, 0.4) !important; border: 2px solid var(--primary); transform: scale(1.02); box-shadow: 0 4px 15px rgba(0, 119, 182, 0.15); }
 #cargasDisponiveisList .form-group { transition: all 0.2s ease-in-out; }
 .veiculo-option.incapacitated { background-color: #fee2e2 !important; color: #991b1b !important; font-weight: 700; }
+
+/* SUBSTITUIÇÃO DOS ESTILOS COLORIDOS DOS CARDS DE TEMPO */
 .time-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
-.time-stat-card { background: linear-gradient(135deg, #7209B7, #A663CC); color: white; padding: 16px; border-radius: 10px; text-align: center; box-shadow: 0 6px 20px rgba(114, 9, 183, 0.2); }
-.time-stat-card .stat-number { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; }
-.time-stat-card .stat-label { font-size: 0.75rem; opacity: 0.95; font-weight: 500; line-height: 1.2; }
+
+.time-stat-card { 
+    /* REMOVIDO: Gradiente de fundo (Era roxo) */
+    background: white; 
+    color: var(--dark); /* Cor do texto escuro */
+    padding: 16px; 
+    border-radius: 10px; 
+    text-align: center; 
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Sombra suave */
+    border: 1px solid #e5e7eb;
+    border-top: 4px solid var(--primary); /* Linha de destaque no topo (Azul/Ciano) */
+    transition: all 0.3s ease; 
+}
+.time-stat-card:hover {
+    box-shadow: 0 6px 20px rgba(0, 119, 182, 0.1);
+    transform: translateY(-1px);
+    border-color: var(--primary);
+}
+
+.time-stat-card .stat-number { 
+    font-size: 1.6rem; /* Aumentado um pouco */
+    font-weight: 800; /* Mais negrito */
+    margin-bottom: 4px; 
+    color: var(--dark); /* Garante cor escura */
+}
+
+.time-stat-card .stat-label { 
+    font-size: 0.85rem; /* Aumentado */
+    opacity: 1; 
+    font-weight: 600; 
+    line-height: 1.2; 
+    color: var(--secondary); /* Cor institucional para o label */
+}
+/* FIM DA SUBSTITUIÇÃO DOS ESTILOS COLORIDOS DOS CARDS DE TEMPO */
+
+
 .time-display { background: rgba(240, 249, 255, 1); padding: 8px 12px; border-radius: 6px; margin: 6px 0; font-size: 0.8rem; font-weight: 600; color: var(--dark); border-left: 3px solid var(--primary); }
 .motorista-status-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; margin-bottom: 8px; border-radius: 8px; background: #fff; border: 1px solid #e5e7eb; }
 .loja-descarga-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
