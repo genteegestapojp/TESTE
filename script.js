@@ -111,12 +111,6 @@ function hasPermission(permission) {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
-// SUBSTITUIR A FUNÇÃO supabaseRequest COMPLETA
-
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
-// SUBSTITUIR A FUNÇÃO supabaseRequest COMPLETA
-
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
     
     const [nomeEndpointBase, filtrosExistentes] = endpoint.split('?', 2);
@@ -128,7 +122,7 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
     }
     
     // 🚨 1. CORREÇÃO CRÍTICA DO FILTRO DE LEITURA (GET) 🚨
-    // APENAS aplica o filtro 'filial' se o endpoint NÃO for um dos que não possui essa coluna no BD.
+    // Aplica o filtro 'filial' APENAS em requisições GET e APENAS em endpoints que possuem a coluna 'filial'.
     if (includeFilialFilter && selectedFilial && method === 'GET' && nomeEndpointBase !== 'expedition_items' && nomeEndpointBase !== 'acessos' && nomeEndpointBase !== 'grupos_acesso') {
         url += `&filial=eq.${selectedFilial.nome}`;
     }
@@ -143,7 +137,7 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
         let payload = data;
         
         // 🚨 2. CORREÇÃO CRÍTICA DA INJEÇÃO DE FILIAL NO PAYLOAD (POST/PATCH/PUT) 🚨
-        // Injete 'filial' em todas as tabelas (exceto expedition_items, que não a tem, e outras de acesso/filial).
+        // Injete 'filial' em todas as tabelas que precisam. Exclui a 'expedition_items' e tabelas de acesso/filial.
         if (includeFilialFilter && selectedFilial && nomeEndpointBase !== 'expedition_items' && nomeEndpointBase !== 'filiais' && nomeEndpointBase !== 'acessos' && nomeEndpointBase !== 'grupos_acesso' && nomeEndpointBase !== 'pontos_interesse') {
             if (Array.isArray(data)) {
                 payload = data.map(item => ({ ...item, filial: selectedFilial.nome }));
@@ -2228,66 +2222,71 @@ async function loadHomeMapDataForFullscreen() {
     }
 }
 
-        // --- FUNCIONALIDADES DA ABA OPERAÇÃO ---
-        async function lancarCarga() {
-            const lojaId = document.getElementById('lancar_lojaSelect').value;
-            const docaId = document.getElementById('lancar_docaSelect').value;
-            const pallets = parseInt(document.getElementById('lancar_palletsInput').value);
-            const rolltrainers = parseInt(document.getElementById('lancar_rolltrainersInput').value);
-            const liderId = document.getElementById('lancar_liderSelect').value;
-            const numerosCargaInput = document.getElementById('lancar_numerosCarga').value.trim();
-            const observacoes = document.getElementById('lancar_observacoes').value;
+    
 
-            if (!lojaId || !liderId || !docaId || (isNaN(pallets) && isNaN(rolltrainers))) {
-                showNotification('Preencha Loja, Doca, Líder e ao menos um tipo de carga!', 'error');
-                return;
-            }
-            if ((pallets < 0) || (rolltrainers < 0)) {
-                showNotification('As quantidades não podem ser negativas.', 'error');
-                return;
-            }
+async function lancarCarga() {
+    const lojaId = document.getElementById('lancar_lojaSelect').value;
+    const docaId = document.getElementById('lancar_docaSelect').value;
+    const pallets = parseInt(document.getElementById('lancar_palletsInput').value);
+    const rolltrainers = parseInt(document.getElementById('lancar_rolltrainersInput').value);
+    const liderId = document.getElementById('lancar_liderSelect').value;
+    const numerosCargaInput = document.getElementById('lancar_numerosCarga').value.trim();
+    const observacoes = document.getElementById('lancar_observacoes').value;
 
-            try {
-                // Processar números de carga
-                let numerosCarga = [];
-                if (numerosCargaInput) {
-                    numerosCarga = numerosCargaInput.split(',').map(num => num.trim()).filter(num => num.length > 0);
-                }
+    if (!lojaId || !liderId || !docaId || (isNaN(pallets) && isNaN(rolltrainers))) {
+        showNotification('Preencha Loja, Doca, Líder e ao menos um tipo de carga!', 'error');
+        return;
+    }
+    if ((pallets < 0) || (rolltrainers < 0)) {
+        showNotification('As quantidades não podem ser negativas.', 'error');
+        return;
+    }
 
-                const expeditionData = { 
-                    data_hora: new Date().toISOString(), 
-                    lider_id: liderId, 
-                    doca_id: docaId, 
-                    observacoes: observacoes || null, 
-                    status: 'aguardando_agrupamento',
-                    numeros_carga: numerosCarga.length > 0 ? numerosCarga : null
-                };
-                
-                const expeditionResponse = await supabaseRequest('expeditions', 'POST', expeditionData);
-                if (!expeditionResponse || expeditionResponse.length === 0) {
-                    throw new Error("A criação da expedição falhou e não retornou um ID.");
-                }
-                const newExpeditionId = expeditionResponse[0].id;
-
-                const itemData = { expedition_id: newExpeditionId, loja_id: lojaId, pallets: pallets || 0, rolltrainers: rolltrainers || 0, status_descarga: 'pendente' };
-                await supabaseRequest('expedition_items', 'POST', itemData);
-
-                const lojaNome = lojas.find(l => l.id === lojaId)?.nome || 'Loja';
-                const cargasInfo = numerosCarga.length > 0 ? ` (Cargas: ${numerosCarga.join(', ')})` : '';
-                showNotification(`Expedição para ${lojaNome}${cargasInfo} lançada com sucesso!`, 'success');
-
-                document.getElementById('expeditionForm').reset();
-                document.getElementById('lancar_lojaSelect').focus();
-                
-                if(document.getElementById('home').classList.contains('active')) {
-                    await loadHomeData();
-                }
-
-            } catch (error) {
-                console.error('Erro ao lançar carga:', error);
-                showNotification(`Erro ao lançar carga: ${error.message}`, 'error');
-            }
+    try {
+        // Processar números de carga
+        let numerosCarga = [];
+        if (numerosCargaInput) {
+            numerosCarga = numerosCargaInput.split(',').map(num => num.trim()).filter(num => num.length > 0);
         }
+
+        const expeditionData = { 
+            data_hora: new Date().toISOString(), 
+            lider_id: liderId, 
+            doca_id: docaId, 
+            observacoes: observacoes || null, 
+            status: 'aguardando_agrupamento',
+            numeros_carga: numerosCarga.length > 0 ? numerosCarga : null
+        };
+        
+        // 1. Cria a Expedição principal (a injeção de filial no payload é feita dentro do supabaseRequest)
+        const expeditionResponse = await supabaseRequest('expeditions', 'POST', expeditionData);
+        if (!expeditionResponse || expeditionResponse.length === 0) {
+            throw new Error("A criação da expedição falhou e não retornou um ID.");
+        }
+        const newExpeditionId = expeditionResponse[0].id;
+
+        const itemData = { expedition_id: newExpeditionId, loja_id: lojaId, pallets: pallets || 0, rolltrainers: rolltrainers || 0, status_descarga: 'pendente' };
+        
+        // 🚨 FIX CRÍTICO APLICADO: Desativa o filtro de filial (4º parâmetro = false)
+        // Isso impede o conflito que estava gerando o erro "nome_filial".
+        await supabaseRequest('expedition_items', 'POST', itemData, false);
+
+        const lojaNome = lojas.find(l => l.id === lojaId)?.nome || 'Loja';
+        const cargasInfo = numerosCarga.length > 0 ? ` (Cargas: ${numerosCarga.join(', ')})` : '';
+        showNotification(`Expedição para ${lojaNome}${cargasInfo} lançada com sucesso!`, 'success');
+
+        document.getElementById('expeditionForm').reset();
+        document.getElementById('lancar_lojaSelect').focus();
+        
+        if(document.getElementById('home').classList.contains('active')) {
+            await loadHomeData();
+        }
+
+    } catch (error) {
+        console.error('Erro ao lançar carga:', error);
+        showNotification(`Erro ao lançar carga: ${error.message}`, 'error');
+    }
+}
         // --- FUNCIONALIDADES DA ABA TRANSPORTE ---
         async function loadTransportList() {
             try {
