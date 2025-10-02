@@ -3787,65 +3787,70 @@ async function loadAcompanhamento() {
             document.getElementById('tempoMedioTotal').textContent = minutesToHHMM(calcularMedia(temposTotal));
         }
         
-        function renderAcompanhamentoTable(expeditions) {
-            const tbody = document.getElementById('acompanhamentoBody');
-            if (expeditions.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="12" class="text-center py-8 text-gray-500">Nenhuma expedição encontrada para os filtros selecionados.</td></tr>';
-                return;
-            }
+        // SUBSTITUIR A FUNÇÃO renderAcompanhamentoTable COMPLETA
+function renderAcompanhamentoTable(expeditions) {
+    const tbody = document.getElementById('acompanhamentoBody');
+    if (expeditions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="12" class="text-center py-8 text-gray-500">Nenhuma expedição encontrada para os filtros selecionados.</td></tr>';
+        return;
+    }
 
-            tbody.innerHTML = expeditions.map(exp => {
-                const ocupacaoPerc = Math.round(exp.ocupacao || 0);
-                let barColor = 'progress-green';
-                if (ocupacaoPerc > 90) barColor = 'progress-orange';
-                if (ocupacaoPerc > 100) barColor = 'progress-red';
-                
-                const tempos = {
-                    
-                    alocar: exp.data_alocacao_veiculo ? minutesToHHMM((new Date(exp.data_alocacao_veiculo) - new Date(exp.data_hora)) / 60000) : '-',
-                    chegada: exp.data_chegada_veiculo ? minutesToHHMM((new Date(exp.data_chegada_veiculo) - new Date(exp.data_hora)) / 60000) : '-',
-                    carreg: (exp.data_chegada_veiculo && exp.data_saida_veiculo) ? minutesToHHMM((new Date(exp.data_saida_veiculo) - new Date(exp.data_chegada_veiculo)) / 60000) : '-'
-                };
-// Verificar se pode editar/excluir
-const canEdit = exp.status !== 'saiu_para_entrega' && exp.status !== 'entregue';
-const editButton = canEdit ? 
-    `<button class="btn btn-warning btn-small" onclick="openEditModal('${exp.id}')">Editar</button>` :
-    `<button class="btn btn-secondary btn-small" disabled title="Não pode editar após saída para entrega">Editar</button>`;
-const deleteButton = canEdit ?
-    `<button class="btn btn-danger btn-small" onclick="deleteExpedition('${exp.id}')">Excluir</button>` :
-    `<button class="btn btn-secondary btn-small" disabled title="Não pode excluir após saída para entrega">Excluir</button>`;
-                return `
-                    <tr class="hover:bg-gray-50 text-sm">
-                        <td>${new Date(exp.data_hora).toLocaleString('pt-BR')}</td>
-                        <td class="whitespace-normal">
-                            ${exp.lojas_info}
-                            ${exp.numeros_carga_display ? `<br><span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">📦 ${exp.numeros_carga_display}</span>` : ''}
-                        </td>
-                        <td>${exp.total_pallets}</td>
-                        <td>${exp.total_rolltrainers}</td>
-                        <td>${exp.doca_nome}</td>
-                        <td>${exp.lider_nome}</td>
-                        <td><span class="status-badge status-${exp.status}">${getStatusLabel(exp.status)}</span></td>
-                        <td>${exp.veiculo_placa || '-'}</td>
-                        <td>
-                            <div class="progress-container"><div class="progress-bar ${barColor}" style="width: ${Math.min(100, ocupacaoPerc)}%;">${ocupacaoPerc}%</div></div>
-                        </td>
-                        <td>${exp.motorista_nome || '-'}</td>
-                        <td class="text-xs">
-                            <div>Aloc: ${tempos.alocar}</div>
-                            <div>Cheg: ${tempos.chegada}</div>
-                            <div>Carr: ${tempos.carreg}</div>
-                        </td>
-                      <td>
-    <div class="flex gap-2">
-        ${editButton}
-        ${deleteButton}
-    </div>
-</td>
-                    </tr>
-                `;
-            }).join('');
-        }
+    tbody.innerHTML = expeditions.map(exp => {
+        const ocupacaoPerc = Math.round(exp.ocupacao || 0);
+        let barColor = 'progress-green';
+        
+        // NOVO: Cores de alerta para a barra de progresso simples
+        if (ocupacaoPerc > 90) barColor = 'progress-orange';
+        if (ocupacaoPerc > 100) barColor = 'progress-red';
+        
+        const tempos = {
+            alocar: exp.data_alocacao_veiculo ? minutesToHHMM((new Date(exp.data_alocacao_veiculo) - new Date(exp.data_hora)) / 60000) : '-',
+            chegada: exp.data_chegada_veiculo ? minutesToHHMM((new Date(exp.data_chegada_veiculo) - new Date(exp.data_hora)) / 60000) : '-',
+            carreg: (exp.data_chegada_veiculo && exp.data_saida_veiculo) ? minutesToHHMM((new Date(exp.data_saida_veiculo) - new Date(exp.data_chegada_veiculo)) / 60000) : '-'
+        };
+        
+        // Verificar se pode editar/excluir
+        const canEdit = exp.status !== 'saiu_para_entrega' && exp.status !== 'entregue';
+        const editButton = canEdit ? 
+            `<button class="btn btn-warning btn-small" onclick="openEditModal('${exp.id}')">Editar</button>` :
+            `<button class="btn btn-secondary btn-small" disabled title="Não pode editar após saída para entrega">Editar</button>`;
+        const deleteButton = canEdit ?
+            `<button class="btn btn-danger btn-small" onclick="deleteExpedition('${exp.id}')">Excluir</button>` :
+            `<button class="btn btn-secondary btn-small" disabled title="Não pode excluir após saída para entrega">Excluir</button>`;
+            
+        return `
+            <tr class="hover:bg-gray-50 text-sm">
+                <td>${new Date(exp.data_hora).toLocaleString('pt-BR')}</td>
+                <td class="whitespace-normal">
+                    ${exp.lojas_info}
+                    ${exp.numeros_carga_display ? `<br><span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">📦 ${exp.numeros_carga_display}</span>` : ''}
+                </td>
+                <td>${exp.total_pallets}</td>
+                <td>${exp.total_rolltrainers}</td>
+                <td>${exp.doca_nome}</td>
+                <td>${exp.lider_nome}</td>
+                <td><span class="status-badge status-${exp.status}">${getStatusLabel(exp.status)}</span></td>
+                <td>${exp.veiculo_placa || '-'}</td>
+                <td style="min-width: 120px;">
+                    <div class="progress-container"><div class="progress-bar ${barColor}" style="width: ${Math.min(100, ocupacaoPerc)}%;">${ocupacaoPerc}%</div></div>
+                </td>
+                <td>${exp.motorista_nome || '-'}</td>
+                <td class="text-xs">
+                    <div>Aloc: ${tempos.alocar}</div>
+                    <div>Cheg: ${tempos.chegada}</div>
+                    <div>Carr: ${tempos.carreg}</div>
+                </td>
+              <td>
+                <div class="flex gap-2">
+                    <button class="btn btn-primary btn-small" onclick="showDetalhesExpedicao('${exp.id}')">Detalhes</button>
+                    ${editButton}
+                    ${deleteButton}
+                </div>
+            </td>
+            </tr>
+        `;
+    }).join('');
+}
         
         async function loadFrotaData() {
     if (!selectedFilial) {
