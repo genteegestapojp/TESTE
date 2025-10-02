@@ -8770,6 +8770,7 @@ async function savePermissions() {
 }
 
 
+
 async function saveGroupPermissions(grupoId, checkboxes, alert) {
     const permissionsToSave = [];
     const permissionsToRemove = [];
@@ -8794,7 +8795,6 @@ async function saveGroupPermissions(grupoId, checkboxes, alert) {
         await supabaseRequest('permissoes_grupo', 'POST', permissionsToSave, false, true);
     }
 }
-
 // NOVO: Função para renderizar as filiais permitidas na tela de seleção
 function renderFiliaisSelection(allowedFiliais) {
     const grid = document.getElementById('filiaisGrid');
