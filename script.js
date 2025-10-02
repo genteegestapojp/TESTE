@@ -1,9 +1,7 @@
- // --- INÍCIO DO SCRIPT ADAPTADO ---
-        Chart.register(ChartDataLabels);
-       // API REST do Supabase e Headers (do sistema original)
-        // ** CHAVES REMOVIDAS DO FRONTEND POR QUESTÕES DE SEGURANÇA **
+ Chart.register(ChartDataLabels);
+       
         const SUPABASE_PROXY_URL = '/api/proxy'; // Novo endpoint Serverless no Vercel
-        const headers = { 'Content-Type': 'application/json' }; // Headers mais simples no cliente
+        const headers = { 'Content-Type': 'application/json' }; 
 
         // Variáveis globais (do sistema original)
         let lojas = [], docas = [], lideres = [], veiculos = [], motoristas = [], filiais = [];
