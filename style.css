@@ -1152,3 +1152,36 @@ canvas#motoristasRankingChart {
 .bg-white.p-4.rounded-lg.shadow-md {
     padding: 20px !important; /* Aumenta o padding do container do gráfico */
 }
+/* Adicionar no final do CSS existente para forçar o alinhamento */
+/* NOVO: Estilo para cartões de tempo no histórico */
+.historico-time-card {
+    /* Garante que o cartão ocupe o espaço e não se sobreponha */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.historico-time-card .time-stat-card {
+    /* Garante que o cartão interno preencha o espaço restante */
+    flex-grow: 1; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Ajusta o grid para 4 colunas em telas grandes */
+@media (min-width: 1024px) {
+    /* 5 Colunas para os Tempos Operacionais */
+    #indicadoresTimeSummary {
+        grid-template-columns: repeat(5, 1fr) !important;
+    }
+    /* 6 Colunas para Volume e Eficiência */
+    #indicadoresVolumeStats {
+        grid-template-columns: repeat(6, 1fr) !important;
+    }
+}
+/* CORREÇÃO GERAL DE CHART: Adiciona padding para evitar que os datalabels sejam cortados */
+.bg-white.p-4.rounded-lg.shadow-md {
+    padding: 20px !important; /* Aumenta o padding do container do gráfico */
+}
