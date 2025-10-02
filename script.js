@@ -112,11 +112,18 @@ function hasPermission(permission) {
 
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
     
-    // 1. Prepara a chamada para a Vercel Serverless Function
-    // O endpoint REAL do Supabase é passado como um parâmetro de URL
-    let url = `${SUPABASE_PROXY_URL}?endpoint=${encodeURIComponent(endpoint)}`; 
+    // 1. DIVIDE O ENDPOINT EM NOME DA TABELA E FILTROS EXISTENTES
+    const [nomeEndpointBase, filtrosExistentes] = endpoint.split('?', 2);
     
-    // 2. Lógica de Filtro de Filial para GET
+    // 2. Prepara a URL base para o Proxy (agora com o nome do endpoint base)
+    let url = `${SUPABASE_PROXY_URL}?endpoint=${nomeEndpointBase}`; 
+    
+    // 3. Adiciona os filtros originais se existirem
+    if (filtrosExistentes) {
+        url += `&${filtrosExistentes}`;
+    }
+    
+    // 4. Lógica de Filtro de Filial para GET
     if (includeFilialFilter && selectedFilial && method === 'GET') {
         url += `&filial=eq.${selectedFilial.nome}`;
     }
@@ -126,10 +133,10 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
          url += '&upsert=true';
     }
 
-    // 3. Montar os headers e options
+    // 5. Montar os headers e options
     const options = { method, headers: { ...headers } }; // Usa headers globais simples
     
-    // 4. Lógica de Corpo (Body) e Headers
+    // 6. Lógica de Corpo (Body) e Headers
     if (data && (method === 'POST' || method === 'PATCH')) {
         let payload = data;
         
@@ -144,7 +151,7 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
         options.body = JSON.stringify(payload);
     } 
     
-    // 5. Execução da Requisição
+    // 7. Execução da Requisição
     try {
         const response = await fetch(url, options);
         
