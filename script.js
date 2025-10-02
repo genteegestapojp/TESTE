@@ -1,9 +1,9 @@
  // --- INÍCIO DO SCRIPT ADAPTADO ---
         Chart.register(ChartDataLabels);
-        // API REST do Supabase e Headers (do sistema original)
-        const SUPABASE_URL = 'https://owsoweqqttcmuuaohxke.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93c293ZXFxdHRjbXV1YW9oeGtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMjQ5OTAsImV4cCI6MjA3MTgwMDk5MH0.Iee27SUOIkhMFvgDWXrW3C38DUuMr0MyVtR-NjF6FRk';
-        const headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
+       // API REST do Supabase e Headers (do sistema original)
+        // ** CHAVES REMOVIDAS DO FRONTEND POR QUESTÕES DE SEGURANÇA **
+        const SUPABASE_PROXY_URL = '/api/proxy'; // Novo endpoint Serverless no Vercel
+        const headers = { 'Content-Type': 'application/json' }; // Headers mais simples no cliente
 
         // Variáveis globais (do sistema original)
         let lojas = [], docas = [], lideres = [], veiculos = [], motoristas = [], filiais = [];
@@ -115,45 +115,55 @@ function hasPermission(permission) {
 }
 
 
-// SUBSTITUA A VERSÃO EXISTENTE DE supabaseRequest (Cerca da linha 106 do script.js)
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
-    let url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
     
-    // 1. Lógica de Filtro de Filial para GET
+    // 1. Prepara a chamada para a Vercel Serverless Function
+    // O endpoint REAL do Supabase é passado como um parâmetro de URL
+    let url = `${SUPABASE_PROXY_URL}?endpoint=${encodeURIComponent(endpoint)}`; 
+    
+    // 2. Lógica de Filtro de Filial para GET
     if (includeFilialFilter && selectedFilial && method === 'GET') {
-        const separator = url.includes('?') ? '&' : '?';
-        url += `${separator}filial=eq.${selectedFilial.nome}`;
+        url += `&filial=eq.${selectedFilial.nome}`;
     }
     
-    const options = { method, headers: { ...headers } };
+    // Adiciona parâmetro upsert para que o proxy.js possa usar o header 'Prefer'
+    if (method === 'POST' && upsert) {
+         url += '&upsert=true';
+    }
+
+    // 3. Montar os headers e options
+    const options = { method, headers: { ...headers } }; // Usa headers globais simples
     
-    // 2. Lógica de Corpo (Body) e Headers para POST/PATCH
+    // 4. Lógica de Corpo (Body) e Headers
     if (data && (method === 'POST' || method === 'PATCH')) {
+        let payload = data;
+        
         // Inclui o filtro de filial no corpo da requisição
         if (includeFilialFilter && selectedFilial) {
             if (Array.isArray(data)) {
-                data = data.map(item => ({ ...item, filial: selectedFilial.nome }));
+                payload = data.map(item => ({ ...item, filial: selectedFilial.nome }));
             } else {
-                data = { ...data, filial: selectedFilial.nome };
+                payload = { ...data, filial: selectedFilial.nome };
             }
         }
-        options.body = JSON.stringify(data);
-        
-        // NOVO: Adiciona o cabeçalho de Upsert (merge-duplicates) para POSTs se upsert=true
-        if (method === 'POST' && upsert) {
-             // Esta linha diz ao Supabase para fundir duplicatas em vez de dar erro
-             options.headers.Prefer = 'return=representation,resolution=merge-duplicates';
-        } else if (method !== 'DELETE') {
-            // Header padrão para retornar os dados atualizados/inseridos
-            options.headers.Prefer = 'return=representation';
-        }
-    }
+        options.body = JSON.stringify(payload);
+    } 
     
-    // 3. Execução da Requisição
+    // 5. Execução da Requisição
     try {
         const response = await fetch(url, options);
-        // O Supabase retorna 409, mas o corpo da requisição pode ter o erro detalhado
-        if (!response.ok) throw new Error(`Erro ${response.status}: ${await response.text()}`);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            let errorMessage = `Erro ${response.status}: ${errorText}`;
+            try {
+                const errorJson = JSON.parse(errorText);
+                errorMessage = `Erro ${response.status}: ${errorJson.message || errorJson.error || errorText}`;
+            } catch (e) { /* ignore JSON parse error */ }
+            
+            throw new Error(errorMessage);
+        }
+        
         return method === 'DELETE' ? null : await response.json();
     } catch (error) {
         console.error(`Falha na requisição: ${method} ${url}`, error);
