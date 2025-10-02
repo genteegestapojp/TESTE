@@ -20,8 +20,8 @@ export default async (req, res) => {
     searchParams.delete('endpoint'); // Remove o nosso parâmetro interno
     
     // 🚨 FIX CRÍTICO: Remove filtros de filial para requisições de escrita/exclusão 🚨
+    // Isso é o que evita o conflito de coluna 'nome_filial' e os erros 500 no DELETE.
     if (req.method === 'POST' || req.method === 'PATCH' || req.method === 'PUT' || req.method === 'DELETE') {
-        // Isso impede que o RLS entre em conflito com o parâmetro 'filial' ou 'nome_filial'
         searchParams.delete('filial'); 
         searchParams.delete('nome_filial'); 
     }
