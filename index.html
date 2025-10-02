@@ -24,25 +24,63 @@
 </head>
 <body class="bg-gray-100 font-sans">
     
-    <div id="initialAuthContainer" class="auth-container">
-    <div class="auth-card">
-        <div class="auth-header">
-            <img src="favicon.png" alt="Logo JP Tech" class="w-16 h-16 mb-4">
-            <h2>Acesso ao Sistema</h2>
-            <p>Insira suas credenciais para continuar.</p>
+   <div id="initialAuthContainer" class="auth-container" style="background: var(--darker); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;">
+    
+    <div class="main-login-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; max-width: 1200px; width: 90vw;">
+        
+        <div class="auth-card" style="grid-column: span 1; background: white; padding: 40px 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 119, 182, 0.1);">
+            <div class="auth-header" style="text-align: center;">
+                <img src="favicon.png" alt="Logo JP Tech" class="w-16 h-16 mb-4 mx-auto">
+                <h2 style="color: var(--dark); font-size: 1.8rem; font-weight: 700;">Acesso ao Sistema</h2>
+                <p style="color: var(--secondary); font-size: 1rem; margin-bottom: 25px;">Controle de Expedição JP</p>
+            </div>
+            <form id="initialLoginForm" class="auth-form">
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="initialUser" style="display: none;">Usuário:</label>
+                    <input type="text" id="initialUser" placeholder="Usuário" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 25px;">
+                    <label for="initialPassword" style="display: none;">Senha:</label>
+                    <input type="password" id="initialPassword" placeholder="Senha" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+                <button type="submit" class="btn btn-primary w-full" style="background: var(--primary-gradient); color: white; padding: 12px; border-radius: 8px; font-weight: 600;">Entrar</button>
+            </form>
+            <div id="initialLoginAlert" class="mt-4" style="text-align: center;"></div>
         </div>
-        <form id="initialLoginForm" class="auth-form">
-            <div class="form-group">
-                <label for="initialUser">Usuário:</label>
-                <input type="text" id="initialUser" required>
+
+        <div style="grid-column: span 1; display: flex; flex-direction: column; gap: 20px;">
+            
+            <div style="background: var(--secondary-gradient); color: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 119, 182, 0.2);">
+                <div style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 10px;">STATUS GERAL</div>
+                <div style="font-size: 2.5rem; font-weight: 800; line-height: 1.1;">CD ${selectedFilial?.nome || '464'}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                    <div style="font-size: 1rem; font-weight: 600;">FILIAL ATIVA</div>
+                    <div style="display: flex; gap: 10px; font-size: 0.9rem;">
+                        <span style="background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 6px;">🟢 ATIVO</span>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="initialPassword">Senha:</label>
-                <input type="password" id="initialPassword" required>
+
+            <div style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); border-left: 4px solid var(--primary);">
+                <div style="color: var(--accent); font-weight: 700; margin-bottom: 10px;">ATENÇÃO OPERACIONAL</div>
+                <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--dark); margin-bottom: 10px;">TEMPO MÉDIO DE PÁTIO (HOJE)</h3>
+                <p style="font-size: 0.9rem; color: #555;">O tempo médio de permanência dos veículos no pátio está em **1h45min**. O tempo limite é de 2 horas. Agilizar o carregamento.</p>
             </div>
-            <button type="submit" class="btn btn-primary w-full">Entrar</button>
-        </form>
-        <div id="initialLoginAlert" class="mt-4"></div>
+
+        </div>
+        
+        <div style="grid-column: span 1; background: var(--dark); color: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <div style="font-size: 1.2rem; font-weight: 700; margin-bottom: 10px; color: var(--primary);">MÓDULO DE RASTREIO GPS</div>
+                <p style="font-size: 0.9rem; opacity: 0.9;">Monitore em tempo real as entregas, o tempo de deslocamento entre lojas e o cumprimento do roteiro alocado para cada veículo.</p>
+            </div>
+            <div style="margin-top: 30px;">
+                <a href="#rastreio" onclick="showView('acompanhamento', document.querySelector('.nav-item[href=\'#acompanhamento\']'))" class="btn btn-secondary w-full" style="background: var(--secondary); color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: 700;">
+                    VER ACOMPANHAMENTO ATIVO
+                </a>
+            </div>
+        </div>
+
     </div>
 </div>
 
