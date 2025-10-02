@@ -116,47 +116,39 @@ function hasPermission(permission) {
 
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
     
-    // 1. DIVIDE O ENDPOINT EM NOME DA TABELA E FILTROS EXISTENTES
     const [nomeEndpointBase, filtrosExistentes] = endpoint.split('?', 2);
     
-    // 2. Prepara a URL base para o Proxy (agora com o nome do endpoint base)
     let url = `${SUPABASE_PROXY_URL}?endpoint=${nomeEndpointBase}`; 
     
-    // 3. Adiciona os filtros originais
     if (filtrosExistentes) {
         url += `&${filtrosExistentes}`;
     }
     
-    // 4. Lógica de Filtro de Filial para GET
     if (includeFilialFilter && selectedFilial && method === 'GET') {
         url += `&filial=eq.${selectedFilial.nome}`;
     }
     
-    // Adiciona parâmetro upsert
     if (method === 'POST' && upsert) {
          url += '&upsert=true';
     }
 
-    // 5. Montar os headers e options
     const options = { method, headers: { ...headers } }; 
     
-    // 6. Lógica de Corpo (Body) e Headers
-    if (data && (method === 'POST' || method === 'PATCH' || method === 'PUT')) { // Incluído PUT
+    if (data && (method === 'POST' || method === 'PATCH' || method === 'PUT')) { 
         let payload = data;
         
         // 🚨 CORREÇÃO CRÍTICA: INJETAR FILIAL APENAS NA TABELA DE EXPEDIÇÕES 🚨
-        // A tabela 'expedition_items' não possui a coluna 'filial'.
         if (includeFilialFilter && selectedFilial && nomeEndpointBase === 'expeditions') {
             if (Array.isArray(data)) {
                 payload = data.map(item => ({ ...item, filial: selectedFilial.nome }));
             } else {
-                payload = { ...data, filial: selectedFilial.nome };
+                // Se a tabela for 'expeditions', injeta o campo 'filial' no payload
+                payload = { ...data, filial: selectedFilial.nome }; 
             }
         }
         options.body = JSON.stringify(payload);
     } 
     
-    // 7. Execução da Requisição
     try {
         const response = await fetch(url, options);
         
@@ -6102,9 +6094,7 @@ function showAddForm(type, itemToEdit = null) {
     renderDocasConfig();
     return true;
 }
-      // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
-// SUBSTITUIR A FUNÇÃO saveLider
+  
 
 async function saveLider() {
     const isEdit = !!document.getElementById('edit_lider_id');
@@ -6116,13 +6106,11 @@ async function saveLider() {
         ativo: document.getElementById('add_ativo') ? document.getElementById('add_ativo').value === 'true' : true 
     };
     
-    // 🚨 AJUSTE CRÍTICO: Se estiver editando, remove o campo codigo_funcionario se ele não tiver mudado
-    // Para simplificar e evitar o erro 409, vamos sempre remover a chave única se for edição.
+    // 🚨 AJUSTE CRÍTICO: Se estiver editando, não envie o código do funcionário 
+    // para evitar o erro de violação de chave única (409).
     if (isEdit) {
         delete data.codigo_funcionario; 
         
-        // No lugar, o Supabase precisa saber quem você está editando.
-        // O Supabase irá atualizar o campo 'nome' e 'ativo' corretamente.
         await supabaseRequest(`lideres?id=eq.${liderId}`, 'PATCH', data);
         showNotification('Líder atualizado com sucesso!', 'success');
     } else {
