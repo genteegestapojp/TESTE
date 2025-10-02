@@ -1,5 +1,3 @@
-
-
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY; 
 
@@ -32,9 +30,17 @@ export default async (req, res) => {
         },
     };
 
-    // 5. Incluir o corpo da requisição para POST/PATCH/DELETE
+    // 5. AJUSTE CRÍTICO: Garantir que o corpo seja uma string JSON válida antes de repassar
     if (req.body && (req.method === 'POST' || req.method === 'PATCH' || req.method === 'PUT')) {
-        options.body = req.body; // O body já vem como string/Buffer
+        let bodyContent = req.body;
+        
+        // Se a Vercel já fez o parse, o body será um objeto JS.
+        // Resserializamos para string JSON para o fetch do Supabase.
+        if (typeof req.body !== 'string') {
+            bodyContent = JSON.stringify(req.body);
+        }
+        
+        options.body = bodyContent;
     }
     
     // 6. Configurar headers de Preferência (para retornar dados e upsert)
@@ -47,8 +53,25 @@ export default async (req, res) => {
     // 7. Executar a requisição e retornar a resposta
     try {
         const response = await fetch(fullUrl, options);
-        // Repassa o status de erro ou sucesso e o JSON do Supabase
-        res.status(response.status).json(await response.json());
+        
+        // Tenta ler o body da resposta, mesmo que seja um erro
+        const responseBody = await response.text(); 
+        
+        if (!response.ok) {
+            let errorJson;
+            try {
+                errorJson = JSON.parse(responseBody);
+            } catch (e) {
+                // Se não for JSON, retorna o erro de texto
+                return res.status(response.status).json({ error: responseBody || 'Erro desconhecido do Supabase' });
+            }
+            // Se for JSON, retorna o JSON de erro do Supabase
+            return res.status(response.status).json(errorJson);
+        }
+        
+        // Se for sucesso, retorna o JSON
+        return res.status(response.status).json(JSON.parse(responseBody));
+        
     } catch (error) {
         console.error('Erro ao proxear requisição:', error);
         res.status(500).json({ error: 'Falha ao comunicar com o Supabase' });
