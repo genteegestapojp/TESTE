@@ -3046,15 +3046,14 @@ if (m.displayStatus === 'saiu_para_entrega' || m.displayStatus === 'em_viagem') 
 const veiculoPlacaNoNome = m.veiculoPlaca && m.veiculoPlaca !== 'N/A' ? 
     `<span class="${placaClass}" title="Veículo: ${m.veiculoPlaca}">${m.veiculoPlaca}</span>` : '';
 
-        // Restauração dos botões de ação
-        // PERMITIR APENAS A CHEGADA NO CD E FINALIZAÇÃO DA DESCARGA DE IMOBILIZADO
+        // AÇÕES PERMITIDAS NA ABA MOTORISTAS (APENAS CHEGADA E DESCARGA IMOBILIZADO)
         if ((m.displayStatus === 'retornando_cd' || m.displayStatus === 'retornando_com_imobilizado') && m.veiculoId) {
             actionButton = `<button class="btn btn-primary btn-small" onclick="marcarRetornoCD('${m.id}', '${m.veiculoId}')">Cheguei no CD</button>`;
         } else if (m.displayStatus === 'descarregando_imobilizado' && m.veiculoId) {
             actionButton = `<button class="btn btn-warning btn-small" onclick="finalizarDescargaImobilizado('${m.id}', '${m.veiculoId}')">Finalizar Descarga</button>`;
         }
         
-     
+        // 🚨 BLOCO REMOVIDO: ANTES ESTAVA A LÓGICA DE INICIAR/FINALIZAR CARREGAMENTO 🚨
 
         let timeInfo = '';
         if (m.activeExp && m.displayStatus === 'saiu_para_entrega') {
