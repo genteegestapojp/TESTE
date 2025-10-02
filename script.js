@@ -8431,8 +8431,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
 // SUBSTITUIR A VERSÃO EXISTENTE DE handleInitialLogin (Aprox. linha 3737)
 async function handleInitialLogin(event) {
     event.preventDefault();
@@ -8450,18 +8448,19 @@ async function handleInitialLogin(event) {
         // GARANTIA: Reseta o estado global antes da autenticação
         selectedFilial = null;
 
-        // 🚨 NOVO CÓDIGO: Fetch DIRETO para autenticação, eliminando o supabaseRequest 🚨
-        const authUrl = `${SUPABASE_URL}/rest/v1/acessos?select=id,nome,grupo_id&nome=eq.${nome}&senha=eq.${senha}`;
+        // 🚨 NOVO CÓDIGO SEGURO: Fetch que chama o proxy para autenticação 🚨
+        // O proxy precisa de um parâmetro 'endpoint' e do filtro na query para funcionar.
+        const endpoint = `acessos?select=id,nome,grupo_id&nome=eq.${nome}&senha=eq.${senha}`;
+        const authUrl = `${SUPABASE_PROXY_URL}?endpoint=${encodeURIComponent(endpoint)}`;
         
         const authResponse = await fetch(authUrl, {
             method: 'GET',
-            headers: headers // Usa os headers globais (API Key)
+            headers: headers // Usa os headers globais que definem 'Content-Type': 'application/json'
         });
 
         if (!authResponse.ok) {
-            // Se o status for 401, a RLS na tabela 'acessos' está ativada.
             const errorText = await authResponse.text();
-            throw new Error(`Erro ${authResponse.status} na autenticação. RLS na tabela 'acessos' está bloqueando a leitura!`);
+            throw new Error(`Erro ${authResponse.status} na autenticação: ${errorText}`);
         }
         
         const result = await authResponse.json();
@@ -8484,7 +8483,7 @@ async function handleInitialLogin(event) {
         
         // 2. Se o usuário é Master, ele ganha acesso a todas as filiais
         if (masterUserPermission) {
-            // Buscamos todas as filiais ATIVAS no banco (usa supabaseRequest com false)
+            // Buscamos todas as filiais ATIVAS no banco (usa supabaseRequest com false, que chama o proxy)
             const todasFiliais = await supabaseRequest('filiais?select=nome&ativo=eq.true', 'GET', null, false);
             todasFiliais.forEach(f => userPermissions.push(`acesso_filial_${f.nome}`));
         }
@@ -8503,7 +8502,6 @@ async function handleInitialLogin(event) {
         console.error(err);
     }
 }
-
 
 
 // SUBSTITUIR A VERSÃO EXISTENTE DE showMainSystem
