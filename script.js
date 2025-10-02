@@ -110,15 +110,22 @@ function hasPermission(permission) {
 }
 
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// SUBSTITUIR A FUNÇÃO supabaseRequest COMPLETA
+
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
     
     // 1. DIVIDE O ENDPOINT EM NOME DA TABELA E FILTROS EXISTENTES
+    // Ex: "acessos?select=nome" -> nomeEndpointBase='acessos', filtrosExistentes='select=nome'
     const [nomeEndpointBase, filtrosExistentes] = endpoint.split('?', 2);
     
     // 2. Prepara a URL base para o Proxy (agora com o nome do endpoint base)
+    // ✅ CORREÇÃO: Passa o nome da tabela separadamente
     let url = `${SUPABASE_PROXY_URL}?endpoint=${nomeEndpointBase}`; 
     
     // 3. Adiciona os filtros originais se existirem
+    // ✅ CORREÇÃO: Adiciona os filtros com '&' para a Vercel tratá-los como parâmetros separados
     if (filtrosExistentes) {
         url += `&${filtrosExistentes}`;
     }
@@ -148,6 +155,7 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
                 payload = { ...data, filial: selectedFilial.nome };
             }
         }
+        // ✅ CORREÇÃO: Garante que o corpo é enviado corretamente
         options.body = JSON.stringify(payload);
     } 
     
