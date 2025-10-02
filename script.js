@@ -111,6 +111,8 @@ function hasPermission(permission) {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
     
     const [nomeEndpointBase, filtrosExistentes] = endpoint.split('?', 2);
@@ -137,8 +139,9 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
         let payload = data;
         
         // 🚨 2. CORREÇÃO CRÍTICA DA INJEÇÃO DE FILIAL NO PAYLOAD (POST/PATCH/PUT) 🚨
-        // Injete 'filial' em todas as tabelas que precisam. Exclui a 'expedition_items' e tabelas de acesso/filial.
-        if (includeFilialFilter && selectedFilial && nomeEndpointBase !== 'expedition_items' && nomeEndpointBase !== 'filiais' && nomeEndpointBase !== 'acessos' && nomeEndpointBase !== 'grupos_acesso' && nomeEndpointBase !== 'pontos_interesse') {
+        // Injete 'filial' em todas as tabelas que precisam (expeditions, lideres, docas, etc.).
+        // Exclui a 'expedition_items' e tabelas de acesso/filial.
+        if (includeFilialFilter && selectedFilial && nomeEndpointBase !== 'expedition_items' && nomeEndpointBase !== 'filiais' && nomeEndpointBase !== 'acessos' && nomeEndpointBase !== 'grupos_acesso' && nomeEndpointBase !== 'pontos_interesse' && nomeEndpointBase !== 'lojas' && nomeEndpointBase !== 'motoristas' && nomeEndpointBase !== 'veiculos') {
             if (Array.isArray(data)) {
                 payload = data.map(item => ({ ...item, filial: selectedFilial.nome }));
             } else {
@@ -2224,6 +2227,8 @@ async function loadHomeMapDataForFullscreen() {
 
     
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 async function lancarCarga() {
     const lojaId = document.getElementById('lancar_lojaSelect').value;
     const docaId = document.getElementById('lancar_docaSelect').value;
@@ -2258,7 +2263,7 @@ async function lancarCarga() {
             numeros_carga: numerosCarga.length > 0 ? numerosCarga : null
         };
         
-        // 1. Cria a Expedição principal (a injeção de filial no payload é feita dentro do supabaseRequest)
+        // 1. Cria a Expedição principal: Usa o includeFilialFilter=true (padrão) para injetar filial.
         const expeditionResponse = await supabaseRequest('expeditions', 'POST', expeditionData);
         if (!expeditionResponse || expeditionResponse.length === 0) {
             throw new Error("A criação da expedição falhou e não retornou um ID.");
@@ -2267,9 +2272,9 @@ async function lancarCarga() {
 
         const itemData = { expedition_id: newExpeditionId, loja_id: lojaId, pallets: pallets || 0, rolltrainers: rolltrainers || 0, status_descarga: 'pendente' };
         
-        // 🚨 FIX CRÍTICO APLICADO: Desativa o filtro de filial (4º parâmetro = false)
-        // Isso impede o conflito que estava gerando o erro "nome_filial".
-        await supabaseRequest('expedition_items', 'POST', itemData, false);
+        // 🚨 FIX CRÍTICO: Desativa o filtro de filial (4º parâmetro = false)
+        // Isso impede a injeção do campo 'filial' no payload, resolvendo o erro "nome_filial" para esta tabela.
+        await supabaseRequest('expedition_items', 'POST', itemData, false); 
 
         const lojaNome = lojas.find(l => l.id === lojaId)?.nome || 'Loja';
         const cargasInfo = numerosCarga.length > 0 ? ` (Cargas: ${numerosCarga.join(', ')})` : '';
