@@ -4894,49 +4894,49 @@ function generateHistoricoIndicators(data) {
     // 2. Bloco de Tempos por Grupo (5 Colunas)
     timeSummaryContainer.innerHTML = `
         <div class="bg-white p-4 rounded-xl shadow-lg border-t-4 border-blue-600 historico-time-card" data-aos="fade-up">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">⏱️ Tempo Interno (E2E)</h3>
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">⏱️Tempo Interno </h3>
             <div class="time-stat-card" style="background: linear-gradient(135deg, #0077B6, #00B4D8); margin-bottom: 15px;">
                 <div class="stat-number text-3xl">${minutesToHHMM(mediaTempoInternoTotal)}</div>
-                <div class="stat-label">T.M. TOTAL PÁTIO</div>
+                <div class="stat-label">TEMPO TOTAL PÁTIO</div>
             </div>
             
             <div class="text-sm space-y-2">
-                <div class="flex justify-between border-b pb-1"><span>T.M. Ociosidade (Lanç. → Aloc.)</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaAlocar)}</span></div>
-                <div class="flex justify-between border-b pb-1"><span>T.M. Chegada Doca (Aloc. → Cheg.)</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaChegadaDoca)}</span></div>
-                <div class="flex justify-between border-b pb-1"><span>T.M. Carregamento (Cheg. → Saída P.)</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaCarregamento)}</span></div>
+                <div class="flex justify-between border-b pb-1"><span>Ociosidade (Lanç. → Aloc.)</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaAlocar)}</span></div>
+                <div class="flex justify-between border-b pb-1"><span>Chegada Doca (Aloc. → Cheg.)</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaChegadaDoca)}</span></div>
+                <div class="flex justify-between border-b pb-1"><span>Carregamento (Cheg. → Saída)</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaCarregamento)}</span></div>
                 <div class="flex justify-between pb-1"><span>T.M. Faturamento</span><span class="font-bold text-blue-600">${minutesToHHMM(mediaFaturamento)}</span></div>
             </div>
         </div>
         
         <div class="bg-white p-4 rounded-xl shadow-lg border-t-4 border-yellow-600 historico-time-card" data-aos="fade-up" data-aos-delay="100">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">⚓ T.M. Carregamento (Doca)</h3>
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Carregamento (Doca)</h3>
             <div class="time-stat-card" style="background: linear-gradient(135deg, #FFD700, #F77F00); height: 100%;">
                 <div class="stat-number text-5xl">${minutesToHHMM(mediaCarregamento)}</div>
-                <div class="stat-label text-xl">T.M. EM DOCA</div>
+                <div class="stat-label text-xl">TEMPO EM DOCA</div>
             </div>
         </div>
         
         <div class="bg-white p-4 rounded-xl shadow-lg border-t-4 border-purple-600 historico-time-card" data-aos="fade-up" data-aos-delay="200">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">📄 T.M. Faturamento</h3>
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Faturamento</h3>
             <div class="time-stat-card" style="background: linear-gradient(135deg, #7209B7, #A663CC); height: 100%;">
                 <div class="stat-number text-5xl">${minutesToHHMM(mediaFaturamento)}</div>
-                <div class="stat-label text-xl">T.M. EM PROCESSO</div>
+                <div class="stat-label text-xl">TEMPO EM FATURAMENTO</div>
             </div>
         </div>
 
         <div class="bg-white p-4 rounded-xl shadow-lg border-t-4 border-orange-600 historico-time-card" data-aos="fade-up" data-aos-delay="300">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">🛣️ T.M. em Trânsito</h3>
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Trânsito</h3>
             <div class="time-stat-card" style="background: linear-gradient(135deg, #F77F00, #FCBF49); height: 100%;">
                 <div class="stat-number text-5xl">${minutesToHHMM(mediaEmTransito)}</div>
-                <div class="stat-label text-xl">T.M. ENTRE LOJAS</div>
+                <div class="stat-label text-xl">TEMPO DE TRANSITO</div>
             </div>
         </div>
         
         <div class="bg-white p-4 rounded-xl shadow-lg border-t-4 border-green-600 historico-time-card" data-aos="fade-up" data-aos-delay="400">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">🏬 T.M. em Loja</h3>
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Loja</h3>
             <div class="time-stat-card" style="background: linear-gradient(135deg, #00D4AA, #10B981); height: 100%;">
                 <div class="stat-number text-5xl">${minutesToHHMM(mediaEmLoja)}</div>
-                <div class="stat-label text-xl">T.M. TOTAL DESCARGA</div>
+                <div class="stat-label text-xl">TEMPO DE DESCARGA</div>
             </div>
         </div>
     `;
