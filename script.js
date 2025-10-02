@@ -3053,9 +3053,10 @@ const veiculoPlacaNoNome = m.veiculoPlaca && m.veiculoPlaca !== 'N/A' ?
             actionButton = `<button class="btn btn-warning btn-small" onclick="finalizarDescargaImobilizado('${m.id}', '${m.veiculoId}')">Finalizar Descarga</button>`;
         }
         
-        // 🚨 BLOCO REMOVIDO: ANTES ESTAVA A LÓGICA DE INICIAR/FINALIZAR CARREGAMENTO 🚨
+        // 🚨 REMOVIDO: Toda a lógica para Iniciar Carregamento / Finalizar Carregamento foi excluída daqui.
 
         let timeInfo = '';
+        // O timer continua sendo exibido se o status for 'saiu_para_entrega'
         if (m.activeExp && m.displayStatus === 'saiu_para_entrega') {
             timeInfo = `
                 <div class="text-xs text-gray-500 mt-1">
