@@ -3033,7 +3033,7 @@ function renderMotoristasListHtml(motoristasData) {
     return motoristasData.map(m => {
         let actionButton = '';
         
-        // 🚨 FIX CRÍTICO: Determinar classe CSS baseada no status
+        // Determinar classe CSS baseada no status
         let placaClass = 'placa-destaque';
         if (m.displayStatus === 'saiu_para_entrega' || m.displayStatus === 'em_viagem') {
             placaClass += ' em-viagem';
@@ -3047,7 +3047,9 @@ function renderMotoristasListHtml(motoristasData) {
         const veiculoPlacaNoNome = m.veiculoPlaca && m.veiculoPlaca !== 'N/A' ? 
             `<span class="${placaClass}" title="Veículo: ${m.veiculoPlaca}">${m.veiculoPlaca}</span>` : '';
 
-        // AÇÕES PERMITIDAS NA ABA MOTORISTAS (APENAS CHEGADA E DESCARGA IMOBILIZADO)
+        // AÇÕES PERMITIDAS NA ABA MOTORISTAS:
+        // APENAS CHEGADA NO CD E DESCARGA DE IMOBILIZADO
+        
         // 1. Chegada no CD (para quem está retornando)
         if ((m.displayStatus === 'retornando_cd' || m.displayStatus === 'retornando_com_imobilizado') && m.veiculoId) {
             actionButton = `<button class="btn btn-primary btn-small" onclick="marcarRetornoCD('${m.id}', '${m.veiculoId}')">Cheguei no CD</button>`;
@@ -3057,18 +3059,7 @@ function renderMotoristasListHtml(motoristasData) {
             actionButton = `<button class="btn btn-warning btn-small" onclick="finalizarDescargaImobilizado('${m.id}', '${m.veiculoId}')">Finalizar Descarga</button>`;
         }
         
-        /* // LÓGICA REMOVIDA CONFORME SOLICITADO:
-        // Ações de Carregamento (Início/Finalizar Carregamento) não devem aparecer aqui.
-        if (m.activeExp && m.displayStatus !== 'saiu_para_entrega') {
-             const doca = docas.find(d => d.id === m.activeExp.doca_id);
-             const coddocaValue = doca?.coddoca || 'N/A';
-             if (m.displayStatus === 'aguardando_veiculo') {
-                  actionButton = `<button class="btn btn-success" onclick="openQrModal('iniciar', '${m.activeExp.id}', '${coddocaValue}')">Iniciar Carregamento</button>`;
-             } else if (m.displayStatus === 'em_carregamento') {
-                  actionButton = `<button class="btn btn-primary" onclick="openQrModal('finalizar', '${m.activeExp.id}', '${coddocaValue}')">Finalizar Carregamento</button>`;
-             }
-        }
-        */
+        // // O BLOCO DE LÓGICA DO CARREGAMENTO FOI REMOVIDO DEFINITIVAMENTE DAQUI.
 
         let timeInfo = '';
         if (m.activeExp && m.displayStatus === 'saiu_para_entrega') {
