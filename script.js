@@ -8426,10 +8426,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('initialLoginForm').addEventListener('submit', handleInitialLogin);
 });
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+// SUBSTITUIR A FUNÇÃO COMPLETA handleInitialLogin
+
 async function handleInitialLogin(event) {
     event.preventDefault();
+    // ✅ AJUSTE APLICADO: Use .trim() na senha para remover espaços em branco
     const nome = document.getElementById('initialUser').value.trim();
-    const senha = document.getElementById('initialPassword').value;
+    const senha = document.getElementById('initialPassword').value.trim(); 
     const alertContainer = document.getElementById('initialLoginAlert');
 
     if (!nome || !senha) {
@@ -8442,14 +8446,13 @@ async function handleInitialLogin(event) {
         // GARANTIA: Reseta o estado global antes da autenticação
         selectedFilial = null;
 
-        // Fetch que chama o proxy para autenticação
-        // Endpoint: Acessa a tabela 'acessos' e filtra por nome e senha
+        // Monta a URL de autenticação com a senha "limpa"
         const endpoint = `acessos?select=id,nome,grupo_id&nome=eq.${nome}&senha=eq.${senha}`;
         const authUrl = `${SUPABASE_PROXY_URL}?endpoint=${encodeURIComponent(endpoint)}`;
         
         const authResponse = await fetch(authUrl, {
             method: 'GET',
-            headers: headers // Usa os headers globais que definem 'Content-Type': 'application/json'
+            headers: headers 
         });
 
         if (!authResponse.ok) {
@@ -8467,7 +8470,7 @@ async function handleInitialLogin(event) {
 
         const user = result[0];
         currentUser = {
-            id: user.id, // ID do acesso na tabela 'acessos'
+            id: user.id,
             nome: user.nome,
             grupoId: user.grupo_id
         };
@@ -8489,8 +8492,7 @@ async function handleInitialLogin(event) {
     } catch (err) {
         let msg = 'Erro ao verificar credenciais. Verifique a conexão.';
         if (err.message.includes('401')) {
-             // O ERRO 401 GERALMENTE INDICA RLS
-             msg = `Erro crítico (401). Provavelmente a **RLS na sua tabela 'acessos' está ATIVADA** ou sua chave 'SUPABASE_ANON_KEY' está incorreta.`;
+             msg = `Erro crítico (401). Verifique se a sua chave 'SUPABASE_ANON_KEY' está incorreta.`;
         }
         alertContainer.innerHTML = `<div class="alert alert-error">${msg}</div>`;
         console.error(err);
