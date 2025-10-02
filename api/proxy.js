@@ -1,5 +1,5 @@
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/api/proxy.js
-
+//RRRARA
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY; 
 
