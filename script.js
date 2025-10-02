@@ -4495,7 +4495,7 @@ function updateLastRefreshTime() {
     document.getElementById('lastUpdateRastreio').textContent = 
         `Última atualização: ${now.toLocaleTimeString('pt-BR')}`;
 }
-      // SUBSTITUIR A FUNÇÃO loadHistorico
+     // SUBSTITUIR A FUNÇÃO loadHistorico
 async function loadHistorico() {
     const permittedHistoricoTabs = getPermittedSubTabs('historico');
     
@@ -4505,11 +4505,11 @@ async function loadHistorico() {
         showSubTab('historico', initialSubTab, initialElement);
     }
     
-    // O restante da lógica de loadHistorico permanece aqui para carregar allHistorico
     const container = document.getElementById('historicoList');
     container.innerHTML = `<div class="loading"><div class="spinner"></div>Carregando histórico...</div>`;
     try {
-        const expeditions = await supabaseRequest('expeditions?status=eq.entregue&order=data_hora.desc');
+        // 🚨 FIX CRÍTICO: Adicionar limit=1000 para garantir que todos os registros sejam carregados
+        const expeditions = await supabaseRequest('expeditions?status=eq.entregue&order=data_hora.desc&limit=1000');
         const items = await supabaseRequest('expedition_items');
         
         allHistorico = expeditions.map(exp => {
