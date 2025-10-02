@@ -746,7 +746,7 @@ async function loadAllTabData() {
             </div>
 
             <div class="table-container bg-white rounded-lg shadow-md mt-6">
-                <table class="w-full" style="min-width: 1200px;">
+                <table class="w-full"> 
                     <thead>
                         <tr>
                             <th>Data/Hora</th><th>Lojas/Cargas</th><th>Pallets</th><th>Rolls</th><th>Doca</th><th>Líder</th>
