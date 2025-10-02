@@ -3024,7 +3024,7 @@ async function renderMotoristasStatusList() {
 
 
 
-// SUBSTITUIR A FUNÇÃO renderMotoristasListHtml COMPLETA
+// SUBSTITUIR A FUNÇÃO renderMotoristasListHtml COMPLETA (REMOVER O BLOCO DE CARREGAMENTO)
 function renderMotoristasListHtml(motoristasData) {
     if (motoristasData.length === 0) {
         return '<div class="alert alert-info mt-4">Nenhum motorista encontrado com o filtro selecionado.</div>';
@@ -3047,8 +3047,7 @@ function renderMotoristasListHtml(motoristasData) {
         const veiculoPlacaNoNome = m.veiculoPlaca && m.veiculoPlaca !== 'N/A' ? 
             `<span class="${placaClass}" title="Veículo: ${m.veiculoPlaca}">${m.veiculoPlaca}</span>` : '';
 
-        // AÇÕES PERMITIDAS NA ABA MOTORISTAS:
-        // APENAS CHEGADA NO CD E DESCARGA DE IMOBILIZADO
+        // AÇÕES PERMITIDAS NA ABA MOTORISTAS (APENAS CHEGADA E DESCARGA IMOBILIZADO)
         
         // 1. Chegada no CD (para quem está retornando)
         if ((m.displayStatus === 'retornando_cd' || m.displayStatus === 'retornando_com_imobilizado') && m.veiculoId) {
@@ -3059,7 +3058,18 @@ function renderMotoristasListHtml(motoristasData) {
             actionButton = `<button class="btn btn-warning btn-small" onclick="finalizarDescargaImobilizado('${m.id}', '${m.veiculoId}')">Finalizar Descarga</button>`;
         }
         
-        // // O BLOCO DE LÓGICA DO CARREGAMENTO FOI REMOVIDO DEFINITIVAMENTE DAQUI.
+        // 🚨 BLOCO DE CARREGAMENTO REMOVIDO PERMANENTEMENTE:
+        /*
+        if (m.activeExp && m.displayStatus !== 'saiu_para_entrega') {
+             const doca = docas.find(d => d.id === m.activeExp.doca_id);
+             const coddocaValue = doca?.coddoca || 'N/A';
+             if (m.displayStatus === 'aguardando_veiculo') {
+                  actionButton = `<button class="btn btn-success" onclick="openQrModal('iniciar', '${m.activeExp.id}', '${coddocaValue}')">Iniciar Carregamento</button>`;
+             } else if (m.displayStatus === 'em_carregamento') {
+                  actionButton = `<button class="btn btn-primary" onclick="openQrModal('finalizar', '${m.activeExp.id}', '${coddocaValue}')">Finalizar Carregamento</button>`;
+             }
+        }
+        */
 
         let timeInfo = '';
         if (m.activeExp && m.displayStatus === 'saiu_para_entrega') {
