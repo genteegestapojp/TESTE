@@ -19,8 +19,8 @@ export default async (req, res) => {
     const searchParams = new URLSearchParams(req.url.split('?')[1]);
     searchParams.delete('endpoint'); // Remove o nosso parâmetro interno
     
-    // 🚨 FIX CRÍTICO: Remove filtros de filial para requisições de escrita/exclusão 🚨
-    // Isso é o que evita o conflito de coluna 'nome_filial' e os erros 500 no DELETE.
+    // 🚨 FIX CRÍTICO: Remove filtros de filial para requisições de escrita/exclusão (POST, PATCH, PUT, DELETE) 🚨
+    // Isso evita o erro 500 no DELETE e o conflito de coluna 'nome_filial'.
     if (req.method === 'POST' || req.method === 'PATCH' || req.method === 'PUT' || req.method === 'DELETE') {
         searchParams.delete('filial'); 
         searchParams.delete('nome_filial'); 
@@ -72,7 +72,13 @@ export default async (req, res) => {
             return res.status(response.status).json(errorJson);
         }
         
-        return res.status(response.status).json(JSON.parse(responseBody));
+        // CORREÇÃO: O response.text() pode ser vazio (Ex: DELETE sem return=representation), evitar JSON.parse em string vazia
+        if (responseBody) {
+             return res.status(response.status).json(JSON.parse(responseBody));
+        } else {
+             // Retorna status 204 No Content para DELETE/PATCH bem-sucedido e sem corpo
+             return res.status(response.status).end();
+        }
         
     } catch (error) {
         console.error('Erro ao proxear requisição:', error);
