@@ -3024,7 +3024,7 @@ async function renderMotoristasStatusList() {
 
 
 
-// SUBSTITUIR A FUNÇÃO renderMotoristasListHtml COMPLETA (REMOVER O BLOCO DE CARREGAMENTO)
+// SUBSTITUA TODA E QUALQUER DEFINIÇÃO DESTA FUNÇÃO PELA ABAIXO:
 function renderMotoristasListHtml(motoristasData) {
     if (motoristasData.length === 0) {
         return '<div class="alert alert-info mt-4">Nenhum motorista encontrado com o filtro selecionado.</div>';
@@ -3058,18 +3058,8 @@ function renderMotoristasListHtml(motoristasData) {
             actionButton = `<button class="btn btn-warning btn-small" onclick="finalizarDescargaImobilizado('${m.id}', '${m.veiculoId}')">Finalizar Descarga</button>`;
         }
         
-        // 🚨 BLOCO DE CARREGAMENTO REMOVIDO PERMANENTEMENTE:
-        /*
-        if (m.activeExp && m.displayStatus !== 'saiu_para_entrega') {
-             const doca = docas.find(d => d.id === m.activeExp.doca_id);
-             const coddocaValue = doca?.coddoca || 'N/A';
-             if (m.displayStatus === 'aguardando_veiculo') {
-                  actionButton = `<button class="btn btn-success" onclick="openQrModal('iniciar', '${m.activeExp.id}', '${coddocaValue}')">Iniciar Carregamento</button>`;
-             } else if (m.displayStatus === 'em_carregamento') {
-                  actionButton = `<button class="btn btn-primary" onclick="openQrModal('finalizar', '${m.activeExp.id}', '${coddocaValue}')">Finalizar Carregamento</button>`;
-             }
-        }
-        */
+        // O BLOCO DE LÓGICA DO CARREGAMENTO FOI REMOVIDO DEFINITIVAMENTE.
+        // Nenhuma lógica para 'aguardando_veiculo' ou 'em_carregamento' deve existir aqui.
 
         let timeInfo = '';
         if (m.activeExp && m.displayStatus === 'saiu_para_entrega') {
@@ -9002,70 +8992,7 @@ function startMotoristaTimer(m) {
 }
 
 
-// SUBSTITUIR A FUNÇÃO renderMotoristasListHtml COMPLETA
-function renderMotoristasListHtml(motoristasData) {
-    if (motoristasData.length === 0) {
-        return '<div class="alert alert-info mt-4">Nenhum motorista encontrado com o filtro selecionado.</div>';
-    }
-    
-    return motoristasData.map(m => {
-        let actionButton = '';
-        
-        // 🚨 FIX CRÍTICO: Determinar classe CSS baseada no status
-        let placaClass = 'placa-destaque';
-        if (m.displayStatus === 'saiu_para_entrega' || m.displayStatus === 'em_viagem') {
-            placaClass += ' em-viagem';
-        } else if (m.displayStatus === 'retornando_cd' || m.displayStatus === 'retornando_com_imobilizado') {
-            placaClass += ' retornando';
-        } else if (m.displayStatus === 'disponivel') {
-            placaClass += ' disponivel';
-        }
-        
-        // Placa animada com destaque
-        const veiculoPlacaNoNome = m.veiculoPlaca && m.veiculoPlaca !== 'N/A' ? 
-            `<span class="${placaClass}" title="Veículo: ${m.veiculoPlaca}">${m.veiculoPlaca}</span>` : '';
 
-        // Restauração dos botões de ação
-        if ((m.displayStatus === 'retornando_cd' || m.displayStatus === 'retornando_com_imobilizado') && m.veiculoId) {
-            actionButton = `<button class="btn btn-primary btn-small" onclick="marcarRetornoCD('${m.id}', '${m.veiculoId}')">Cheguei no CD</button>`;
-        } else if (m.displayStatus === 'descarregando_imobilizado' && m.veiculoId) {
-            actionButton = `<button class="btn btn-warning btn-small" onclick="finalizarDescargaImobilizado('${m.id}', '${m.veiculoId}')">Finalizar Descarga</button>`;
-        }
-        
-        // Se estiver em rota e em doca, mostra os botões de carregamento
-        if (m.activeExp && m.displayStatus !== 'saiu_para_entrega') {
-             const doca = docas.find(d => d.id === m.activeExp.doca_id);
-             const coddocaValue = doca?.coddoca || 'N/A';
-             if (m.displayStatus === 'aguardando_veiculo') {
-                  actionButton = `<button class="btn btn-success" onclick="openQrModal('iniciar', '${m.activeExp.id}', '${coddocaValue}')">Iniciar Carregamento</button>`;
-             } else if (m.displayStatus === 'em_carregamento') {
-                  actionButton = `<button class="btn btn-primary" onclick="openQrModal('finalizar', '${m.activeExp.id}', '${coddocaValue}')">Finalizar Carregamento</button>`;
-             }
-        }
-
-        let timeInfo = '';
-        if (m.activeExp && m.displayStatus === 'saiu_para_entrega') {
-            timeInfo = `
-                <div class="text-xs text-gray-500 mt-1">
-                    <span id="loja_timer_${m.id}">Loja: --:--</span> | 
-                    <span id="desloc_timer_${m.id}">Desloc.: --:--</span>
-                </div>
-            `;
-        }
-
-        return `
-            <div class="motorista-status-item">
-                <div>
-                    <strong class="text-gray-800">${m.nome} ${veiculoPlacaNoNome}</strong>
-                    ${timeInfo}
-                </div>
-                <div class="flex items-center gap-4">
-                    <span class="status-badge status-${m.displayStatus.replace(/ /g, '_')}">${getStatusLabel(m.displayStatus)}</span>
-                    ${actionButton}
-                </div>
-            </div>`;
-    }).join('');
-}
 // NOVO: Função para abrir o modal de seleção de impressão
 async function openImprimirIdentificacaoModal(expeditionId) {
     const modal = document.getElementById('printIdentificationModal');
