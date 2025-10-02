@@ -117,15 +117,12 @@ function hasPermission(permission) {
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
     
     // 1. DIVIDE O ENDPOINT EM NOME DA TABELA E FILTROS EXISTENTES
-    // Ex: "acessos?select=nome" -> nomeEndpointBase='acessos', filtrosExistentes='select=nome'
     const [nomeEndpointBase, filtrosExistentes] = endpoint.split('?', 2);
     
     // 2. Prepara a URL base para o Proxy (agora com o nome do endpoint base)
-    // ✅ CORREÇÃO: Passa o nome da tabela separadamente
     let url = `${SUPABASE_PROXY_URL}?endpoint=${nomeEndpointBase}`; 
     
-    // 3. Adiciona os filtros originais se existirem
-    // ✅ CORREÇÃO: Adiciona os filtros com '&' para a Vercel tratá-los como parâmetros separados
+    // 3. Adiciona os filtros originais
     if (filtrosExistentes) {
         url += `&${filtrosExistentes}`;
     }
@@ -135,27 +132,27 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
         url += `&filial=eq.${selectedFilial.nome}`;
     }
     
-    // Adiciona parâmetro upsert para que o proxy.js possa usar o header 'Prefer'
+    // Adiciona parâmetro upsert
     if (method === 'POST' && upsert) {
          url += '&upsert=true';
     }
 
     // 5. Montar os headers e options
-    const options = { method, headers: { ...headers } }; // Usa headers globais simples
+    const options = { method, headers: { ...headers } }; 
     
     // 6. Lógica de Corpo (Body) e Headers
-    if (data && (method === 'POST' || method === 'PATCH')) {
+    if (data && (method === 'POST' || method === 'PATCH' || method === 'PUT')) { // Incluído PUT
         let payload = data;
         
-        // Inclui o filtro de filial no corpo da requisição
-        if (includeFilialFilter && selectedFilial) {
+        // 🚨 CORREÇÃO CRÍTICA: INJETAR FILIAL APENAS NA TABELA DE EXPEDIÇÕES 🚨
+        // A tabela 'expedition_items' não possui a coluna 'filial'.
+        if (includeFilialFilter && selectedFilial && nomeEndpointBase === 'expeditions') {
             if (Array.isArray(data)) {
                 payload = data.map(item => ({ ...item, filial: selectedFilial.nome }));
             } else {
                 payload = { ...data, filial: selectedFilial.nome };
             }
         }
-        // ✅ CORREÇÃO: Garante que o corpo é enviado corretamente
         options.body = JSON.stringify(payload);
     } 
     
@@ -168,7 +165,7 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
             let errorMessage = `Erro ${response.status}: ${errorText}`;
             try {
                 const errorJson = JSON.parse(errorText);
-                errorMessage = `Erro ${response.status}: ${errorJson.message || errorJson.error || errorText}`;
+                errorMessage = `Erro ${response.status}: ${errorJson.message || errorJson.message || errorText}`;
             } catch (e) { /* ignore JSON parse error */ }
             
             throw new Error(errorMessage);
@@ -6105,7 +6102,11 @@ function showAddForm(type, itemToEdit = null) {
     renderDocasConfig();
     return true;
 }
-        async function saveLider() {
+      // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// SUBSTITUIR A FUNÇÃO saveLider
+
+async function saveLider() {
     const isEdit = !!document.getElementById('edit_lider_id');
     const liderId = isEdit ? document.getElementById('edit_lider_id').value : null;
     
@@ -6115,7 +6116,13 @@ function showAddForm(type, itemToEdit = null) {
         ativo: document.getElementById('add_ativo') ? document.getElementById('add_ativo').value === 'true' : true 
     };
     
+    // 🚨 AJUSTE CRÍTICO: Se estiver editando, remove o campo codigo_funcionario se ele não tiver mudado
+    // Para simplificar e evitar o erro 409, vamos sempre remover a chave única se for edição.
     if (isEdit) {
+        delete data.codigo_funcionario; 
+        
+        // No lugar, o Supabase precisa saber quem você está editando.
+        // O Supabase irá atualizar o campo 'nome' e 'ativo' corretamente.
         await supabaseRequest(`lideres?id=eq.${liderId}`, 'PATCH', data);
         showNotification('Líder atualizado com sucesso!', 'success');
     } else {
