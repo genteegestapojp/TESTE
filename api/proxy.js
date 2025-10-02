@@ -1,3 +1,5 @@
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/api/proxy.js
+
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY; 
 
@@ -16,6 +18,15 @@ export default async (req, res) => {
     // 3. Incluir todos os filtros de query do cliente (ex: status=eq.entregue)
     const searchParams = new URLSearchParams(req.url.split('?')[1]);
     searchParams.delete('endpoint'); // Remove o nosso parâmetro interno
+    
+    // 🚨 CORREÇÃO CRÍTICA DO PROXY 🚨
+    // Remove o filtro 'filial' (e o incorreto 'nome_filial') para requisições de ESCRITA
+    // para evitar que o Supabase tente aplicá-lo em tabelas que não o suportam (RLS).
+    if (req.method === 'POST' || req.method === 'PATCH' || req.method === 'PUT') {
+        searchParams.delete('filial'); 
+        searchParams.delete('nome_filial'); 
+    }
+
     const fullUrl = `${url}?${searchParams.toString()}`;
 
     // 4. Configurar as opções da requisição para o Supabase
