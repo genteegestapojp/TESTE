@@ -1,15 +1,12 @@
  Chart.register(ChartDataLabels);
        
-      const SUPABASE_URL = process.env.SUPABASE_URL;
+   const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY; 
 
-// === ADICIONE ESTAS DUAS LINHAS TEMPORARIAMENTE ===
+// === ESTAS LINHAS SÃO CRÍTICAS PARA O DEBUG ===
 console.log("URL LIDA NO PROXY:", SUPABASE_URL ? 'OK' : 'FALHA');
 console.log("KEY LIDA NO PROXY:", SUPABASE_ANON_KEY ? 'OK' : 'FALHA'); 
-// =================================================
-
-// O endpoint recebe o nome da tabela (ex: 'expeditions') e repassa a chamada.
-export default async (req, res) => {
+// =============================================
 
         // Variáveis globais (do sistema original)
         let lojas = [], docas = [], lideres = [], veiculos = [], motoristas = [], filiais = [];
