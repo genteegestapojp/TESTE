@@ -244,7 +244,7 @@ th { background-color: #f9fafb; font-weight: 600; color: #374151; }
 .availability-stat .stat-label { font-size: 0.85rem; color: var(--secondary); }
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
 
-/* NOVO ESTILO PROFISSIONAL PARA CARDS DE STATUS (TOTAL, PENDENTES, ETC.) */
+/* NOVO ESTILO PROFISSIONAL PARA CARDS DE STATUS (TOTAL, PENDENTES, ETC.) NO ACOMPANHAMENTO */
 .stats-grid .stat-card {
     /* Sobrescreve o estilo original para ser mais clean */
     background: white !important;
@@ -286,7 +286,7 @@ th { background-color: #f9fafb; font-weight: 600; color: #374151; }
 #cargasDisponiveisList .form-group { transition: all 0.2s ease-in-out; }
 .veiculo-option.incapacitated { background-color: #fee2e2 !important; color: #991b1b !important; font-weight: 700; }
 
-/* SUBSTITUIÇÃO DOS ESTILOS COLORIDOS DOS CARDS DE TEMPO */
+/* SUBSTITUIÇÃO DOS ESTILOS COLORIDOS DOS CARDS DE TEMPO DO ACOMPANHAMENTO */
 .time-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
 
 .time-stat-card { 
@@ -321,7 +321,7 @@ th { background-color: #f9fafb; font-weight: 600; color: #374151; }
     line-height: 1.2; 
     color: var(--secondary); /* Cor institucional para o label */
 }
-/* FIM DA SUBSTITUIÇÃO DOS ESTILOS COLORIDOS DOS CARDS DE TEMPO */
+/* FIM DA SUBSTITUIÇÃO DOS ESTILOS COLORIDOS DOS CARDS DE TEMPO DO ACOMPANHAMENTO */
 
 
 .time-display { background: rgba(240, 249, 255, 1); padding: 8px 12px; border-radius: 6px; margin: 6px 0; font-size: 0.8rem; font-weight: 600; color: var(--dark); border-left: 3px solid var(--primary); }
@@ -1139,6 +1139,16 @@ canvas#motoristasRankingChart {
     display: flex;
     flex-direction: column;
     height: 100%;
+    /* 🚨 NOVO: Sombra corporativa de destaque 🚨 */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); 
+    border-radius: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden; /* Garante que o conteúdo interno respeite o canto */
+}
+/* 🚨 NOVO: Efeito de destaque ao passar o mouse 🚨 */
+.historico-time-card:hover {
+    transform: translateY(-5px); /* Efeito de elevação */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
 }
 
 .historico-time-card .time-stat-card {
@@ -1148,48 +1158,37 @@ canvas#motoristasRankingChart {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    /* 🚨 MANTENDO AS CORES INTERNAS - REMOÇÃO DE BORDAS INTERNAS FORTES 🚨 */
+    border-top: none !important; /* Remove a borda superior extra para usar apenas a sombra externa */
+    border: none !important; /* Remove borda 1px extra */
+    padding: 16px;
+    background: transparent !important; /* Permite que o conteúdo da cor original seja o fundo */
+}
+
+/* O código abaixo ajusta o estilo base do time-stat-card para que o interior fique com a cor de fundo e o texto branco, mantendo o visual da imagem fornecida. */
+.time-stat-card { 
+    /* 🚨 Força o background transparente para que a div externa (historico-time-card) gerencie a sombra e o destaque, e a cor seja dada por um elemento interno. */
+    background: transparent !important;
+    color: white !important; 
+    box-shadow: none !important; 
+    border: none !important;
+}
+
+.time-stat-card .stat-number { 
+    color: white !important; /* Garante que o texto principal seja branco */
+}
+
+.time-stat-card .stat-label { 
+    color: rgba(255, 255, 255, 0.8) !important; /* Garante que o label seja branco mais fraco */
 }
 
 /* Ajusta o grid para 4 colunas em telas grandes */
 @media (min-width: 1024px) {
-    /* 5 Colunas para os Tempos Operacionais */
+    /* 5 Colunas para os Tempos Operacionais (MANTIDO) */
     #indicadoresTimeSummary {
         grid-template-columns: repeat(5, 1fr) !important;
     }
-    /* 6 Colunas para Volume e Eficiência */
-    #indicadoresVolumeStats {
-        grid-template-columns: repeat(6, 1fr) !important;
-    }
-}
-/* CORREÇÃO GERAL DE CHART: Adiciona padding para evitar que os datalabels sejam cortados */
-.bg-white.p-4.rounded-lg.shadow-md {
-    padding: 20px !important; /* Aumenta o padding do container do gráfico */
-}
-/* Adicionar no final do CSS existente para forçar o alinhamento */
-/* NOVO: Estilo para cartões de tempo no histórico */
-.historico-time-card {
-    /* Garante que o cartão ocupe o espaço e não se sobreponha */
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.historico-time-card .time-stat-card {
-    /* Garante que o cartão interno preencha o espaço restante */
-    flex-grow: 1; 
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Ajusta o grid para 4 colunas em telas grandes */
-@media (min-width: 1024px) {
-    /* 5 Colunas para os Tempos Operacionais */
-    #indicadoresTimeSummary {
-        grid-template-columns: repeat(5, 1fr) !important;
-    }
-    /* 6 Colunas para Volume e Eficiência */
+    /* 6 Colunas para Volume e Eficiência (MANTIDO) */
     #indicadoresVolumeStats {
         grid-template-columns: repeat(6, 1fr) !important;
     }
