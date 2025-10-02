@@ -123,7 +123,6 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
     
     // 🚨 1. CORREÇÃO DE FILTRO GET (PARA LEITURA) 🚨
     // Adiciona filtro 'filial' para leitura (GET) APENAS em tabelas que o possuem (excluindo itens/acessos).
-    // O proxy já remove filtros de URL em requisições de escrita, mas a injeção de payload abaixo ainda é necessária.
     if (includeFilialFilter && selectedFilial && method === 'GET' && nomeEndpointBase !== 'expedition_items' && nomeEndpointBase !== 'acessos' && nomeEndpointBase !== 'grupos_acesso' && nomeEndpointBase !== 'permissoes_grupo' && nomeEndpointBase !== 'permissoes_sistema' && nomeEndpointBase !== 'gps_tracking' && nomeEndpointBase !== 'veiculos_status_historico') {
         url += `&filial=eq.${selectedFilial.nome}`;
     }
