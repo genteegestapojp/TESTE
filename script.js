@@ -1,5 +1,5 @@
  Chart.register(ChartDataLabels);
-       // Variáveis globais (do sistema original)
+      
         // Variáveis globais (do sistema original)
         let lojas = [], docas = [], lideres = [], veiculos = [], motoristas = [], filiais = [];
         let selectedFilial = null;
