@@ -117,16 +117,44 @@ body {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;
 }
 .filial-card {
-    background: rgba(255, 255, 255, 0.9); border: 2px solid rgba(0, 212, 170, 0.3); border-radius: 16px;
-    padding: 30px; cursor: pointer; transition: all 0.3s ease; text-align: center; position: relative; overflow: hidden;
+    /* Novo estilo profissional e clean */
+    background: white; 
+    border: 1px solid #eee; /* Borda mais suave */
+    border-radius: 12px;
+    padding: 30px; 
+    cursor: pointer; 
+    transition: all 0.3s ease; 
+    text-align: center; 
+    position: relative; 
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Sombra suave */
 }
 .filial-card:hover {
-    transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 12px 30px rgba(0, 212, 170, 0.3);
+    transform: translateY(-3px); 
+    border-color: var(--primary); 
+    box-shadow: 0 10px 30px rgba(0, 212, 170, 0.2); /* Sombra mais destacada no hover */
 }
-.filial-card h3 { color: var(--dark); font-size: 1.4rem; margin-bottom: 10px; font-weight: 700; }
-.filial-card p { color: var(--secondary); font-size: 0.9rem; }
+.filial-card h3 { 
+    color: var(--dark); 
+    font-size: 1.6rem; /* Aumentado o tamanho do código da filial */
+    margin-bottom: 5px; 
+    font-weight: 800; 
+}
+.filial-card p { 
+    color: #888; /* Cor mais neutra para a descrição */
+    font-size: 1rem; 
+    font-weight: 500;
+}
+
 .filial-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--primary-gradient);
+    content: ''; 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    height: 4px; 
+    background: var(--primary); /* Cor primária sólida no topo */
+    border-radius: 12px 12px 0 0;
 }
 
 /* Demais estilos adaptados do sistema original */
