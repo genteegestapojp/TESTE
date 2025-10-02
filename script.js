@@ -316,8 +316,12 @@ async function loadFiliais() {
 }
 
 
-
 // SUBSTITUIR A FUNÇÃO selectFilial COMPLETA
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
+// SUBSTITUIR A FUNÇÃO selectFilial COMPLETA (ADICIONANDO A CHAMADA NO FINAL)
 async function selectFilial(filial) {
     // Verificar permissão para a filial
     if (!hasPermission(`acesso_filial_${filial.nome}`)) {
@@ -325,7 +329,8 @@ async function selectFilial(filial) {
         return;
     }
 
-    try { // PROTEÇÃO 1: Busca dados da Filial
+    try {
+        // Busca os dados completos da filial (sem filtro de filial na busca)
         const fullFilialData = await supabaseRequest(`filiais?nome=eq.${filial.nome}`, 'GET', null, false);
         selectedFilial = fullFilialData[0];
     } catch (error) {
@@ -334,61 +339,52 @@ async function selectFilial(filial) {
     }
     
     document.getElementById('sidebarFilial').textContent = selectedFilial.nome;
+    
+    // 1. Inicia a transição para a tela principal
+    await showMainSystem();
+    
+    // 2. Carrega todos os dados estáticos e dinâmicos (abas)
+    await loadAllTabData();
+    await loadPontosInteresse();
 
-    try { // PROTEÇÃO 2: Inicia o sistema e carrega todos os dados (A CORREÇÃO CRÍTICA)
-        // 1. Inicia a transição para a tela principal
-        await showMainSystem();
+    // 🚨 NOVO FIX: Filtra as sub-abas ANTES de filtrar as abas principais 🚨
+    filterSubTabs();
+    
+    // 3. Filtra as abas de navegação e determina qual a primeira a ser mostrada
+    const firstPermittedViewId = filterNavigationMenu(); 
+
+    if (firstPermittedViewId) {
+        // Mostra a primeira aba permitida
+        const firstNavItem = document.querySelector(`.nav-item[href="#${firstPermittedViewId}"]`);
         
-        // 2. Carrega todos os dados estáticos e dinâmicos (abas)
-        await loadAllTabData();
-        await loadPontosInteresse();
-
-        // 🚨 NOVO FIX: Filtra as sub-abas ANTES de filtrar as abas principais 🚨
-        filterSubTabs();
+        // NOVO AJUSTE: Se a aba principal for carregada, mas todas as sub-abas forem filtradas,
+        // garantimos que o conteúdo da aba principal (que agora é o container de sub-abas)
+        // ainda mostre alguma mensagem se necessário.
         
-        // 3. Filtra as abas de navegação e determina qual a primeira a ser mostrada
-        const firstPermittedViewId = filterNavigationMenu(); 
-
-        if (firstPermittedViewId) {
-            // Mostra a primeira aba permitida
-            const firstNavItem = document.querySelector(`.nav-item[href="#${firstPermittedViewId}"]`);
-            
-            showView(firstPermittedViewId, firstNavItem);
-            
-            // Configura o refresh automático da Home (se for a primeira aba permitida)
-            if (firstPermittedViewId === 'home') {
-                 setTimeout(() => {
-                    const homeAutoRefreshCheckbox = document.getElementById('homeAutoRefresh');
-                    if (homeAutoRefreshCheckbox) {
-                        homeAutoRefreshCheckbox.checked = true;
-                        toggleHomeAutoRefresh();
-                    }
-                }, 2000);
-            }
-            
-        } else {
-            // Se não houver nenhuma permissão de aba (erro de acesso final)
-            document.getElementById('home').classList.add('active'); // Garante que a div está visível
-            document.getElementById('home').innerHTML = '<div class="alert alert-error">Seu grupo de acesso não possui permissão para visualizar nenhuma aba. Contate o administrador.</div>';
+        showView(firstPermittedViewId, firstNavItem);
+        
+        // Configura o refresh automático da Home (se for a primeira aba permitida)
+        if (firstPermittedViewId === 'home') {
+             setTimeout(() => {
+                const homeAutoRefreshCheckbox = document.getElementById('homeAutoRefresh');
+                if (homeAutoRefreshCheckbox) {
+                    homeAutoRefreshCheckbox.checked = true;
+                    toggleHomeAutoRefresh();
+                }
+            }, 2000);
         }
         
-        showNotification(`Bem-vindo à filial: ${selectedFilial.nome}!`, 'success');
-        
-        // 🚨 CHAMADA FINAL PARA GARANTIR VISIBILIDADE 🚨
-        toggleFilialLinkVisibility();
-    
-    } catch (error) {
-         console.error('ERRO CRÍTICO NA INICIALIZAÇÃO DO SISTEMA:', error);
-         // Volta para a tela de seleção de filial
-         document.getElementById('mainSystem').style.display = 'none';
-         document.getElementById('filialSelectionContainer').style.display = 'flex'; 
-         showNotification(`Erro CRÍTICO ao iniciar o sistema: ${error.message}. Tente novamente.`, 'error', 10000);
-         selectedFilial = null; // Limpa a filial, forçando a re-seleção
-         // Tenta recarregar as filiais (se for o caso de falha de dados após o login)
-         loadFiliais(); 
+    } else {
+        // Se não houver nenhuma permissão de aba (erro de acesso final)
+        document.getElementById('home').classList.add('active'); // Garante que a div está visível
+        document.getElementById('home').innerHTML = '<div class="alert alert-error">Seu grupo de acesso não possui permissão para visualizar nenhuma aba. Contate o administrador.</div>';
     }
+    
+    showNotification(`Bem-vindo à filial: ${selectedFilial.nome}!`, 'success');
+    
+    // 🚨 CHAMADA FINAL PARA GARANTIR VISIBILIDADE 🚨
+    toggleFilialLinkVisibility();
 }
-
 
 // SUBSTITUIR A FUNÇÃO loadAllTabData COMPLETA
 async function loadAllTabData() {
@@ -4513,14 +4509,8 @@ async function loadHistorico() {
     const container = document.getElementById('historicoList');
     container.innerHTML = `<div class="loading"><div class="spinner"></div>Carregando histórico...</div>`;
     try {
-        // ... (dentro da função loadHistorico, APROX. LINHA 4268)
-    const container = document.getElementById('historicoList');
-    container.innerHTML = `<div class="loading"><div class="spinner"></div>Carregando histórico...</div>`;
-    try {
-        // CORREÇÃO: Adicionar &limit=30 para garantir que as últimas 30 entregas sejam buscadas
-        const expeditions = await supabaseRequest('expeditions?status=eq.entregue&order=data_hora.desc&limit=30'); 
+        const expeditions = await supabaseRequest('expeditions?status=eq.entregue&order=data_hora.desc');
         const items = await supabaseRequest('expedition_items');
-
         
         allHistorico = expeditions.map(exp => {
             const expItems = items.filter(item => item.expedition_id === exp.id);
