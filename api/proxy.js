@@ -19,10 +19,9 @@ export default async (req, res) => {
     const searchParams = new URLSearchParams(req.url.split('?')[1]);
     searchParams.delete('endpoint'); // Remove o nosso parâmetro interno
     
-    // 🚨 CORREÇÃO CRÍTICA DO PROXY 🚨
-    // Remove o filtro 'filial' (e o incorreto 'nome_filial') para requisições de ESCRITA
-    // para evitar que o Supabase tente aplicá-lo em tabelas que não o suportam (RLS).
-    if (req.method === 'POST' || req.method === 'PATCH' || req.method === 'PUT') {
+    // 🚨 FIX CRÍTICO: Remove filtros de filial para requisições de escrita 🚨
+    if (req.method === 'POST' || req.method === 'PATCH' || req.method === 'PUT' || req.method === 'DELETE') {
+        // Remove 'filial' e 'nome_filial' (fantasma) para evitar conflitos com RLS de escrita.
         searchParams.delete('filial'); 
         searchParams.delete('nome_filial'); 
     }
@@ -33,7 +32,6 @@ export default async (req, res) => {
     const options = {
         method: req.method,
         headers: {
-            // Usa as chaves secretas do Vercel
             'apikey': SUPABASE_ANON_KEY,
             'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
             'Content-Type': 'application/json',
@@ -45,8 +43,6 @@ export default async (req, res) => {
     if (req.body && (req.method === 'POST' || req.method === 'PATCH' || req.method === 'PUT')) {
         let bodyContent = req.body;
         
-        // Se a Vercel já fez o parse, o body será um objeto JS.
-        // Resserializamos para string JSON para o fetch do Supabase.
         if (typeof req.body !== 'string') {
             bodyContent = JSON.stringify(req.body);
         }
@@ -64,8 +60,6 @@ export default async (req, res) => {
     // 7. Executar a requisição e retornar a resposta
     try {
         const response = await fetch(fullUrl, options);
-        
-        // Tenta ler o body da resposta, mesmo que seja um erro
         const responseBody = await response.text(); 
         
         if (!response.ok) {
@@ -73,14 +67,11 @@ export default async (req, res) => {
             try {
                 errorJson = JSON.parse(responseBody);
             } catch (e) {
-                // Se não for JSON, retorna o erro de texto
                 return res.status(response.status).json({ error: responseBody || 'Erro desconhecido do Supabase' });
             }
-            // Se for JSON, retorna o JSON de erro do Supabase
             return res.status(response.status).json(errorJson);
         }
         
-        // Se for sucesso, retorna o JSON
         return res.status(response.status).json(JSON.parse(responseBody));
         
     } catch (error) {
