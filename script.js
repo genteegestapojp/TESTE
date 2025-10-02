@@ -8426,9 +8426,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('initialLoginForm').addEventListener('submit', handleInitialLogin);
 });
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-// SUBSTITUIR A FUNÇÃO COMPLETA handleInitialLogin
-
 async function handleInitialLogin(event) {
     event.preventDefault();
     // ✅ AJUSTE APLICADO: Use .trim() na senha para remover espaços em branco
@@ -8446,9 +8443,12 @@ async function handleInitialLogin(event) {
         // GARANTIA: Reseta o estado global antes da autenticação
         selectedFilial = null;
 
-        // Monta a URL de autenticação com a senha "limpa"
-        const endpoint = `acessos?select=id,nome,grupo_id&nome=eq.${nome}&senha=eq.${senha}`;
-        const authUrl = `${SUPABASE_PROXY_URL}?endpoint=${encodeURIComponent(endpoint)}`;
+        // ✅ CORREÇÃO CRÍTICA: SEPARAÇÃO DO ENDPOINT E DOS FILTROS.
+        // A URL final que o proxy da Vercel receberá será: /api/proxy?endpoint=acessos&select=...
+        const nomeEndpointBase = 'acessos';
+        const filtros = `select=id,nome,grupo_id&nome=eq.${nome}&senha=eq.${senha}`;
+        
+        const authUrl = `${SUPABASE_PROXY_URL}?endpoint=${nomeEndpointBase}&${filtros}`;
         
         const authResponse = await fetch(authUrl, {
             method: 'GET',
