@@ -929,20 +929,14 @@ async function loadAllTabData() {
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-                <div class="bg-white p-4 rounded-lg shadow-md" data-aos="fade-up">
+            <div class="grid grid-cols-1 gap-8 mt-8">
+                <div class="bg-white p-4 rounded-lg shadow-md lg:col-span-1" data-aos="fade-up">
                     <h3 class="text-lg font-semibold text-center mb-4">Total de Pallets por Loja</h3>
                     <div class="relative" style="height: 400px;">
                         <canvas id="palletsPorLojaChart"></canvas>
                     </div>
                 </div>
-                <div class="bg-white p-4 rounded-lg shadow-md" data-aos="fade-up" data-aos-delay="100">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Evolução de Entregas na Última Semana</h3>
-                    <div class="relative" style="height: 400px;">
-                        <canvas id="evolucaoEntregasDiaChart"></canvas>
-                    </div>
                 </div>
-            </div>
         </div>
     `;
             
@@ -4740,7 +4734,6 @@ function generateHistoricoIndicators(data) {
         destroyChart('entregasChart');
         destroyChart('totalEntregasLojaChart');
         destroyChart('participacaoEntregasLojaChart');
-        destroyChart('evolucaoEntregasDiaChart'); 
         destroyChart('palletsPorLojaChart'); 
         return;
     }
