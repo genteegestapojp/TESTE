@@ -19,9 +19,9 @@ export default async (req, res) => {
     const searchParams = new URLSearchParams(req.url.split('?')[1]);
     searchParams.delete('endpoint'); // Remove o nosso parâmetro interno
     
-    // 🚨 FIX CRÍTICO: Remove filtros de filial para requisições de escrita 🚨
+    // 🚨 FIX CRÍTICO: Remove filtros de filial para requisições de escrita/exclusão 🚨
     if (req.method === 'POST' || req.method === 'PATCH' || req.method === 'PUT' || req.method === 'DELETE') {
-        // Remove 'filial' e 'nome_filial' (fantasma) para evitar conflitos com RLS de escrita.
+        // Isso impede que o RLS entre em conflito com o parâmetro 'filial' ou 'nome_filial'
         searchParams.delete('filial'); 
         searchParams.delete('nome_filial'); 
     }
@@ -39,7 +39,7 @@ export default async (req, res) => {
         },
     };
 
-    // 5. AJUSTE CRÍTICO: Garantir que o corpo seja uma string JSON válida antes de repassar
+    // 5. Garantir que o corpo seja uma string JSON válida antes de repassar
     if (req.body && (req.method === 'POST' || req.method === 'PATCH' || req.method === 'PUT')) {
         let bodyContent = req.body;
         
