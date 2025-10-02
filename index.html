@@ -24,43 +24,46 @@
 </head>
 <body class="bg-gray-100 font-sans">
     
-  <div id="initialAuthContainer" class="auth-container" style="background: var(--darker); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; position: relative;">
+ <div id="initialAuthContainer" class="auth-container" style="background: var(--darker); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; position: relative;">
     
     <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 180, 216, 0.1); backdrop-filter: blur(5px);"></div>
     
-    <div class="main-login-grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px; max-width: 1200px; width: 90vw; z-index: 10;">
+    <div class="main-login-grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 40px; max-width: 1400px; width: 90vw; z-index: 10;">
         
-        <div class="auth-card" style="grid-column: span 1; background: white; padding: 40px 30px; border-radius: 16px; box-shadow: 0 15px 40px rgba(0, 119, 182, 0.15);">
+        <div class="auth-card" style="grid-column: span 1; background: white; padding: 50px 40px; border-radius: 16px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);">
             <div class="auth-header" style="text-align: center;">
-                <img src="favicon.png" alt="Logo JP Tech" class="w-16 h-16 mb-4 mx-auto">
+                <img src="favicon.png" alt="Logo JP Tech" class="w-16 h-16 mb-6 mx-auto">
                 <h2 style="color: var(--dark); font-size: 1.8rem; font-weight: 700;">Acesso ao Sistema</h2>
-                <p style="color: var(--secondary); font-size: 1rem; margin-bottom: 25px;">Controle de Expedição JP</p>
+                <p style="color: var(--secondary); font-size: 1rem; margin-bottom: 30px;">Controle de Expedição JP</p>
             </div>
             <form id="initialLoginForm" class="auth-form">
-                <div class="form-group" style="margin-bottom: 15px;">
+                <div class="form-group" style="margin-bottom: 20px;">
                     <label for="initialUser" style="display: none;">Usuário:</label>
-                    <input type="text" id="initialUser" placeholder="Usuário" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                    <input type="text" id="initialUser" placeholder="Usuário" required style="width: 100%; padding: 14px; border: 1px solid #ccc; border-radius: 8px;">
                 </div>
-                <div class="form-group" style="margin-bottom: 25px;">
+                <div class="form-group" style="margin-bottom: 30px;">
                     <label for="initialPassword" style="display: none;">Senha:</label>
-                    <input type="password" id="initialPassword" placeholder="Senha" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                    <input type="password" id="initialPassword" placeholder="Senha" required style="width: 100%; padding: 14px; border: 1px solid #ccc; border-radius: 8px;">
                 </div>
-                <button type="submit" class="btn btn-primary w-full" style="background: var(--primary-gradient); color: white; padding: 12px; border-radius: 8px; font-weight: 600;">Entrar</button>
+                <button type="submit" class="btn btn-primary w-full" style="background: var(--primary-gradient); color: white; padding: 14px; border-radius: 8px; font-weight: 700; font-size: 1rem;">ENTRAR</button>
             </form>
             <div id="initialLoginAlert" class="mt-4" style="text-align: center;"></div>
+            <div style="text-align: center; margin-top: 15px; font-size: 0.9rem;">
+                <a href="#" style="color: var(--secondary); text-decoration: none; font-weight: 600;">Esqueceu sua senha?</a>
+            </div>
         </div>
 
-        <div style="grid-column: span 1; display: grid; grid-template-rows: 1fr 1fr; gap: 20px;">
+        <div style="grid-column: span 1; display: grid; grid-template-rows: 1fr 1fr; gap: 40px;">
             
-            <div style="background: var(--secondary-gradient); color: white; padding: 30px; border-radius: 16px; box-shadow: 0 15px 40px rgba(0, 119, 182, 0.2); display: flex; flex-direction: column; justify-content: center;">
+            <div style="background: var(--secondary-gradient); color: white; padding: 40px; border-radius: 16px; box-shadow: 0 15px 50px rgba(0, 119, 182, 0.3); display: flex; flex-direction: column; justify-content: center;">
                 <div style="font-size: 1rem; opacity: 0.8; margin-bottom: 10px;">NOSSA MISSÃO</div>
                 <div style="font-size: 2.5rem; font-weight: 800; line-height: 1.2;">CONTROLE TOTAL, LOGÍSTICA OTIMIZADA.</div>
                 <div style="font-size: 1.1rem; margin-top: 15px; font-weight: 400; opacity: 0.9;">Reduza o tempo de pátio, otimize a ocupação da frota e garanta a pontualidade das suas entregas.</div>
             </div>
 
-            <div style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.05); border-left: 5px solid var(--primary); display: flex; flex-direction: column; justify-content: center;">
+            <div style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15); border-left: 5px solid var(--primary); display: flex; flex-direction: column; justify-content: center;">
                 <div style="color: var(--accent); font-weight: 700; margin-bottom: 10px;">COMO FUNCIONA</div>
-                <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--dark); margin-bottom: 10px;">GESTÃO DE TEMPOS EM 4 ETAPAS</h3>
+                <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--dark); margin-bottom: 15px;">GESTÃO DE TEMPOS EM 4 ETAPAS</h3>
                 <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 0.95rem; color: #555;">
                     <li style="margin-bottom: 5px;"><span style="color: var(--primary); font-weight: 600;">1. Lançamento da Carga:</span> Registre a necessidade de expedição.</li>
                     <li style="margin-bottom: 5px;"><span style="color: var(--primary); font-weight: 600;">2. Agrupamento e Alocação:</span> Monte a carga e defina Veículo/Motorista.</li>
