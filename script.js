@@ -110,7 +110,6 @@ function hasPermission(permission) {
 }
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
     
@@ -2231,6 +2230,8 @@ async function loadHomeMapDataForFullscreen() {
 }
 
     
+
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
 async function lancarCarga() {
     const lojaId = document.getElementById('lancar_lojaSelect').value;
@@ -8768,9 +8769,8 @@ async function savePermissions() {
         console.error('Erro ao salvar permissões:', error);
     }
 }
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
-// SUBSTITUIR A VERSÃO EXISTENTE DE saveGroupPermissions (Aprox. linha 3757)
+
 async function saveGroupPermissions(grupoId, checkboxes, alert) {
     const permissionsToSave = [];
     const permissionsToRemove = [];
@@ -8795,8 +8795,6 @@ async function saveGroupPermissions(grupoId, checkboxes, alert) {
         await supabaseRequest('permissoes_grupo', 'POST', permissionsToSave, false, true);
     }
 }
-
-
 
 // NOVO: Função para renderizar as filiais permitidas na tela de seleção
 function renderFiliaisSelection(allowedFiliais) {
