@@ -844,16 +844,17 @@ th { background-color: #f9fafb; font-weight: 600; color: #374151; }
 
 /* Estilo para a placa destacada */
 .placa-animada {
-    background: linear-gradient(135deg, #00D4AA, #0077B6);
+    /* REMOVER ANIMAÇÃO DE PULSO E GRADIENTE DE FUNDO */
+    background: #0077B6; /* Cor sólida principal */
     color: white;
     padding: 3px 8px;
     border-radius: 4px;
     font-size: 0.8rem;
     font-weight: 700;
     margin-left: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra mais suave */
     display: inline-block;
-    animation: pulsePlaca 1.5s infinite;
+    /* REMOVIDO: animation: pulsePlaca 1.5s infinite; */ 
 }
 
 @keyframes pulsePlaca {
@@ -980,163 +981,79 @@ canvas#motoristasRankingChart {
    ANIMAÇÃO DA PLACA - STATUS DA FROTA
    ======================================== */
 
-/* Estilo base da placa animada */
+/* ========================================
+   NOVO ESTILO DA PLACA - SUTIL E PROFISSIONAL
+   ======================================== */
+
+/* Estilo base da placa sutil */
 .placa-destaque {
-    background: linear-gradient(135deg, #0077B6 0%, #00D4AA 50%, #0077B6 100%);
-    background-size: 200% 200%;
+    /* Manter um gradiente estático para cor, mas sem animação */
+    background: linear-gradient(135deg, #0077B6, #00D4AA);
     color: white;
     padding: 6px 14px;
     border-radius: 8px;
     font-size: 0.85rem;
     font-weight: 800;
-    letter-spacing: 1.5px;
+    letter-spacing: 1px; /* Letra mais próxima para mais profissionalismo */
     margin-left: 10px;
     display: inline-block;
-    box-shadow: 
-        0 4px 15px rgba(0, 119, 182, 0.4),
-        0 0 20px rgba(0, 212, 170, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    border: 1px solid rgba(255, 255, 255, 0.5); /* Borda sutil */
     position: relative;
     overflow: hidden;
-    animation: 
-        gradientShift 3s ease infinite,
-        pulseGlow 2s ease-in-out infinite,
-        bounce 1.5s ease-in-out infinite;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    transform-origin: center;
+    /* REMOVIDO: ANIMAÇÕES */
+    transition: all 0.2s ease-in-out; /* Adiciona transição para o hover */
 }
 
-/* Animação de gradiente em movimento */
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
+/* REMOVIDO: @keyframes gradientShift { ... } */
+/* REMOVIDO: @keyframes pulseGlow { ... } */
+/* REMOVIDO: @keyframes bounce { ... } */
 
-/* Animação de brilho pulsante */
-@keyframes pulseGlow {
-    0%, 100% {
-        box-shadow: 
-            0 4px 15px rgba(0, 119, 182, 0.4),
-            0 0 20px rgba(0, 212, 170, 0.3),
-            inset 0 1px 0 rgba(255, 255, 255, 0.3);
-        transform: scale(1);
-    }
-    50% {
-        box-shadow: 
-            0 6px 25px rgba(0, 119, 182, 0.7),
-            0 0 35px rgba(0, 212, 170, 0.6),
-            inset 0 1px 0 rgba(255, 255, 255, 0.5);
-        transform: scale(1.05);
-    }
-}
-
-/* Animação de bounce suave */
-@keyframes bounce {
-    0%, 100% {
-        transform: translateY(0) scale(1);
-    }
-    50% {
-        transform: translateY(-3px) scale(1.02);
-    }
-}
-
-/* Efeito de brilho deslizante */
+/* REMOVIDO: Efeito de brilho deslizante (::before) */
 .placa-destaque::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-        45deg,
-        transparent 0%,
-        transparent 40%,
-        rgba(255, 255, 255, 0.3) 50%,
-        transparent 60%,
-        transparent 100%
-    );
-    animation: shine 3s ease-in-out infinite;
+    content: none !important;
 }
 
-@keyframes shine {
-    0% {
-        transform: translateX(-100%) translateY(-100%) rotate(45deg);
-    }
-    100% {
-        transform: translateX(100%) translateY(100%) rotate(45deg);
-    }
-}
-
-/* Hover para parar as animações e dar mais destaque */
+/* Hover para um destaque leve (sem animação forçada) */
 .placa-destaque:hover {
     animation: none;
-    transform: scale(1.1) translateY(-2px);
-    box-shadow: 
-        0 8px 30px rgba(0, 119, 182, 0.8),
-        0 0 40px rgba(0, 212, 170, 0.7),
-        inset 0 2px 0 rgba(255, 255, 255, 0.6);
-    cursor: pointer;
+    transform: scale(1.02); /* Escala suave */
+    box-shadow: 0 6px 15px rgba(0, 119, 182, 0.3);
+    cursor: default; /* Remove o 'pointer' se não for clicável */
 }
 
 /* Variação de cor baseada no status do veículo */
 .placa-destaque.em-viagem {
-    background: linear-gradient(135deg, #F59E0B 0%, #FCBF49 50%, #F59E0B 100%);
-    box-shadow: 
-        0 4px 15px rgba(245, 158, 11, 0.4),
-        0 0 20px rgba(252, 191, 73, 0.3);
+    background: linear-gradient(135deg, #F59E0B, #FCBF49);
+    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2);
 }
 
 .placa-destaque.em-viagem:hover {
-    box-shadow: 
-        0 8px 30px rgba(245, 158, 11, 0.8),
-        0 0 40px rgba(252, 191, 73, 0.7);
+    box-shadow: 0 6px 15px rgba(245, 158, 11, 0.4);
 }
 
 .placa-destaque.retornando {
-    background: linear-gradient(135deg, #10B981 0%, #00D4AA 50%, #10B981 100%);
-    box-shadow: 
-        0 4px 15px rgba(16, 185, 129, 0.4),
-        0 0 20px rgba(0, 212, 170, 0.3);
+    background: linear-gradient(135deg, #10B981, #00D4AA);
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
 }
 
 .placa-destaque.retornando:hover {
-    box-shadow: 
-        0 8px 30px rgba(16, 185, 129, 0.8),
-        0 0 40px rgba(0, 212, 170, 0.7);
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
 }
 
 .placa-destaque.disponivel {
-    background: linear-gradient(135deg, #6B7280 0%, #9CA3AF 50%, #6B7280 100%);
-    box-shadow: 
-        0 4px 15px rgba(107, 114, 128, 0.4),
-        0 0 20px rgba(156, 163, 175, 0.3);
-    animation: 
-        gradientShift 3s ease infinite,
-        gentlePulse 3s ease-in-out infinite;
-}
-
-@keyframes gentlePulse {
-    0%, 100% { opacity: 0.9; }
-    50% { opacity: 1; }
+    background: linear-gradient(135deg, #6B7280, #9CA3AF);
+    box-shadow: 0 4px 10px rgba(107, 114, 128, 0.1);
+    animation: none; /* Desativa a animação gentlePulse */
 }
 
 /* Badge de destaque adicional (opcional) */
 .placa-destaque::after {
-    content: '🚚';
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    font-size: 16px;
-    animation: rotate 4s linear infinite;
+    /* REMOVIDO o after que continha o emoji de caminhão e a animação de rotação */
+    content: none !important;
 }
 
-@keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
+/* REMOVIDO: @keyframes rotate { ... } */
 
 /* Responsividade */
 @media (max-width: 768px) {
