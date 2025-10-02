@@ -2276,7 +2276,8 @@ async function lancarCarga() {
         const itemData = { expedition_id: newExpeditionId, loja_id: lojaId, pallets: pallets || 0, rolltrainers: rolltrainers || 0, status_descarga: 'pendente' };
         
         // 🚨 FIX CRÍTICO: Desativa o filtro de filial (4º parâmetro = false) 🚨
-        // Isto impede a injeção do campo 'filial' no payload do item, resolvendo o erro "nome_filial".
+        // Isto impede a injeção do campo 'filial' no payload do item, resolvendo o erro "nome_filial" 
+        // caso o trigger de set_filial_expedition_items use outro campo para preencher.
         await supabaseRequest('expedition_items', 'POST', itemData, false); 
 
         const lojaNome = lojas.find(l => l.id === lojaId)?.nome || 'Loja';
