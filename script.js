@@ -110,6 +110,7 @@ function hasPermission(permission) {
 }
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
     
@@ -123,7 +124,8 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
     
     // 🚨 1. CORREÇÃO DE FILTRO GET (PARA LEITURA) 🚨
     // Adiciona filtro 'filial' para leitura (GET) APENAS em tabelas que o possuem (excluindo itens/acessos).
-    if (includeFilialFilter && selectedFilial && method === 'GET' && nomeEndpointBase !== 'expedition_items' && nomeEndpointBase !== 'acessos' && nomeEndpointBase !== 'grupos_acesso') {
+    // O proxy já remove filtros de URL em requisições de escrita, mas a injeção de payload abaixo ainda é necessária.
+    if (includeFilialFilter && selectedFilial && method === 'GET' && nomeEndpointBase !== 'expedition_items' && nomeEndpointBase !== 'acessos' && nomeEndpointBase !== 'grupos_acesso' && nomeEndpointBase !== 'permissoes_grupo' && nomeEndpointBase !== 'permissoes_sistema' && nomeEndpointBase !== 'gps_tracking' && nomeEndpointBase !== 'veiculos_status_historico') {
         url += `&filial=eq.${selectedFilial.nome}`;
     }
     
@@ -136,9 +138,9 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
     if (data && (method === 'POST' || method === 'PATCH' || method === 'PUT')) { 
         let payload = data;
         
-        // 🚨 2. CORREÇÃO DE INJEÇÃO NO PAYLOAD (resolve null value in filial) 🚨
+        // 🚨 2. CORREÇÃO DE INJEÇÃO NO PAYLOAD (resolve null value in filial e nome_filial) 🚨
         // Injete 'filial' (valor) para CRUD, exceto nas tabelas que não a possuem ou que não precisam de filtro de filial
-        if (includeFilialFilter && selectedFilial && nomeEndpointBase !== 'expedition_items' && nomeEndpointBase !== 'filiais' && nomeEndpointBase !== 'acessos' && nomeEndpointBase !== 'grupos_acesso' && nomeEndpointBase !== 'pontos_interesse') {
+        if (includeFilialFilter && selectedFilial && nomeEndpointBase !== 'expedition_items' && nomeEndpointBase !== 'filiais' && nomeEndpointBase !== 'acessos' && nomeEndpointBase !== 'grupos_acesso' && nomeEndpointBase !== 'pontos_interesse' && nomeEndpointBase !== 'permissoes_grupo') {
             if (Array.isArray(data)) {
                 payload = data.map(item => ({ ...item, filial: selectedFilial.nome }));
             } else {
@@ -2230,8 +2232,6 @@ async function loadHomeMapDataForFullscreen() {
 
     
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
 async function lancarCarga() {
     const lojaId = document.getElementById('lancar_lojaSelect').value;
     const docaId = document.getElementById('lancar_docaSelect').value;
@@ -2275,7 +2275,7 @@ async function lancarCarga() {
 
         const itemData = { expedition_id: newExpeditionId, loja_id: lojaId, pallets: pallets || 0, rolltrainers: rolltrainers || 0, status_descarga: 'pendente' };
         
-        // 🚨 FIX CRÍTICO APLICADO: Desativa o filtro de filial (4º parâmetro = false) 🚨
+        // 🚨 FIX CRÍTICO: Desativa o filtro de filial (4º parâmetro = false) 🚨
         // Isto impede a injeção do campo 'filial' no payload do item, resolvendo o erro "nome_filial".
         await supabaseRequest('expedition_items', 'POST', itemData, false); 
 
@@ -2295,6 +2295,7 @@ async function lancarCarga() {
         showNotification(`Erro ao lançar carga: ${error.message}`, 'error');
     }
 }
+
         // --- FUNCIONALIDADES DA ABA TRANSPORTE ---
         async function loadTransportList() {
             try {
@@ -7747,7 +7748,7 @@ function closeOrdemCarregamentoModal() {
     document.getElementById('ordemLojasList').innerHTML = '';
 }
 
-// SUBSTITUA A FUNÇÃO ANTIGA POR ESTA
+// SUBSTITUA A FUNÇÃO saveOrdemCarregamento COMPLETA
 async function saveOrdemCarregamento() {
     const expeditionId = document.getElementById('ordemExpeditionId').value;
     const orderedItems = document.querySelectorAll('#ordemLojasList li');
@@ -7770,7 +7771,8 @@ async function saveOrdemCarregamento() {
         const updatePromises = updates.map(update => {
             const endpoint = `expedition_items?id=eq.${update.id}`; // Especifica o ID do item
             const payload = { ordem_entrega: update.ordem_entrega }; // Envia apenas o dado a ser atualizado
-            return supabaseRequest(endpoint, 'PATCH', payload, false);
+            // 🚨 FIX CRÍTICO: Passa 'false' para não tentar injetar 'filial' no payload do item
+            return supabaseRequest(endpoint, 'PATCH', payload, false); 
         });
 
         // Executa todas as atualizações
@@ -7787,6 +7789,7 @@ async function saveOrdemCarregamento() {
         // A mensagem de erro agora virá do supabaseRequest, que já é detalhada
         // Apenas para garantir, logamos o erro completo no console.
         console.error("Erro completo ao salvar ordem:", error);
+        showNotification(`Erro ao salvar ordem de carregamento: ${error.message}`, 'error');
     }
 }
 // --- NOVAS FUNÇÕES DE RENDERIZAÇÃO PARA CONFIGURAÇÕES ---
