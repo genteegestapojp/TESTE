@@ -4740,8 +4740,8 @@ function generateHistoricoIndicators(data) {
         destroyChart('entregasChart');
         destroyChart('totalEntregasLojaChart');
         destroyChart('participacaoEntregasLojaChart');
-        destroyChart('evolucaoEntregasDiaChart'); // Novo nome
-        destroyChart('palletsPorLojaChart'); // Novo gráfico
+        destroyChart('evolucaoEntregasDiaChart'); 
+        destroyChart('palletsPorLojaChart'); 
         return;
     }
     
@@ -4756,23 +4756,18 @@ function generateHistoricoIndicators(data) {
     let temposEmTransito = []; 
     let temposEmLoja = [];
     
-    let lojasData = {}; // Estrutura principal para Ranking e Participação
+    // Estrutura principal para Ranking e Participação. O array 'tempos' é crítico para o ranking.
+    let lojasData = {}; 
     let entregasFort = 0, entregasComper = 0;
     let totalEntregas = 0;
     let totalPallets = 0;
     let totalRolls = 0;
     let ocupacoes = [];
     let lojasAtendidas = new Set();
-    const entregasDiarias = {}; // Para o gráfico de evolução
-
-    // Número de dias únicos para o cálculo da média
+    const entregasDiarias = {}; // Mantida para o gráfico de evolução, se necessário
     const datasExpedicao = new Set();
     const dataFimFiltro = document.getElementById('indicadoresFiltroDataFim').value || new Date().toISOString().split('T')[0];
     
-    // -----------------------------------------------------
-    // NOVO: Estrutura para contar Expedições (Viagens) por loja e seus totais de Pallets
-    // -----------------------------------------------------
-
     data.forEach(exp => {
         const dataExp = new Date(exp.data_hora).toISOString().split('T')[0];
         datasExpedicao.add(dataExp);
@@ -4793,7 +4788,7 @@ function generateHistoricoIndicators(data) {
         let cargaRollExp = 0;
 
         exp.items.sort((a, b) => (a.ordem_entrega || 999) - (b.ordem_entrega || 999)).forEach(item => {
-            // Conta totais GERAIS (Pallets/Rolls/Entregas)
+            // Conta totais GERAIS
             totalPallets += item.pallets || 0;
             totalRolls += item.rolltrainers || 0;
             cargaPalletExp += item.pallets || 0;
@@ -4810,13 +4805,14 @@ function generateHistoricoIndicators(data) {
                 const loja = lojas.find(l => l.id === item.loja_id);
                 if(loja) {
                     lojasAtendidas.add(loja.id);
-                    // Acumula tempos e volumes para a loja
+                    // Inicializa a estrutura da loja
                     if (!lojasData[loja.id]) {
-                        lojasData[loja.id] = { nome: `${loja.codigo} - ${loja.nome}`, totalEntregas: 0, totalTempo: 0, totalPallets: 0 };
+                        lojasData[loja.id] = { nome: `${loja.codigo} - ${loja.nome}`, totalEntregas: 0, totalTempo: 0, totalPallets: 0, tempos: [] }; // Adicionado 'tempos'
                     }
                     lojasData[loja.id].totalTempo += tempoEmLoja;
                     lojasData[loja.id].totalPallets += item.pallets || 0;
-
+                    lojasData[loja.id].tempos.push(tempoEmLoja); // Adiciona o tempo para o cálculo do Ranking
+                    
                     if (loja.nome.toLowerCase().includes('fort')) entregasFort++;
                     else if (loja.nome.toLowerCase().includes('comper')) entregasComper++;
                 }
@@ -4825,19 +4821,17 @@ function generateHistoricoIndicators(data) {
             if (t_saida) ultimaData = t_saida;
         });
         
-        // --------------------------------------------------------------------
-        // NOVO CÁLCULO DE ENTREGAS: Se a expedição foi entregue, conta como 1 "entrega" por loja
-        // --------------------------------------------------------------------
+        // CORREÇÃO CRÍTICA (Item 4): A contagem de Entregas/Saídas deve ser por EXPEDIÇÃO/ITEM finalizado
         if (exp.status === 'entregue') {
             exp.items.forEach(item => {
                 const loja = lojas.find(l => l.id === item.loja_id);
                 if (loja && item.status_descarga === 'descarregado') {
-                     // Cada item finalizado conta como 1 "entrega" (saída/viagem) para a loja
+                     // Conta 1 "saída" por item de expedição descarregado (reflete a lógica de 1 loja = 1 item)
                     lojasData[loja.id].totalEntregas++; 
-                    totalEntregas++; // Reconta o total de entregas baseado na expedição/item
+                    totalEntregas++; 
                 }
             });
-            // Para o gráfico de evolução de Entregas Dia
+            // Mantida para o gráfico de Evolução (se fosse usado)
             entregasDiarias[dataExp] = (entregasDiarias[dataExp] || 0) + exp.items.length;
         }
 
@@ -4866,13 +4860,15 @@ function generateHistoricoIndicators(data) {
     // PROCESSAMENTO PARA GRÁFICOS
     const lojasRankingData = Object.values(lojasData).map(loja => ({
         ...loja,
-        // Garante que o tempo médio só é calculado se houve alguma entrega
-        tempoMedio: loja.totalEntregas > 0 ? loja.totalTempo / loja.totalEntregas : 0 
-    })).filter(l => l.totalEntregas > 0); // Filtra lojas que não tiveram entregas concluídas no período
+        // Garante que o tempo médio por loja (para o Ranking) seja calculado a partir de todos os 'tempos'
+        tempoMedio: calcularMedia(loja.tempos) 
+    })).filter(l => l.totalEntregas > 0); 
     
     // -----------------------------------------------------
     // RENDERIZAÇÃO
     // -----------------------------------------------------
+    
+    // ... (Blocos de Volume e Tempos permanecem os mesmos)
     
     // 1. Bloco de Volume e Eficiência (6 Indicadores)
     volumeStatsContainer.innerHTML = `
@@ -4951,16 +4947,19 @@ function generateHistoricoIndicators(data) {
             </div>
         </div>
     `;
-
+    
     // 3. Renderização dos Gráficos
+    // CORREÇÃO DO RANKING (Item 2)
     renderLojasRankingChart(lojasRankingData.filter(l => l.tempoMedio > 0).sort((a, b) => b.tempoMedio - a.tempoMedio).slice(0, 10));
     renderEntregasChart(entregasFort, entregasComper);
     
     // NOVOS GRÁFICOS
     renderTotalEntregasLojaChart(lojasRankingData);
-    renderParticipacaoEntregasLojaChart(lojasRankingData); // Novo gráfico de Pizza
+    renderParticipacaoEntregasLojaChart(lojasRankingData); // Novo gráfico de Pizza (Ajustado no código abaixo)
     renderPalletsPorLojaChart(lojasRankingData); // Novo gráfico
-    renderEvolucaoEntregasDiaChart(entregasDiarias, dataFimFiltro); // Gráfico de Evolução ajustado
+    
+    // REMOVIDO renderEvolucaoEntregasDiaChart (Item 5)
+
 }
 
 // =======================================================
@@ -5004,6 +5003,7 @@ function renderTotalEntregasLojaChart(lojasData) {
 }
 
 
+// SUBSTITUIR A FUNÇÃO renderParticipacaoEntregasLojaChart COMPLETA
 function renderParticipacaoEntregasLojaChart(lojasData) {
     const dataFiltrada = lojasData.filter(l => l.totalEntregas > 0).sort((a, b) => b.totalEntregas - a.totalEntregas);
     if (dataFiltrada.length === 0) {
@@ -5013,20 +5013,15 @@ function renderParticipacaoEntregasLojaChart(lojasData) {
 
     const totalGeral = dataFiltrada.reduce((sum, l) => sum + l.totalEntregas, 0);
     
-    // Limitar o número de fatias para melhor visualização (Top 5 + Outros)
+    // REQUISITO: TOP 5 e REMOVER FATIA 'OUTRAS LOJAS'
     const topN = 5;
     const topLojas = dataFiltrada.slice(0, topN);
-    const outrosEntregas = dataFiltrada.slice(topN).reduce((sum, l) => sum + l.totalEntregas, 0);
     
     let labels = topLojas.map(l => l.nome);
     let data = topLojas.map(l => l.totalEntregas);
+    // Cores específicas para Fort/Comper
     let colors = topLojas.map(l => l.nome.toLowerCase().includes('fort') ? 'rgba(239, 68, 68, 0.8)' : 'rgba(0, 180, 216, 0.8)');
 
-    if (outrosEntregas > 0) {
-        labels.push('Outras Lojas');
-        data.push(outrosEntregas);
-        colors.push('#9CA3AF'); // Cinza para "Outros"
-    }
 
     renderChart('participacaoEntregasLojaChart', 'pie', {
         labels: labels,
@@ -5087,63 +5082,7 @@ function renderPalletsPorLojaChart(lojasData) {
         }
     });
 }
-        function renderEvolucaoEntregasDiaChart(entregasDiarias, dataFimFiltro) {
-    // 1. Gera os últimos 7 dias (incluindo o dia final do filtro, se houver)
-    const endDate = new Date(dataFimFiltro);
-    const dates = [];
-    for (let i = 6; i >= 0; i--) {
-        const d = new Date(endDate);
-        d.setDate(endDate.getDate() - i);
-        dates.push(d.toISOString().split('T')[0]);
-    }
-
-    const labels = dates.map(d => new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }));
-    const data = dates.map(d => entregasDiarias[d] || 0);
-
-    // 2. Renderiza o gráfico
-    renderChart('evolucaoEntregasDiaChart', 'line', {
-        labels: labels,
-        datasets: [{ 
-            label: 'Total de Entregas', 
-            data: data, 
-            borderColor: '#10B981',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-            fill: true,
-            tension: 0.3,
-            pointBackgroundColor: '#10B981'
-        }]
-    }, { 
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            datalabels: {
-                display: true,
-                color: '#333',
-                anchor: 'end',
-                align: 'top',
-                formatter: (value) => value > 0 ? value : null
-            },
-            tooltip: {
-                callbacks: {
-                    title: (context) => `Dia: ${context[0].label}`,
-                    label: (context) => ` Entregas: ${context.raw}`
-                }
-            },
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                title: {
-                    display: true,
-                    text: 'Nº de Entregas (Saídas)'
-                }
-            }
-        }
-    });
-}
+        
 
        function renderLojasRankingChart(lojasData) {
             const ranking = Object.values(lojasData)
@@ -7745,22 +7684,6 @@ async function openOrdemCarregamentoModal(expeditionId) {
     }
 }
 
-/**
- * Função auxiliar para encontrar o elemento sobre o qual o item está sendo arrastado.
- */
-function getDragAfterElement(container, y) {
-    const draggableElements = [...container.querySelectorAll('li[draggable="true"]:not(.dragging)')];
-
-    return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
-        if (offset < 0 && offset > closest.offset) {
-            return { offset: offset, element: child };
-        } else {
-            return closest;
-        }
-    }, { offset: Number.NEGATIVE_INFINITY }).element;
-}
 
 
 function closeOrdemCarregamentoModal() {
