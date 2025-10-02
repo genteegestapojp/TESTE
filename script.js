@@ -3848,115 +3848,149 @@ const deleteButton = canEdit ?
         }
         
         async function loadFrotaData() {
-            if (!selectedFilial) {
-                document.getElementById('ociosidadeBody').innerHTML = '<tr><td colspan="5" class="alert alert-error">Selecione uma filial primeiro!</td></tr>';
-                return;
-            }
+    if (!selectedFilial) {
+        document.getElementById('ociosidadeBody').innerHTML = '<tr><td colspan="5" class="alert alert-error">Selecione uma filial primeiro!</td></tr>';
+        return;
+    }
 
-            const tbody = document.getElementById('ociosidadeBody');
-            tbody.innerHTML = `<tr><td colspan="5" class="loading"><div class="spinner"></div>Calculando ociosidade...</td></tr>`;
+    const tbody = document.getElementById('ociosidadeBody');
+    tbody.innerHTML = `<tr><td colspan="5" class="loading"><div class="spinner"></div>Calculando ociosidade...</td></tr>`;
 
-            try {
-                // 1. Definir Período de Análise
-                const hoje = new Date();
-                const dataInicio = document.getElementById('frotaFiltroDataInicio').value || new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString().split('T')[0];
-                const dataFimInput = document.getElementById('frotaFiltroDataFim').value || hoje.toISOString().split('T')[0];
+    try {
+        // 1. Definir Período de Análise
+        const hoje = new Date();
+        const dataInicio = document.getElementById('frotaFiltroDataInicio').value || new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString().split('T')[0];
+        const dataFimInput = document.getElementById('frotaFiltroDataFim').value || hoje.toISOString().split('T')[0];
 
-                const startOfAnalysis = new Date(dataInicio + 'T00:00:00.000Z');
-                const endOfAnalysis = new Date(dataFimInput + 'T23:59:59.999Z');
+        const startOfAnalysis = new Date(dataInicio + 'T00:00:00.000Z');
+        const endOfAnalysis = new Date(dataFimInput + 'T23:59:59.999Z');
 
-                // 2. Buscar histórico de status relevante
-                const startQuery = new Date(startOfAnalysis);
-                startQuery.setDate(startQuery.getDate() - 1); // Pega um dia antes para garantir o status inicial
+        // 2. Buscar histórico de status relevante
+        const startQuery = new Date(startOfAnalysis);
+        startQuery.setDate(startQuery.getDate() - 1); // Pega um dia antes para garantir o status inicial
+        
+        // NOVO: A requisição agora busca o histórico de status de veículos da filial
+        const statusHistory = await supabaseRequest(`veiculos_status_historico?created_at=gte.${startQuery.toISOString()}&created_at=lte.${endOfAnalysis.toISOString()}&order=created_at.asc`, 'GET', null, false);
+
+        const ociosidadeData = [];
+
+        // NOVO: Filtrar veículos que NÃO estão em 'manutencao' e pertencem à filial
+        const veiculosFiltrados = veiculos.filter(v => v.filial === selectedFilial.nome && v.status !== 'manutencao');
+
+        for (const veiculo of veiculosFiltrados) {
+            const veiculoHistory = statusHistory.filter(h => h.veiculo_id === veiculo.id);
+
+            const lastStatusBeforePeriod = veiculoHistory
+                .filter(h => new Date(h.created_at) < startOfAnalysis)
+                .pop();
+            
+            let statusAtual = lastStatusBeforePeriod ? lastStatusBeforePeriod.status_novo : (veiculo.status || 'disponivel');
+            let ultimoTimestamp = startOfAnalysis;
+            let tempoOciosoTotal = 0;
+            let inicioOciosidadeAtual = statusAtual === 'disponivel' ? startOfAnalysis : null;
+
+            const historyInPeriod = veiculoHistory.filter(h => new Date(h.created_at) >= startOfAnalysis);
+            
+            historyInPeriod.forEach(evento => {
+                const tempoEvento = new Date(evento.created_at);
                 
-                const statusHistory = await supabaseRequest(`veiculos_status_historico?created_at=gte.${startQuery.toISOString()}&created_at=lte.${endOfAnalysis.toISOString()}&order=created_at.asc`, 'GET', null, false);
-
-                const ociosidadeData = [];
-
-                for (const veiculo of veiculos) {
-                    if (veiculo.filial !== selectedFilial.nome) continue;
-
-                    const veiculoHistory = statusHistory.filter(h => h.veiculo_id === veiculo.id);
-
-                    const lastStatusBeforePeriod = veiculoHistory
-                        .filter(h => new Date(h.created_at) < startOfAnalysis)
-                        .pop();
-                    
-                    let statusAtual = lastStatusBeforePeriod ? lastStatusBeforePeriod.status_novo : (veiculo.status || 'disponivel');
-                    let ultimoTimestamp = startOfAnalysis;
-                    let tempoOciosoTotal = 0;
-                    let inicioOciosidadeAtual = statusAtual === 'disponivel' ? startOfAnalysis : null;
-
-                    const historyInPeriod = veiculoHistory.filter(h => new Date(h.created_at) >= startOfAnalysis);
-                    
-                    historyInPeriod.forEach(evento => {
-                        const tempoEvento = new Date(evento.created_at);
-                        
-                        if (statusAtual === 'disponivel') {
-                            tempoOciosoTotal += (tempoEvento - ultimoTimestamp);
-                        }
-
-                        statusAtual = evento.status_novo;
-                        ultimoTimestamp = tempoEvento;
-                        
-                        if (statusAtual === 'disponivel') {
-                            if (!inicioOciosidadeAtual) inicioOciosidadeAtual = tempoEvento;
-                        } else {
-                            inicioOciosidadeAtual = null;
-                        }
-                    });
-
-                    if (statusAtual === 'disponivel') {
-                        tempoOciosoTotal += (endOfAnalysis - ultimoTimestamp);
-                    }
-
-                    ociosidadeData.push({
-                        placa: veiculo.placa,
-                        status: veiculo.status,
-                        idleTime: tempoOciosoTotal / 60000, // para minutos
-                        idleSince: inicioOciosidadeAtual,
-                        lastAction: ultimoTimestamp > startOfAnalysis ? ultimoTimestamp : null
-                    });
+                if (statusAtual === 'disponivel') {
+                    // Soma o tempo ocioso acumulado entre a última ação e este evento
+                    tempoOciosoTotal += (tempoEvento - ultimoTimestamp);
                 }
-                
-                const mediaOciosidade = ociosidadeData.length > 0 ? ociosidadeData.reduce((sum, v) => sum + v.idleTime, 0) / ociosidadeData.length : 0;
-                document.getElementById('totalOciosidade').textContent = minutesToHHMM(mediaOciosidade);
-                document.getElementById('frotaAtiva').textContent = veiculos.filter(v => v.status !== 'disponivel' && v.status !== 'folga' && v.status !== 'manutencao').length;
-                document.getElementById('frotaOciosa').textContent = veiculos.filter(v => v.status === 'disponivel').length;
-                
-                renderOciosidadeTable(ociosidadeData.sort((a, b) => b.idleTime - a.idleTime));
 
-            } catch (error) {
-                console.error('Erro ao carregar dados da frota:', error);
-                tbody.innerHTML = `<tr><td colspan="5" class="alert alert-error">Erro ao calcular ociosidade: ${error.message}</td></tr>`;
+                statusAtual = evento.status_novo;
+                ultimoTimestamp = tempoEvento;
+                
+                if (statusAtual === 'disponivel') {
+                    if (!inicioOciosidadeAtual) inicioOciosidadeAtual = tempoEvento;
+                } else {
+                    inicioOciosidadeAtual = null;
+                }
+            });
+
+            // Considera o tempo ocioso até o momento atual (endOfAnalysis)
+            if (statusAtual === 'disponivel') {
+                tempoOciosoTotal += (endOfAnalysis - ultimoTimestamp);
             }
+
+            // NOVO CÓDIGO: Calcula o tempo ocioso 'agora'
+            let tempoOciosoAtual = 0;
+            if (veiculo.status === 'disponivel') {
+                // Tenta achar a última mudança para 'disponivel' dentro do período
+                const lastIdleChange = veiculoHistory
+                    .filter(h => h.status_novo === 'disponivel' && new Date(h.created_at) >= startOfAnalysis)
+                    .pop();
+                
+                // Se achou, calcula o tempo entre o evento e o tempo atual (agora)
+                const inicioIdle = lastIdleChange ? new Date(lastIdleChange.created_at) : (inicioOciosidadeAtual || new Date());
+                tempoOciosoAtual = (new Date() - inicioIdle) / 60000; // Tempo em minutos até o 'agora'
+            }
+
+
+            ociosidadeData.push({
+                placa: veiculo.placa,
+                status: veiculo.status,
+                idleTime: tempoOciosoTotal / 60000, // Tempo Ocioso Total no Período (em minutos)
+                idleSince: veiculo.status === 'disponivel' ? inicioOciosidadeAtual : null, // Início da Ociosidade no Período
+                lastAction: ultimoTimestamp, // Último evento de status no período (ou inicio da análise)
+                // NOVO: Adiciona o tempo ocioso atual (do status 'disponivel')
+                currentIdleTime: tempoOciosoAtual 
+            });
         }
         
+        const mediaOciosidade = ociosidadeData.length > 0 ? ociosidadeData.reduce((sum, v) => sum + v.idleTime, 0) / ociosidadeData.length : 0;
+        document.getElementById('totalOciosidade').textContent = minutesToHHMM(mediaOciosidade);
+        document.getElementById('frotaAtiva').textContent = veiculosFiltrados.filter(v => v.status !== 'disponivel' && v.status !== 'folga').length;
+        document.getElementById('frotaOciosa').textContent = veiculosFiltrados.filter(v => v.status === 'disponivel').length;
+        
+        // Ordena pela ociosidade ATUAL (currentIdleTime)
+        renderOciosidadeTable(ociosidadeData.sort((a, b) => b.currentIdleTime - a.currentIdleTime));
+
+    } catch (error) {
+        console.error('Erro ao carregar dados da frota:', error);
+        tbody.innerHTML = `<tr><td colspan="5" class="alert alert-error">Erro ao calcular ociosidade: ${error.message}</td></tr>`;
+    }
+}
+        
         function renderOciosidadeTable(data) {
-            const tbody = document.getElementById('ociosidadeBody');
-            if (!tbody) return;
+    const tbody = document.getElementById('ociosidadeBody');
+    if (!tbody) return;
 
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">Nenhum dado de ociosidade encontrado para o período.</td></tr>';
-                return;
-            }
+    if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">Nenhum veículo ativo (excluindo manutenção) encontrado para o período.</td></tr>';
+        return;
+    }
 
-            tbody.innerHTML = data.map(v => {
-                const tempoOciosoDisplay = v.idleTime > 0 ? minutesToHHMM(v.idleTime) : '-';
-                const ociosoDesdeDisplay = v.idleSince ? new Date(v.idleSince).toLocaleString('pt-BR') : '-';
-                const ultimaAcaoDisplay = v.lastAction ? new Date(v.lastAction).toLocaleString('pt-BR') : '-';
-
-                return `
-                    <tr class="hover:bg-gray-50 text-sm">
-                        <td class="font-semibold">${v.placa}</td>
-                        <td><span class="status-badge status-${v.status.replace(/ /g, '_')}">${getStatusLabel(v.status)}</span></td>
-                        <td>${ociosoDesdeDisplay}</td>
-                        <td>${tempoOciosoDisplay}</td>
-                        <td>${ultimaAcaoDisplay}</td>
-                    </tr>
-                `;
-            }).join('');
+    tbody.innerHTML = data.map(v => {
+        // NOVO: Exibe o tempo ocioso APENAS se o status for 'disponivel'
+        const tempoOciosoDisplay = v.status === 'disponivel' && v.currentIdleTime > 0 ? minutesToHHMM(v.currentIdleTime) : '-';
+        // A coluna 'Início Ociosidade' é o inicio da contagem atual (se disponível), senão é o tempo total da análise
+        const ociosoDesdeDisplay = v.status === 'disponivel' && v.idleSince ? new Date(v.idleSince).toLocaleTimeString('pt-BR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
+        // NOVO: A coluna 'Última Ação' agora exibe o último timestamp de mudança de status (mesmo que não seja ocioso)
+        const ultimaAcaoDisplay = v.lastAction && new Date(v.lastAction).getTime() > new Date(document.getElementById('frotaFiltroDataInicio').value + 'T00:00:00.000Z').getTime() ? 
+            new Date(v.lastAction).toLocaleTimeString('pt-BR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : 
+            'N/A'; // Não exibe se for o timestamp do início da análise
+        
+        // Define a cor da linha com base no tempo ocioso atual
+        let rowClass = '';
+        if (v.status === 'disponivel') {
+             if (v.currentIdleTime > 120) rowClass = 'bg-red-100'; // > 2h ocioso
+             else if (v.currentIdleTime > 60) rowClass = 'bg-orange-100'; // > 1h ocioso
+             else if (v.currentIdleTime > 0) rowClass = 'bg-green-100'; // < 1h ocioso
         }
+
+        return `
+            <tr class="hover:bg-gray-50 text-sm ${rowClass}">
+                <td class="font-semibold">${v.placa}</td>
+                <td><span class="status-badge status-${v.status.replace(/ /g, '_')}">${getStatusLabel(v.status)}</span></td>
+                <td>${ociosoDesdeDisplay}</td>
+                <td class="font-bold">${tempoOciosoDisplay}</td>
+                <td>${ultimaAcaoDisplay}</td>
+            </tr>
+        `;
+    }).join('');
+}
 // --- FUNCIONALIDADES DO RASTREIO EM TEMPO REAL ---
 
 function populateRastreioFilters() {
