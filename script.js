@@ -8426,9 +8426,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('initialLoginForm').addEventListener('submit', handleInitialLogin);
 });
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
-// SUBSTITUIR A VERSÃO EXISTENTE DE handleInitialLogin (Aprox. linha 3737)
 async function handleInitialLogin(event) {
     event.preventDefault();
     const nome = document.getElementById('initialUser').value.trim();
@@ -8445,8 +8442,8 @@ async function handleInitialLogin(event) {
         // GARANTIA: Reseta o estado global antes da autenticação
         selectedFilial = null;
 
-        // 🚨 NOVO CÓDIGO SEGURO: Fetch que chama o proxy para autenticação 🚨
-        // O proxy precisa de um parâmetro 'endpoint' e do filtro na query para funcionar.
+        // Fetch que chama o proxy para autenticação
+        // Endpoint: Acessa a tabela 'acessos' e filtra por nome e senha
         const endpoint = `acessos?select=id,nome,grupo_id&nome=eq.${nome}&senha=eq.${senha}`;
         const authUrl = `${SUPABASE_PROXY_URL}?endpoint=${encodeURIComponent(endpoint)}`;
         
@@ -8461,8 +8458,8 @@ async function handleInitialLogin(event) {
         }
         
         const result = await authResponse.json();
-        // 🚨 FIM NOVO CÓDIGO 🚨
 
+        // VALIDAÇÃO CRÍTICA: Se a resposta for vazia, significa falha na autenticação
         if (!result || result.length === 0 || !result[0]) {
             alertContainer.innerHTML = '<div class="alert alert-error">Usuário ou senha incorretos.</div>';
             return;
@@ -8480,7 +8477,6 @@ async function handleInitialLogin(event) {
         
         // 2. Se o usuário é Master, ele ganha acesso a todas as filiais
         if (masterUserPermission) {
-            // Buscamos todas as filiais ATIVAS no banco (usa supabaseRequest com false, que chama o proxy)
             const todasFiliais = await supabaseRequest('filiais?select=nome&ativo=eq.true', 'GET', null, false);
             todasFiliais.forEach(f => userPermissions.push(`acesso_filial_${f.nome}`));
         }
@@ -8493,13 +8489,13 @@ async function handleInitialLogin(event) {
     } catch (err) {
         let msg = 'Erro ao verificar credenciais. Verifique a conexão.';
         if (err.message.includes('401')) {
+             // O ERRO 401 GERALMENTE INDICA RLS
              msg = `Erro crítico (401). Provavelmente a **RLS na sua tabela 'acessos' está ATIVADA** ou sua chave 'SUPABASE_ANON_KEY' está incorreta.`;
         }
         alertContainer.innerHTML = `<div class="alert alert-error">${msg}</div>`;
         console.error(err);
     }
 }
-
 
 // SUBSTITUIR A VERSÃO EXISTENTE DE showMainSystem
 async function showMainSystem() {
