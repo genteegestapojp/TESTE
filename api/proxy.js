@@ -1,5 +1,4 @@
-// api/proxy.js - Rota API segura hospedada no Vercel
-import fetch from 'node-fetch'; // Vercel Serverless Functions usam node-fetch por padrão
+
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY; 
