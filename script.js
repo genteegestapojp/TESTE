@@ -110,10 +110,7 @@ function hasPermission(permission) {
 }
 
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
-
 // SUBSTITUIR A FUNÇÃO supabaseRequest COMPLETA
-
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
     
     const [nomeEndpointBase, filtrosExistentes] = endpoint.split('?', 2);
@@ -124,6 +121,9 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
         url += `&${filtrosExistentes}`;
     }
     
+    // 🚨 FIX CRÍTICO 2: Ajuste o nome da coluna do filtro de leitura 🚨
+    // Por padrão, usa 'filial'. Mas se for 'expedition_items', talvez precise de 'expeditions!inner(filial)' ou 'lojas!inner(filial)' dependendo do seu esquema.
+    // Assumindo que a coluna 'filial' existe na maioria das tabelas para o RLS funcionar:
     if (includeFilialFilter && selectedFilial && method === 'GET') {
         url += `&filial=eq.${selectedFilial.nome}`;
     }
@@ -137,15 +137,20 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
     if (data && (method === 'POST' || method === 'PATCH' || method === 'PUT')) { 
         let payload = data;
         
-        // 🚨 CORREÇÃO CRÍTICA: INJETAR FILIAL APENAS NA TABELA DE EXPEDIÇÕES 🚨
-        if (includeFilialFilter && selectedFilial && nomeEndpointBase === 'expeditions') {
+        // 🚨 CORREÇÃO CRÍTICA 1: INJETAR FILIAL EM TODAS AS TABELAS QUE PRECISAM 🚨
+        // Assumindo que todas as tabelas de configuração (lideres, docas, veiculos, etc)
+        // e a tabela 'expeditions' precisam do campo 'filial'.
+        // A tabela 'expedition_items' não precisa, pois é ligada à 'expeditions'.
+        if (includeFilialFilter && selectedFilial && nomeEndpointBase !== 'expedition_items' && nomeEndpointBase !== 'lojas' && nomeEndpointBase !== 'motoristas') {
             if (Array.isArray(data)) {
+                // Para inserção em lote
                 payload = data.map(item => ({ ...item, filial: selectedFilial.nome }));
             } else {
-                // Se a tabela for 'expeditions', injeta o campo 'filial' no payload
+                // Para item único
                 payload = { ...data, filial: selectedFilial.nome }; 
             }
         }
+        
         options.body = JSON.stringify(payload);
     } 
     
@@ -157,7 +162,7 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
             let errorMessage = `Erro ${response.status}: ${errorText}`;
             try {
                 const errorJson = JSON.parse(errorText);
-                errorMessage = `Erro ${response.status}: ${errorJson.message || errorJson.message || errorText}`;
+                errorMessage = `Erro ${response.status}: ${errorJson.details || errorJson.message || errorText}`;
             } catch (e) { /* ignore JSON parse error */ }
             
             throw new Error(errorMessage);
