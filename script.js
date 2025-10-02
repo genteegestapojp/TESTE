@@ -3022,7 +3022,7 @@ async function renderMotoristasStatusList() {
 }
 
 
-// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 
 // SUBSTITUIR A FUNÇÃO renderMotoristasListHtml COMPLETA
 function renderMotoristasListHtml(motoristasData) {
@@ -3047,22 +3047,14 @@ const veiculoPlacaNoNome = m.veiculoPlaca && m.veiculoPlaca !== 'N/A' ?
     `<span class="${placaClass}" title="Veículo: ${m.veiculoPlaca}">${m.veiculoPlaca}</span>` : '';
 
         // Restauração dos botões de ação
+        // PERMITIR APENAS A CHEGADA NO CD E FINALIZAÇÃO DA DESCARGA DE IMOBILIZADO
         if ((m.displayStatus === 'retornando_cd' || m.displayStatus === 'retornando_com_imobilizado') && m.veiculoId) {
             actionButton = `<button class="btn btn-primary btn-small" onclick="marcarRetornoCD('${m.id}', '${m.veiculoId}')">Cheguei no CD</button>`;
         } else if (m.displayStatus === 'descarregando_imobilizado' && m.veiculoId) {
             actionButton = `<button class="btn btn-warning btn-small" onclick="finalizarDescargaImobilizado('${m.id}', '${m.veiculoId}')">Finalizar Descarga</button>`;
         }
         
-        // Se estiver em rota e em doca, mostra os botões de carregamento
-        if (m.activeExp && m.displayStatus !== 'saiu_para_entrega') {
-             const doca = docas.find(d => d.id === m.activeExp.doca_id);
-             const coddocaValue = doca?.coddoca || 'N/A';
-             if (m.displayStatus === 'aguardando_veiculo') {
-                  actionButton = `<button class="btn btn-success" onclick="openQrModal('iniciar', '${m.activeExp.id}', '${coddocaValue}')">Iniciar Carregamento</button>`;
-             } else if (m.displayStatus === 'em_carregamento') {
-                  actionButton = `<button class="btn btn-primary" onclick="openQrModal('finalizar', '${m.activeExp.id}', '${coddocaValue}')">Finalizar Carregamento</button>`;
-             }
-        }
+     
 
         let timeInfo = '';
         if (m.activeExp && m.displayStatus === 'saiu_para_entrega') {
