@@ -4509,8 +4509,14 @@ async function loadHistorico() {
     const container = document.getElementById('historicoList');
     container.innerHTML = `<div class="loading"><div class="spinner"></div>Carregando histórico...</div>`;
     try {
-        const expeditions = await supabaseRequest('expeditions?status=eq.entregue&order=data_hora.desc');
+        // ... (dentro da função loadHistorico, APROX. LINHA 4268)
+    const container = document.getElementById('historicoList');
+    container.innerHTML = `<div class="loading"><div class="spinner"></div>Carregando histórico...</div>`;
+    try {
+        // CORREÇÃO: Adicionar &limit=30 para garantir que as últimas 30 entregas sejam buscadas
+        const expeditions = await supabaseRequest('expeditions?status=eq.entregue&order=data_hora.desc&limit=30'); 
         const items = await supabaseRequest('expedition_items');
+
         
         allHistorico = expeditions.map(exp => {
             const expItems = items.filter(item => item.expedition_id === exp.id);
