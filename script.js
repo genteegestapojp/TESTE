@@ -3,11 +3,6 @@
    const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY; 
 
-// === ESTAS LINHAS SÃO CRÍTICAS PARA O DEBUG ===
-console.log("URL LIDA NO PROXY:", SUPABASE_URL ? 'OK' : 'FALHA');
-console.log("KEY LIDA NO PROXY:", SUPABASE_ANON_KEY ? 'OK' : 'FALHA'); 
-// =============================================
-
         // Variáveis globais (do sistema original)
         let lojas = [], docas = [], lideres = [], veiculos = [], motoristas = [], filiais = [];
         let selectedFilial = null;
