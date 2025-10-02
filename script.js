@@ -1,8 +1,5 @@
  Chart.register(ChartDataLabels);
        
-   const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY; 
-
         // Variáveis globais (do sistema original)
         let lojas = [], docas = [], lideres = [], veiculos = [], motoristas = [], filiais = [];
         let selectedFilial = null;
