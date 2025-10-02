@@ -109,8 +109,10 @@ function hasPermission(permission) {
     return userPermissions.includes(requiredPermission);
 }
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
 // SUBSTITUIR A FUNÇÃO supabaseRequest COMPLETA
+
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
     
     const [nomeEndpointBase, filtrosExistentes] = endpoint.split('?', 2);
@@ -121,10 +123,10 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
         url += `&${filtrosExistentes}`;
     }
     
-    // 🚨 FIX CRÍTICO 2: Ajuste o nome da coluna do filtro de leitura 🚨
-    // Por padrão, usa 'filial'. Mas se for 'expedition_items', talvez precise de 'expeditions!inner(filial)' ou 'lojas!inner(filial)' dependendo do seu esquema.
-    // Assumindo que a coluna 'filial' existe na maioria das tabelas para o RLS funcionar:
-    if (includeFilialFilter && selectedFilial && method === 'GET') {
+    // 🚨 CORREÇÃO CRÍTICA DO FILTRO DE LEITURA (GET) 🚨
+    // O filtro padrão é 'filial'. Deve ser aplicado na maioria das tabelas, exceto onde não há a coluna (ex: expedition_items, acessos, grupos_acesso).
+    // Nota: Se a sua tabela 'lojas' e 'motoristas' não tiver 'filial' no DB, adicione-as à exclusão.
+    if (includeFilialFilter && selectedFilial && method === 'GET' && nomeEndpointBase !== 'expedition_items' && nomeEndpointBase !== 'acessos' && nomeEndpointBase !== 'grupos_acesso') {
         url += `&filial=eq.${selectedFilial.nome}`;
     }
     
@@ -137,11 +139,9 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
     if (data && (method === 'POST' || method === 'PATCH' || method === 'PUT')) { 
         let payload = data;
         
-        // 🚨 CORREÇÃO CRÍTICA 1: INJETAR FILIAL EM TODAS AS TABELAS QUE PRECISAM 🚨
-        // Assumindo que todas as tabelas de configuração (lideres, docas, veiculos, etc)
-        // e a tabela 'expeditions' precisam do campo 'filial'.
-        // A tabela 'expedition_items' não precisa, pois é ligada à 'expeditions'.
-        if (includeFilialFilter && selectedFilial && nomeEndpointBase !== 'expedition_items' && nomeEndpointBase !== 'lojas' && nomeEndpointBase !== 'motoristas') {
+        // 🚨 CORREÇÃO CRÍTICA DA INJEÇÃO DE FILIAL NO PAYLOAD (POST/PATCH/PUT) 🚨
+        // Injete 'filial' em todas as tabelas (exceto expedition_items, que não a tem).
+        if (includeFilialFilter && selectedFilial && nomeEndpointBase !== 'expedition_items' && nomeEndpointBase !== 'filiais' && nomeEndpointBase !== 'acessos' && nomeEndpointBase !== 'grupos_acesso' && nomeEndpointBase !== 'pontos_interesse') {
             if (Array.isArray(data)) {
                 // Para inserção em lote
                 payload = data.map(item => ({ ...item, filial: selectedFilial.nome }));
@@ -150,7 +150,6 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
                 payload = { ...data, filial: selectedFilial.nome }; 
             }
         }
-        
         options.body = JSON.stringify(payload);
     } 
     
@@ -162,6 +161,7 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
             let errorMessage = `Erro ${response.status}: ${errorText}`;
             try {
                 const errorJson = JSON.parse(errorText);
+                // Tenta buscar a mensagem de erro mais detalhada do Supabase
                 errorMessage = `Erro ${response.status}: ${errorJson.details || errorJson.message || errorText}`;
             } catch (e) { /* ignore JSON parse error */ }
             
