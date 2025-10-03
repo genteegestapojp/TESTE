@@ -124,9 +124,9 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
         url += `&${filtrosExistentes}`;
     }
     
-    // Lista completa de tabelas que NÃO possuem campo 'filial'
+    // 🚨 LISTA ATUALIZADA: Tabelas que NÃO possuem campo 'filial' 🚨
+    // REMOVIDO expedition_items desta lista pois TEM o campo filial
     const tablesWithoutFilial = [
-        'expedition_items',
         'acessos',
         'grupos_acesso', 
         'permissoes_grupo',
@@ -137,8 +137,8 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
         'filiais' // A própria tabela de filiais não tem filtro de filial
     ];
     
-    // 🚨 FILTRO DE FILIAL APENAS EM GET (LEITURA) 🚨
-    // Só adiciona filtro de filial em requisições GET de tabelas que suportam
+    // 🚨 FILTRO DE FILIAL EM GET (LEITURA) 🚨
+    // Adiciona filtro de filial em requisições GET de tabelas que suportam
     if (includeFilialFilter && selectedFilial && method === 'GET' && 
         !tablesWithoutFilial.includes(nomeEndpointBase)) {
         url += `&filial=eq.${selectedFilial.nome}`;
@@ -158,25 +158,57 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
         } 
     }; 
     
-    // 🚨 PROCESSAMENTO DO PAYLOAD 🚨
+    // 🚨 PROCESSAMENTO DO PAYLOAD - CORREÇÃO CRÍTICA 🚨
     if (data && (method === 'POST' || method === 'PATCH' || method === 'PUT')) { 
         let payload = data;
         
-        // INJEÇÃO DE FILIAL NO PAYLOAD (apenas para tabelas que suportam)
-        // Injeta 'filial' apenas em tabelas que possuem esse campo
+        // INJEÇÃO DE FILIAL NO PAYLOAD
+        // Para expedition_items, NÃO injeta filial se includeFilialFilter for false
+        // Isso porque o trigger trg_set_filial_expedition_items já cuida disso
         if (includeFilialFilter && selectedFilial && !tablesWithoutFilial.includes(nomeEndpointBase)) {
-            if (Array.isArray(data)) {
-                // Para arrays, adiciona filial em cada item
-                payload = data.map(item => ({ 
-                    ...item, 
-                    filial: selectedFilial.nome 
-                }));
+            // 🚨 EXCEÇÃO ESPECIAL PARA expedition_items 🚨
+            // O trigger pode estar esperando que o campo venha NULL ou com valor específico
+            if (nomeEndpointBase === 'expedition_items') {
+                // Para expedition_items, vamos enviar o campo filial como NULL
+                // e deixar o trigger set_filial_expedition_items fazer o trabalho
+                if (Array.isArray(data)) {
+                    payload = data.map(item => ({
+                        ...item,
+                        filial: null // Envia NULL para o trigger processar
+                    }));
+                } else {
+                    payload = {
+                        ...data,
+                        filial: null // Envia NULL para o trigger processar
+                    };
+                }
             } else {
-                // Para objeto único, adiciona filial
-                payload = { 
-                    ...data, 
-                    filial: selectedFilial.nome 
-                }; 
+                // Para outras tabelas, injeta o valor da filial normalmente
+                if (Array.isArray(data)) {
+                    payload = data.map(item => ({ 
+                        ...item, 
+                        filial: selectedFilial.nome 
+                    }));
+                } else {
+                    payload = { 
+                        ...data, 
+                        filial: selectedFilial.nome 
+                    }; 
+                }
+            }
+        }
+        
+        // Se includeFilialFilter for false e for expedition_items, 
+        // garante que o campo filial seja NULL ou não seja enviado
+        if (!includeFilialFilter && nomeEndpointBase === 'expedition_items') {
+            if (Array.isArray(payload)) {
+                payload = payload.map(item => {
+                    const cleanItem = {...item};
+                    delete cleanItem.filial; // Remove o campo filial completamente
+                    return cleanItem;
+                });
+            } else if (typeof payload === 'object') {
+                delete payload.filial; // Remove o campo filial completamente
             }
         }
         
@@ -198,8 +230,10 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
         // Log para debug (remover em produção)
         console.log(`[supabaseRequest] ${method} ${url}`, {
             endpoint: nomeEndpointBase,
-            hasFilialFilter: includeFilialFilter && selectedFilial && !tablesWithoutFilial.includes(nomeEndpointBase),
-            dataKeys: data ? Object.keys(data) : null
+            hasFilialFilter: includeFilialFilter,
+            selectedFilial: selectedFilial?.nome,
+            payloadKeys: data ? Object.keys(data) : null,
+            isExpeditionItems: nomeEndpointBase === 'expedition_items'
         });
         
         // Faz a requisição
@@ -213,11 +247,14 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
             try {
                 const errorJson = JSON.parse(errorText);
                 
-                // Mensagens de erro mais específicas baseadas no status
+                // Mensagens de erro mais específicas baseadas no status e conteúdo
                 if (response.status === 400) {
                     // Erro de requisição mal formada
-                    if (errorJson.message && errorJson.message.includes('nome_filial')) {
-                        errorMessage = `Erro 400: Tentativa de inserir campo 'filial' em tabela incompatível (${nomeEndpointBase})`;
+                    if (errorJson.message && errorJson.message.includes('filial')) {
+                        errorMessage = `Erro 400: Problema com campo 'filial' em ${nomeEndpointBase}. Trigger pode estar rejeitando o valor.`;
+                        console.error('Detalhes do erro de filial:', errorJson);
+                    } else if (errorJson.message && errorJson.message.includes('nome_filial')) {
+                        errorMessage = `Erro 400: Campo 'nome_filial' não existe. Verifique o trigger set_filial_expedition_items.`;
                     } else {
                         errorMessage = `Erro 400: ${errorJson.message || errorJson.details || errorText}`;
                     }
@@ -226,27 +263,30 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
                     errorMessage = `Erro 401: Não autorizado. Verifique as credenciais do Supabase.`;
                 } else if (response.status === 403) {
                     // Erro de permissão (RLS)
-                    errorMessage = `Erro 403: Sem permissão. Verifique as políticas RLS no Supabase.`;
+                    errorMessage = `Erro 403: Sem permissão. Verifique as políticas RLS no Supabase para ${nomeEndpointBase}.`;
                 } else if (response.status === 404) {
                     // Recurso não encontrado
                     errorMessage = `Erro 404: Endpoint '${nomeEndpointBase}' não encontrado no Supabase.`;
                 } else if (response.status === 409) {
                     // Conflito (duplicata)
-                    errorMessage = `Erro 409: Registro duplicado. ${errorJson.message || ''}`;
+                    errorMessage = `Erro 409: Registro duplicado em ${nomeEndpointBase}. ${errorJson.message || ''}`;
                 } else {
                     errorMessage = `Erro ${response.status}: ${errorJson.message || errorJson.details || errorText}`;
                 }
+                
+                // Log detalhado do erro
+                console.error(`[supabaseRequest] Erro detalhado:`, {
+                    status: response.status,
+                    endpoint: nomeEndpointBase,
+                    method: method,
+                    errorJson: errorJson,
+                    payload: options.body
+                });
+                
             } catch (e) { 
                 // Se não conseguir fazer parse do JSON de erro, usa o texto puro
                 console.error('Erro ao fazer parse da resposta de erro:', e);
             }
-            
-            console.error(`[supabaseRequest] Erro na requisição:`, {
-                status: response.status,
-                endpoint: nomeEndpointBase,
-                method: method,
-                error: errorMessage
-            });
             
             throw new Error(errorMessage);
         }
@@ -293,6 +333,8 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
             
             if (error.message.includes('401')) {
                 userMessage = 'Erro de autenticação. Verifique as credenciais.';
+            } else if (error.message.includes('400') && nomeEndpointBase === 'expedition_items') {
+                userMessage = 'Erro ao salvar item da expedição. Verifique os dados.';
             } else if (error.message.includes('400')) {
                 userMessage = 'Dados inválidos enviados ao servidor.';
             } else if (error.message.includes('Failed to fetch')) {
