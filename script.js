@@ -122,7 +122,7 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
     }
     
     // 🚨 1. CORREÇÃO DE FILTRO GET (PARA LEITURA) 🚨
-    // Adiciona filtro 'filial' para leitura (GET) APENAS em tabelas que o possuem (excluindo itens/acessos).
+    // Exclui 'expedition_items' e outras tabelas de controle de acesso do filtro de FILIAL em requisições GET.
     if (includeFilialFilter && selectedFilial && method === 'GET' && nomeEndpointBase !== 'expedition_items' && nomeEndpointBase !== 'acessos' && nomeEndpointBase !== 'grupos_acesso' && nomeEndpointBase !== 'permissoes_grupo' && nomeEndpointBase !== 'permissoes_sistema' && nomeEndpointBase !== 'gps_tracking' && nomeEndpointBase !== 'veiculos_status_historico') {
         url += `&filial=eq.${selectedFilial.nome}`;
     }
@@ -138,6 +138,7 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
         
         // 🚨 2. CORREÇÃO DE INJEÇÃO NO PAYLOAD (resolve null value in filial e nome_filial) 🚨
         // Injete 'filial' (valor) para CRUD, exceto nas tabelas que não a possuem ou que não precisam de filtro de filial
+        // CRÍTICO: nomeEndpointBase !== 'expedition_items' garante que o campo 'filial' NUNCA é enviado.
         if (includeFilialFilter && selectedFilial && nomeEndpointBase !== 'expedition_items' && nomeEndpointBase !== 'filiais' && nomeEndpointBase !== 'acessos' && nomeEndpointBase !== 'grupos_acesso' && nomeEndpointBase !== 'pontos_interesse' && nomeEndpointBase !== 'permissoes_grupo') {
             if (Array.isArray(data)) {
                 payload = data.map(item => ({ ...item, filial: selectedFilial.nome }));
@@ -5494,7 +5495,8 @@ function addEditLojaLine(item = null) {
             document.querySelector(`[data-edit-index="${index}"]`)?.remove();
         }
 
-     // SUBSTITUIR A FUNÇÃO saveEditedExpedition COMPLETA
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 async function saveEditedExpedition() {
   const expeditionId = document.getElementById('editExpeditionId').value;
   const newVeiculo = document.getElementById('editVeiculo').value;
@@ -5583,6 +5585,7 @@ async function saveEditedExpedition() {
       !newItemsData.some(newItem => newItem.loja_id === originalItem.loja_id)
     );
     for (const item of itemsToRemove) {
+      // 🚨 FIX CRÍTICO: Garante que a exclusão não envie filtro de filial (4º parâmetro = false)
       updatePromises.push(
         supabaseRequest(`expedition_items?id=eq.${item.id}`, 'DELETE', null, false)
       );
@@ -5609,6 +5612,7 @@ async function saveEditedExpedition() {
         }
         
         if (needsUpdate) {
+            // 🚨 FIX CRÍTICO: Garante que o PATCH não envie filtro de filial (4º parâmetro = false)
             updatePromises.push(
                 supabaseRequest(`expedition_items?id=eq.${existingItem.id}`, 'PATCH', payload, false)
             );
@@ -5622,6 +5626,7 @@ async function saveEditedExpedition() {
           rolltrainers: newItem.rolltrainers,
           status_descarga: 'pendente'
         };
+        // 🚨 FIX CRÍTICO: Garante que o POST não envie filtro de filial (4º parâmetro = false)
         updatePromises.push(
           supabaseRequest('expedition_items', 'POST', payload, false)
         );
