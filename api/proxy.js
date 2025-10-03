@@ -50,37 +50,38 @@ export default async (req, res) => {
         },
     };
 
-    // Processar o body da requisição
-    if (req.body && ['POST', 'PATCH', 'PUT'].includes(req.method)) {
-        let bodyContent = req.body;
-        
-        // Remover campos de filial de tabelas que não os possuem
-        if (tablesWithoutFilial.includes(endpoint)) {
-            if (typeof bodyContent === 'string') {
-                try {
-                    bodyContent = JSON.parse(bodyContent);
-                } catch (e) {}
-            }
-            
-            if (typeof bodyContent === 'object') {
-                // Remove campos de filial que possam ter sido injetados incorretamente
-                delete bodyContent.filial;
-                delete bodyContent.nome_filial;
-                
-                // Para arrays, processa cada item
-                if (Array.isArray(bodyContent)) {
-                    bodyContent = bodyContent.map(item => {
-                        const cleanItem = {...item};
-                        delete cleanItem.filial;
-                        delete cleanItem.nome_filial;
-                        return cleanItem;
-                    });
-                }
-            }
-        }
-        
-        options.body = typeof bodyContent === 'string' ? bodyContent : JSON.stringify(bodyContent);
+   // api/proxy.js - Parte relevante
+// Dentro da função do proxy, na seção de processamento do body:
+
+if (req.body && ['POST', 'PATCH', 'PUT'].includes(req.method)) {
+    let bodyContent = req.body;
+    
+    // Lista de tabelas que não devem receber campo filial no payload
+    const tablesWithTriggerFilial = ['expedition_items'];
+    
+    if (typeof bodyContent === 'string') {
+        try {
+            bodyContent = JSON.parse(bodyContent);
+        } catch (e) {}
     }
+    
+    // Remove campo filial de expedition_items (o trigger cuida)
+    if (tablesWithTriggerFilial.includes(endpoint) && typeof bodyContent === 'object') {
+        if (Array.isArray(bodyContent)) {
+            bodyContent = bodyContent.map(item => {
+                const cleanItem = {...item};
+                delete cleanItem.filial;
+                delete cleanItem.nome_filial;
+                return cleanItem;
+            });
+        } else {
+            delete bodyContent.filial;
+            delete bodyContent.nome_filial;
+        }
+    }
+    
+    options.body = typeof bodyContent === 'string' ? bodyContent : JSON.stringify(bodyContent);
+}
     
     // Configurar headers de Preferência para upsert
     if (req.method === 'POST' && req.query.upsert === 'true') {
