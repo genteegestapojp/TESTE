@@ -111,6 +111,8 @@ function hasPermission(permission) {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
     
     // Separa o endpoint base dos filtros existentes
@@ -118,6 +120,11 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
     
     // Constrói a URL começando com o proxy e o endpoint base
     let url = `${SUPABASE_PROXY_URL}?endpoint=${nomeEndpointBase}`; 
+    
+    // Adiciona flag de upsert se necessário ANTES dos filtros existentes
+    if (method === 'POST' && upsert) {
+        url += '&upsert=true';
+    }
     
     // Adiciona filtros existentes se houver
     if (filtrosExistentes) {
@@ -148,11 +155,6 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
         url += `&filial=eq.${selectedFilial.nome}`;
     }
     
-    // Adiciona flag de upsert se necessário
-    if (method === 'POST' && upsert) {
-        url += '&upsert=true';
-    }
-
     // Configura as opções da requisição
     const options = { 
         method, 
