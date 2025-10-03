@@ -113,67 +113,196 @@ function hasPermission(permission) {
 
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
     
+    // Separa o endpoint base dos filtros existentes
     const [nomeEndpointBase, filtrosExistentes] = endpoint.split('?', 2);
     
+    // Constrói a URL começando com o proxy e o endpoint base
     let url = `${SUPABASE_PROXY_URL}?endpoint=${nomeEndpointBase}`; 
     
+    // Adiciona filtros existentes se houver
     if (filtrosExistentes) {
         url += `&${filtrosExistentes}`;
     }
     
-    // 🚨 1. CORREÇÃO DE FILTRO GET (PARA LEITURA) 🚨
-    // Exclui 'expedition_items' e outras tabelas de controle de acesso do filtro de FILIAL em requisições GET.
-    if (includeFilialFilter && selectedFilial && method === 'GET' && nomeEndpointBase !== 'expedition_items' && nomeEndpointBase !== 'acessos' && nomeEndpointBase !== 'grupos_acesso' && nomeEndpointBase !== 'permissoes_grupo' && nomeEndpointBase !== 'permissoes_sistema' && nomeEndpointBase !== 'gps_tracking' && nomeEndpointBase !== 'veiculos_status_historico') {
+    // Lista completa de tabelas que NÃO possuem campo 'filial'
+    const tablesWithoutFilial = [
+        'expedition_items',
+        'acessos',
+        'grupos_acesso', 
+        'permissoes_grupo',
+        'permissoes_sistema',
+        'gps_tracking',
+        'veiculos_status_historico',
+        'pontos_interesse',
+        'filiais' // A própria tabela de filiais não tem filtro de filial
+    ];
+    
+    // 🚨 FILTRO DE FILIAL APENAS EM GET (LEITURA) 🚨
+    // Só adiciona filtro de filial em requisições GET de tabelas que suportam
+    if (includeFilialFilter && selectedFilial && method === 'GET' && 
+        !tablesWithoutFilial.includes(nomeEndpointBase)) {
         url += `&filial=eq.${selectedFilial.nome}`;
     }
     
+    // Adiciona flag de upsert se necessário
     if (method === 'POST' && upsert) {
-         url += '&upsert=true';
+        url += '&upsert=true';
     }
 
-    const options = { method, headers: { ...headers } }; 
+    // Configura as opções da requisição
+    const options = { 
+        method, 
+        headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        } 
+    }; 
     
+    // 🚨 PROCESSAMENTO DO PAYLOAD 🚨
     if (data && (method === 'POST' || method === 'PATCH' || method === 'PUT')) { 
         let payload = data;
         
-        // 🚨 2. CORREÇÃO DE INJEÇÃO NO PAYLOAD (resolve null value in filial e nome_filial) 🚨
-        // Injete 'filial' (valor) para CRUD, exceto nas tabelas que não a possuem ou que não precisam de filtro de filial
-        // CRÍTICO: nomeEndpointBase !== 'expedition_items' garante que o campo 'filial' NUNCA é enviado.
-        if (includeFilialFilter && selectedFilial && nomeEndpointBase !== 'expedition_items' && nomeEndpointBase !== 'filiais' && nomeEndpointBase !== 'acessos' && nomeEndpointBase !== 'grupos_acesso' && nomeEndpointBase !== 'pontos_interesse' && nomeEndpointBase !== 'permissoes_grupo') {
+        // INJEÇÃO DE FILIAL NO PAYLOAD (apenas para tabelas que suportam)
+        // Injeta 'filial' apenas em tabelas que possuem esse campo
+        if (includeFilialFilter && selectedFilial && !tablesWithoutFilial.includes(nomeEndpointBase)) {
             if (Array.isArray(data)) {
-                payload = data.map(item => ({ ...item, filial: selectedFilial.nome }));
+                // Para arrays, adiciona filial em cada item
+                payload = data.map(item => ({ 
+                    ...item, 
+                    filial: selectedFilial.nome 
+                }));
             } else {
-                payload = { ...data, filial: selectedFilial.nome }; 
+                // Para objeto único, adiciona filial
+                payload = { 
+                    ...data, 
+                    filial: selectedFilial.nome 
+                }; 
             }
         }
         
+        // Converte o payload para JSON string
         options.body = JSON.stringify(payload);
     } 
     
-    // Lógica de Prefer (headers) para retornar dados
+    // Configura header Prefer para retornar dados após operação
     if (method === 'PATCH' || method === 'POST') {
-        options.headers.Prefer = options.headers.Prefer || 'return=representation';
+        options.headers.Prefer = 'return=representation';
+    }
+    
+    // Se for upsert, adiciona a preferência específica
+    if (method === 'POST' && upsert) {
+        options.headers.Prefer = 'return=representation,resolution=merge-duplicates';
     }
 
     try {
+        // Log para debug (remover em produção)
+        console.log(`[supabaseRequest] ${method} ${url}`, {
+            endpoint: nomeEndpointBase,
+            hasFilialFilter: includeFilialFilter && selectedFilial && !tablesWithoutFilial.includes(nomeEndpointBase),
+            dataKeys: data ? Object.keys(data) : null
+        });
+        
+        // Faz a requisição
         const response = await fetch(url, options);
         
+        // Tratamento de erros HTTP
         if (!response.ok) {
             const errorText = await response.text();
             let errorMessage = `Erro ${response.status}: ${errorText}`;
+            
             try {
                 const errorJson = JSON.parse(errorText);
-                errorMessage = `Erro ${response.status}: ${errorJson.details || errorJson.message || errorText}`;
-            } catch (e) { /* ignore JSON parse error */ }
+                
+                // Mensagens de erro mais específicas baseadas no status
+                if (response.status === 400) {
+                    // Erro de requisição mal formada
+                    if (errorJson.message && errorJson.message.includes('nome_filial')) {
+                        errorMessage = `Erro 400: Tentativa de inserir campo 'filial' em tabela incompatível (${nomeEndpointBase})`;
+                    } else {
+                        errorMessage = `Erro 400: ${errorJson.message || errorJson.details || errorText}`;
+                    }
+                } else if (response.status === 401) {
+                    // Erro de autenticação
+                    errorMessage = `Erro 401: Não autorizado. Verifique as credenciais do Supabase.`;
+                } else if (response.status === 403) {
+                    // Erro de permissão (RLS)
+                    errorMessage = `Erro 403: Sem permissão. Verifique as políticas RLS no Supabase.`;
+                } else if (response.status === 404) {
+                    // Recurso não encontrado
+                    errorMessage = `Erro 404: Endpoint '${nomeEndpointBase}' não encontrado no Supabase.`;
+                } else if (response.status === 409) {
+                    // Conflito (duplicata)
+                    errorMessage = `Erro 409: Registro duplicado. ${errorJson.message || ''}`;
+                } else {
+                    errorMessage = `Erro ${response.status}: ${errorJson.message || errorJson.details || errorText}`;
+                }
+            } catch (e) { 
+                // Se não conseguir fazer parse do JSON de erro, usa o texto puro
+                console.error('Erro ao fazer parse da resposta de erro:', e);
+            }
+            
+            console.error(`[supabaseRequest] Erro na requisição:`, {
+                status: response.status,
+                endpoint: nomeEndpointBase,
+                method: method,
+                error: errorMessage
+            });
             
             throw new Error(errorMessage);
         }
         
-        return method === 'DELETE' ? null : await response.json();
+        // Processa a resposta bem-sucedida
+        const contentType = response.headers.get('content-type');
+        
+        // Se for DELETE ou resposta vazia, retorna null
+        if (method === 'DELETE' || response.status === 204 || !contentType?.includes('application/json')) {
+            return null;
+        }
+        
+        // Tenta fazer parse do JSON
+        try {
+            const responseData = await response.json();
+            
+            // Log de sucesso para debug (remover em produção)
+            console.log(`[supabaseRequest] Sucesso:`, {
+                endpoint: nomeEndpointBase,
+                method: method,
+                recordsReturned: Array.isArray(responseData) ? responseData.length : 1
+            });
+            
+            return responseData;
+        } catch (jsonError) {
+            console.error('[supabaseRequest] Erro ao fazer parse do JSON de resposta:', jsonError);
+            // Se não conseguir fazer parse, retorna null ao invés de quebrar
+            return null;
+        }
+        
     } catch (error) {
-        console.error(`Falha na requisição: ${method} ${url}`, error);
-        showNotification(`Erro de comunicação com o servidor: ${error.message}`, 'error');
-        throw error;
+        // Trata erros de rede e outros erros não capturados
+        console.error(`[supabaseRequest] Falha na requisição: ${method} ${url}`, error);
+        
+        // Adiciona contexto ao erro
+        const enhancedError = new Error(`Erro de comunicação com o servidor: ${error.message}`);
+        enhancedError.endpoint = nomeEndpointBase;
+        enhancedError.method = method;
+        enhancedError.originalError = error;
+        
+        // Mostra notificação ao usuário (se a função existir)
+        if (typeof showNotification === 'function') {
+            let userMessage = 'Erro de comunicação com o servidor.';
+            
+            if (error.message.includes('401')) {
+                userMessage = 'Erro de autenticação. Verifique as credenciais.';
+            } else if (error.message.includes('400')) {
+                userMessage = 'Dados inválidos enviados ao servidor.';
+            } else if (error.message.includes('Failed to fetch')) {
+                userMessage = 'Sem conexão com o servidor. Verifique sua internet.';
+            }
+            
+            showNotification(userMessage, 'error');
+        }
+        
+        throw enhancedError;
     }
 }
         // NOVO: Função de notificação aprimorada
