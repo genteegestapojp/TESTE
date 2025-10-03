@@ -7821,7 +7821,27 @@ async function getMapMatchedRoute(coordinates) {
         throw new Error('Falha no Map Matching: Servidor OSRM instável.');
     }
 }
+// NOVO: Função auxiliar para o Drag and Drop
+function getDragAfterElement(container, y) {
+    // Retorna todos os elementos arrastáveis que NÃO estão sendo arrastados
+    const draggableElements = [...container.querySelectorAll('li[draggable="true"]:not(.dragging)')];
 
+    // Encontra o elemento mais próximo do ponto Y do cursor
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        // Calcula a distância do meio do elemento até o cursor Y
+        const offset = y - box.top - box.height / 2;
+        
+        // Se a distância for negativa e mais próxima do zero (acima do meio do elemento)
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: -Infinity }).element;
+}
+
+// ... O resto do seu script.js continua aqui
 
 async function openOrdemCarregamentoModal(expeditionId) {
     const modal = document.getElementById('ordemCarregamentoModal');
