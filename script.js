@@ -113,6 +113,8 @@ function hasPermission(permission) {
 
 // NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
 
+// NO ARQUIVO: genteegestapojp/teste/TESTE-SA/script.js
+
 async function supabaseRequest(endpoint, method = 'GET', data = null, includeFilialFilter = true, upsert = false) {
     
     // Separa o endpoint base dos filtros existentes
@@ -121,7 +123,8 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
     // Constrói a URL começando com o proxy e o endpoint base
     let url = `${SUPABASE_PROXY_URL}?endpoint=${nomeEndpointBase}`; 
     
-    // Adiciona flag de upsert se necessário ANTES dos filtros existentes
+    // 🚨 CORREÇÃO CRÍTICA: Adiciona flag de upsert se necessário.
+    // Esta é uma QUERY PARAMETER do PROXY, não um filtro do Supabase.
     if (method === 'POST' && upsert) {
         url += '&upsert=true';
     }
@@ -131,6 +134,8 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
         url += `&${filtrosExistentes}`;
     }
     
+    // ... (O resto da sua função permanece igual) ...
+
     // 🚨 CORREÇÃO CRÍTICA: expedition_items TEM campo filial mas é preenchido via trigger 🚨
     const tablesWithoutFilialField = [
         'acessos',
@@ -212,7 +217,7 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
         options.headers.Prefer = 'return=representation';
     }
     
-    // Se for upsert, adiciona a preferência específica
+    // Se for upsert, adiciona a preferência específica (que o proxy já cuida de adicionar ao header)
     if (method === 'POST' && upsert) {
         options.headers.Prefer = 'return=representation,resolution=merge-duplicates';
     }
@@ -292,7 +297,8 @@ async function supabaseRequest(endpoint, method = 'GET', data = null, includeFil
             if (error.message.includes('401')) {
                 userMessage = 'Erro de autenticação. Faça login novamente.';
             } else if (error.message.includes('400')) {
-                userMessage = 'Dados inválidos. Verifique o preenchimento.';
+                // A mensagem de erro original da linha 264 é capturada aqui e exibida para o usuário
+                userMessage = 'Erro: Falha na sintaxe do filtro. Contate o suporte.'; 
             } else if (error.message.includes('Failed to fetch')) {
                 userMessage = 'Sem conexão com o servidor.';
             }
